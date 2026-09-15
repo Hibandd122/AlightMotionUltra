@@ -288,27 +288,8 @@ static void hook_ALConsentFlowManager_showConsentFlow(id self, SEL _cmd) {
 
 
 - (void)applyThemeToView:(UIView *)view {
-
-    if (!view || !self.isOLEDDarkEnabled) return;
-
-    
-
-    NSString *clsName = NSStringFromClass([view class]);
-
-    if ([clsName containsString:@"Keyboard"] || [clsName containsString:@"TextEffects"]) {
-
-        return;
-
-    }
-
-    
-
-    if ([clsName containsString:@"Background"] || [clsName containsString:@"Container"] || [clsName containsString:@"Home"] || [clsName containsString:@"Project"]) {
-
-        view.backgroundColor = [self oledBackgroundColor];
-
-    }
-
+    // Disabled aggressive background override to prevent black screen issues on initial launch
+    return;
 }
 
 
@@ -1912,22 +1893,6 @@ static void (*orig_UIViewController_viewDidAppear)(UIViewController *, SEL, BOOL
 static void hook_UIViewController_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     if (orig_UIViewController_viewDidAppear) {
         orig_UIViewController_viewDidAppear(self, _cmd, animated);
-    }
-    
-    // Apply OLED theme if enabled
-    [[UMThemeManager sharedManager] applyThemeToView:self.view];
-
-    NSString *className = NSStringFromClass([self class]);
-    BOOL isEditorScreen = [className containsString:@"Edit"] || [className containsString:@"Timeline"] || [className containsString:@"Export"] || [className containsString:@"Inspector"] || [className containsString:@"Shape"];
-
-    if (isEditorScreen) {
-        [[AMHomeSettingsHUD sharedHUD] setFloatingButtonVisible:NO];
-    } else {
-        UIWindow *win = self.view.window ?: [UIApplication sharedApplication].windows.firstObject;
-        if (win) {
-            [[AMHomeSettingsHUD sharedHUD] installFloatingButtonOnWindow:win];
-            [[AMHomeSettingsHUD sharedHUD] setFloatingButtonVisible:YES];
-        }
     }
 }
 
