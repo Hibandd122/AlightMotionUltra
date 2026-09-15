@@ -136,10 +136,43 @@ static void hook_DTXWatermarkView_layoutSubviews(UIView *self, SEL _cmd) {
     [self removeFromSuperview];
 }
 
-// Swizzle Watermark popup presentation
-static id (*orig_WatermarkPopup_init)(id, SEL);
-static id hook_WatermarkPopup_init(id self, SEL _cmd) {
-    return nil; // Suppress popup instantiation
+// Swizzle Watermark popup layoutSubviews (safe dismissal without returning nil)
+static void (*orig_WatermarkPopup_layoutSubviews)(UIView *, SEL);
+static void hook_WatermarkPopup_layoutSubviews(UIView *self, SEL _cmd) {
+    if (orig_WatermarkPopup_layoutSubviews) {
+        orig_WatermarkPopup_layoutSubviews(self, _cmd);
+    }
+    self.hidden = YES;
+    self.alpha = 0.0;
+    [self removeFromSuperview];
+}
+
+// ---------------------------------------------------------
+// iOS 18 Crash Mitigation: AppLovin Consent Flow & UIViewController Presentation Safety
+// ---------------------------------------------------------
+static void (*orig_UIViewController_presentViewController)(UIViewController *, SEL, UIViewController *, BOOL, id);
+static void hook_UIViewController_presentViewController(UIViewController *self, SEL _cmd, UIViewController *vc, BOOL animated, id completion) {
+    @try {
+        if (orig_UIViewController_presentViewController) {
+            orig_UIViewController_presentViewController(self, _cmd, vc, animated, completion);
+        }
+    } @catch (NSException *e) {
+        NSLog(@"[AlightMotionUltra] Safely caught presentation exception: %@", e.reason);
+        if (completion) {
+            void (^block)(void) = completion;
+            block();
+        }
+    }
+}
+
+static void (*orig_ALConsentFlowStateMachine_transitionToState)(id, SEL, id);
+static void hook_ALConsentFlowStateMachine_transitionToState(id self, SEL _cmd, id state) {
+    // Neutralize ad consent flow state machine on Pro version
+}
+
+static void (*orig_ALConsentFlowManager_showConsentFlow)(id, SEL);
+static void hook_ALConsentFlowManager_showConsentFlow(id self, SEL _cmd) {
+    // Neutralize ad consent flow initiation on Pro version
 }
 
 #pragma mark 1. UMThemeManager: Centralized Full Dark Mode OLED (#07080B)
@@ -1943,13 +1976,38 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        // 6. Swizzle WatermarkPopup
+        // 6. Swizzle WatermarkPopup layoutSubviews
         Class popClass = objc_getClass("_TtC12AlightMotion14WatermarkPopup");
         if (popClass) {
-            Method mInit = class_getInstanceMethod(popClass, @selector(init));
-            if (mInit) {
-                orig_WatermarkPopup_init = (void *)method_getImplementation(mInit);
-                method_setImplementation(mInit, (IMP)hook_WatermarkPopup_init);
+            Method mLayout = class_getInstanceMethod(popClass, @selector(layoutSubviews));
+            if (mLayout) {
+                orig_WatermarkPopup_layoutSubviews = (void *)method_getImplementation(mLayout);
+                method_setImplementation(mLayout, (IMP)hook_WatermarkPopup_layoutSubviews);
+            }
+        }
+
+        // 6.1 Swizzle UIViewController presentViewController:animated:completion: (iOS 18 Crash Guard)
+        Method mPresent = class_getInstanceMethod([UIViewController class], @selector(presentViewController:animated:completion:));
+        if (mPresent) {
+            orig_UIViewController_presentViewController = (void *)method_getImplementation(mPresent);
+            method_setImplementation(mPresent, (IMP)hook_UIViewController_presentViewController);
+        }
+
+        // 6.2 Suppress AppLovin Consent Flow crashes
+        Class alStateClass = objc_getClass("ALConsentFlowStateMachine");
+        if (alStateClass) {
+            Method mTrans = class_getInstanceMethod(alStateClass, sel_registerName("transitionToState:"));
+            if (mTrans) {
+                orig_ALConsentFlowStateMachine_transitionToState = (void *)method_getImplementation(mTrans);
+                method_setImplementation(mTrans, (IMP)hook_ALConsentFlowStateMachine_transitionToState);
+            }
+        }
+        Class alMgrClass = objc_getClass("ALConsentFlowManager");
+        if (alMgrClass) {
+            Method mShow = class_getInstanceMethod(alMgrClass, sel_registerName("showConsentFlowIfNeededAndInitialize"));
+            if (mShow) {
+                orig_ALConsentFlowManager_showConsentFlow = (void *)method_getImplementation(mShow);
+                method_setImplementation(mShow, (IMP)hook_ALConsentFlowManager_showConsentFlow);
             }
         }
 
