@@ -1,0 +1,283 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.halftone_displace_edges" name="Halftone Plus" desc="Two-color rotatable halftone dot screen with dot size/spacing/scale, elliptical dots, and tone controls. Extras: color-match-driven UV displacement of the background, an edges-only mode that masks the halftone by a blurred Sobel edge detect, and sampled-color dot mode." category="drawingedge" thumb="thumb/Stylize/Halftone Plus.webp" tags="halftone,displace,edges,screen,dot" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="dotSize" default="24.0" min="1.0" max="200.0" step="1.0" label="Dot Size (px)" />
+    <slider id="spacing" default="28.0" min="1.0" max="400.0" step="1.0" label="Dot Spacing (px)" />
+    <slider id="angle" default="0.0" min="0.0" max="360.0" step="0.1" label="Angle (deg)" />
+    <slider id="progress" default="0.0" min="0.0" max="1.0" step="0.001" label="Rotation Progress" />
+    <slider id="scale" default="1.0" min="0.1" max="5.0" step="0.01" label="Dot Scale" />
+    <switch id="ellipse" default="false" label="Ellipse Dots" />
+    <slider id="ellipseX" default="1.0" min="0.1" max="4.0" step="0.01" label="Ellipse X Scale" />
+    <slider id="ellipseY" default="0.6" min="0.1" max="4.0" step="0.01" label="Ellipse Y Scale" />
+
+    
+    <color id="primaryColor" default="#000000FF" label="Primary Color (drives displacement)" alpha="false" />
+    <color id="secondaryColor" default="#FFFFFFFF" label="Secondary Color" alpha="false" />
+    <switch id="colorMode" default="false" label="Use sampled color for dots (when off uses colours)" />
+
+    
+    <slider id="contrast" default="1.0" min="0.0" max="3.0" step="0.01" label="Contrast" />
+    <slider id="brightness" default="0.0" min="-1.0" max="1.0" step="0.01" label="Brightness" />
+    <slider id="edgeSoft" default="0.5" min="0.0" max="3.0" step="0.01" label="Edge Softness" />
+
+    
+    <switch id="useDisplacement" default="false" label="Enable Displacement" />
+    <slider id="dispAmount" default="18.0" min="-200.0" max="200.0" step="0.1" label="Displacement Strength (px)" />
+    <slider id="dispThreshold" default="0.25" min="0.0" max="1.0" step="0.01" label="Color Match Threshold" />
+    <switch id="dispInvert" default="false" label="Invert Displacement (push vs pull)" />
+    <slider id="dispSoft" default="0.2" min="0.0" max="1.0" step="0.01" label="Displacement Softness" />
+
+    
+    <switch id="edgesHalftone" default="false" label="Edges Halftone Only" />
+    <slider id="edgeThreshold" default="0.12" min="0.0" max="1.0" step="0.005" label="Edge Detection Threshold" />
+    <slider id="edgeBlur" default="2.0" min="0.0" max="8.0" step="0.1" label="Edge Mask Blur (softness)" />
+    <slider id="edgeStrength" default="1.0" min="0.0" max="3.0" step="0.01" label="Edge Mask Strength" />
+
+    
+    <switch id="overlay" default="true" label="Overlay on Source" />
+    
+    <slider id="blend" default="1.0" min="0.0" max="1.0" step="0.01" label="Mix" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Helpers
+    vec2 getResolution(){
+      vec2 s = getTexSize(inputImg.size);
+      if (s.x &lt;= 0.0 || s.y &lt;= 0.0) s = vec2(1920.0, 1080.0);
+      return s;
+    }
+    vec2 rot(vec2 p, float a){
+      float c = cos(a);
+      float s = sin(a);
+      return vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+    }
+    float applyToneF(float v, float contrast, float brightness){
+      v = (v - 0.5) * contrast + 0.5 + brightness;
+      return clamp(v, 0.0, 1.0);
+    }
+    float colorDist(vec3 a, vec3 b){ return length(a - b); }
+
+    // Sobel edge detector (luminance-based)
+    float sobelEdge(vec2 uv, vec2 px){
+      // sample 3x3 luminances
+      float tl = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(-px.x, -px.y), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      float  l = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -px.y), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      float tr = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(px.x, -px.y), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      float ml = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(-px.x, 0.0), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      // centre tap has Sobel weight 0 in both gx and gy - never fetched
+      float mr = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(px.x, 0.0), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      float bl = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(-px.x, px.y), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      float  b = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, px.y), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+      float br = dot(texture2DCv(inputImg.texture, clamp(uv + vec2(px.x, px.y), vec2(0.0), vec2(1.0))).rgb, vec3(0.2126,0.7152,0.0722));
+
+      // Sobel X and Y
+      float gx = -tl - 2.0*ml - bl + tr + 2.0*mr + br;
+      float gy = -tl - 2.0*l - tr + bl + 2.0*b + br;
+      return length(vec2(gx, gy));
+    }
+
+    // Box blur of the Sobel magnitude.
+    // Two changes vs. the naive version:
+    //  - the effective radius is clamped to 3 px (compile-time constant loop
+    //    bounds; larger UI values are visually saturated because the mask ramp
+    //    below already widens with edgeBlur),
+    //  - the 3x3 Sobel neighbourhoods of adjacent taps overlap almost entirely,
+    //    so the luminance of the whole (2r+3)^2 window is fetched ONCE into a
+    //    cache and every tap's Sobel is evaluated from that cache. Worst case
+    //    drops from 289 taps * 9 fetches = 2601 down to 81 fetches.
+    float blurMask(vec2 uv, vec2 px, float radius){
+      int ri = int(min(3.0, max(0.0, floor(radius))));
+      int lo = 3 - ri;            // first cache row/col actually needed
+      int hi = 5 + ri;            // last cache row/col actually needed
+      float lumc[81];             // 9x9 luminance cache, offsets -4..+4 px
+      for(int a = 0; a &lt; 9; a++){
+        for(int b = 0; b &lt; 9; b++){
+          float lv = 0.0;
+          if(a &gt;= lo &amp;&amp; a &lt;= hi &amp;&amp; b &gt;= lo &amp;&amp; b &lt;= hi){
+            vec2 p = clamp(uv + vec2(float(b - 4) * px.x, float(a - 4) * px.y), vec2(0.0), vec2(1.0));
+            lv = dot(texture2DCv(inputImg.texture, p).rgb, vec3(0.2126,0.7152,0.0722));
+          }
+          lumc[a * 9 + b] = lv;
+        }
+      }
+      float s = 0.0;
+      float count = 0.0;
+      for(int ty = 0; ty &lt; 7; ty++){
+        if(ty &lt; 3 - ri || ty &gt; 3 + ri) continue;
+        for(int tx = 0; tx &lt; 7; tx++){
+          if(tx &lt; 3 - ri || tx &gt; 3 + ri) continue;
+          // tap centre offset is (tx-3, ty-3); its 3x3 neighbourhood maps to
+          // cache rows ty..ty+2 and cols tx..tx+2
+          float tl = lumc[ty * 9 + tx];
+          float tc = lumc[ty * 9 + tx + 1];
+          float tr = lumc[ty * 9 + tx + 2];
+          float ml = lumc[(ty + 1) * 9 + tx];
+          float mr = lumc[(ty + 1) * 9 + tx + 2];
+          float bl = lumc[(ty + 2) * 9 + tx];
+          float bc = lumc[(ty + 2) * 9 + tx + 1];
+          float br = lumc[(ty + 2) * 9 + tx + 2];
+          float gx = -tl - 2.0*ml - bl + tr + 2.0*mr + br;
+          float gy = -tl - 2.0*tc - tr + bl + 2.0*bc + br;
+          s += length(vec2(gx, gy));
+          count += 1.0;
+        }
+      }
+      return s / max(1.0, count);
+    }
+
+    void main(){
+      vec2 res = getResolution();
+      vec2 uv = acScreenNorm;
+      vec2 frag = uv * res;
+      vec2 center = 0.5 * res;
+      vec2 px = vec2(1.0 / res.x, 1.0 / res.y);
+
+      // halftone params
+      float dSize = max(1.0, dotSize);
+      float dSpacing = max(1.0, spacing);
+      float angDeg = angle;
+      float rotAngle = radians(angDeg) + progress * 6.2831853;
+      float s = scale;
+      float edgeSoftness = max(0.001, edgeSoft);
+      float cont = max(0.0, contrast);
+      float bright = brightness;
+      bool useSampleColor = colorMode;
+      bool useEllipse = ellipse;
+      float eX = max(0.001, ellipseX);
+      float eY = max(0.001, ellipseY);
+      // use renamed parameter (blend) and local name blendOut
+      float blendOut = clamp(blend, 0.0, 1.0);
+
+      // displacement params
+      bool doDisp = useDisplacement;
+      float dispAmountPx = dispAmount;
+      float dispThresholdVal = clamp(dispThreshold, 0.0, 1.0);
+      bool dispInv = dispInvert;
+      float dispSoft = max(0.0, dispSoft);
+
+      // colors
+      vec3 colPrimary = primaryColor.rgb;
+      vec3 colSecondary = secondaryColor.rgb;
+
+      // edges params
+      bool onlyEdges = edgesHalftone;
+      float eThresh = clamp(edgeThreshold, 0.0, 1.0);
+      float eBlur = max(0.0, edgeBlur);
+      float eStr = max(0.0, edgeStrength);
+
+      // rotate coordinate system
+      vec2 local = frag - center;
+      local = rot(local, rotAngle);
+      vec2 rotPos = local + center;
+
+      // cell coordinates and center in px
+      vec2 cell = floor(rotPos / dSpacing);
+      vec2 cellCenterPx = (cell + 0.5) * dSpacing;
+
+      // sample the source at cell center
+      vec2 sampleUV = clamp(cellCenterPx / res, vec2(0.0), vec2(1.0));
+      vec3 sampleColor = texture2DCv(inputImg.texture, sampleUV).rgb;
+      float lum = dot(sampleColor, vec3(0.2126, 0.7152, 0.0722));
+      lum = applyToneF(lum, cont, bright);
+
+      // compute dot radius
+      float inv = 1.0 - lum;
+      float baseRadius = clamp((dSize * s) * 0.5 / dSpacing, 0.0, 0.5);
+      float radius = baseRadius * inv;
+
+      // distance to cell center for this fragment (rotated px space)
+      float dx = (rotPos.x - cellCenterPx.x);
+      float dy = (rotPos.y - cellCenterPx.y);
+      if (useEllipse){
+        dx /= eX;
+        dy /= eY;
+      }
+      float dist = length(vec2(dx, dy));
+      float pxRadius = radius * dSpacing;
+      float edge = max(1.0, dSpacing * 0.01) * edgeSoftness;
+      float alphaDot = 1.0 - smoothstep(pxRadius - edge, pxRadius + edge, dist);
+
+      // choose dot color
+      float primaryMatch = 1.0 - smoothstep(dispThresholdVal, dispThresholdVal + 0.2, colorDist(sampleColor, colPrimary));
+      vec3 dotCol;
+      if (useSampleColor){
+        dotCol = sampleColor;
+      } else {
+        dotCol = mix(colSecondary, colPrimary, primaryMatch);
+      }
+
+      // source at this fragment (shared by the background and the no-overlay path)
+      vec3 srcAtUV = texture2DCv(inputImg.texture, uv).rgb;
+
+      // displacement mask - only evaluated when displacement is enabled
+      vec3 displacedBackground = srcAtUV;
+      if (doDisp){
+        float match = 1.0 - smoothstep(dispThresholdVal, dispThresholdVal + 0.25, colorDist(sampleColor, colPrimary));
+        match = pow(match, 1.0 + dispSoft * 2.0);
+        vec2 dir = normalize(vec2(rotPos.x - cellCenterPx.x, rotPos.y - cellCenterPx.y) + vec2(1e-6, 0.0));
+        if (length(vec2(rotPos.x - cellCenterPx.x, rotPos.y - cellCenterPx.y)) &lt; 0.5){
+          dir = vec2(0.0, -1.0);
+        }
+        float sign = dispInv ? -1.0 : 1.0;
+        vec2 dispUVoffset = sign * dir * (match * dispAmountPx) / res.y;
+        vec2 displacedUV = clamp(uv + dispUVoffset, vec2(0.0), vec2(1.0));
+        displacedBackground = texture2DCv(inputImg.texture, displacedUV).rgb;
+      }
+
+      // halftone color
+      vec3 finalDotCol;
+      if (useSampleColor){
+        finalDotCol = sampleColor * (0.3 + 0.7 * (1.0 - lum));
+      } else {
+        finalDotCol = dotCol;
+      }
+      vec3 halftone = finalDotCol * alphaDot;
+
+      // EDGE MASK: compute edge strength around uv (Sobel), optionally blur it, then map by threshold &amp; strength.
+      // The mask is ONLY read when edges-only mode is on, so every other mode
+      // now pays nothing for the Sobel / blur kernel.
+      float eMask = 1.0;
+      if (onlyEdges){
+        float e = sobelEdge(uv, px);        // raw edge magnitude
+        if (eBlur &gt; 0.5){
+          // small blur to soften edge mask (costly kernels but small radius expected)
+          float b = blurMask(uv, px, eBlur);
+          e = mix(e, b, 0.6);
+        }
+        // normalize and apply threshold -&gt; mask 0..1, multiply by edgeStrength parameter
+        eMask = smoothstep(eThresh, eThresh + 0.25 * max(0.001, eBlur), e) * eStr;
+        eMask = clamp(eMask, 0.0, 1.0);
+      }
+
+      // determine base background (displaced or original)
+      vec3 baseBg = doDisp ? displacedBackground : srcAtUV;
+
+      // compute final composition:
+      // if edges-only is on, modulate halftone by edge mask so middle is unaffected
+      float finalDotMix = alphaDot * blendOut;
+      if (onlyEdges){
+        finalDotMix *= eMask;
+      }
+
+      vec3 outCol;
+      if (overlay){
+        outCol = mix(baseBg, halftone, finalDotMix);
+      } else {
+        vec3 original = srcAtUV;
+        // when replacing: allow edges-only to still mask the halftone in middle
+        if (onlyEdges){
+          outCol = mix(original, mix(baseBg, halftone, finalDotMix), blendOut);
+        } else {
+          outCol = mix(original, halftone, blendOut);
+        }
+      }
+
+      gl_FragColor = vec4(outCol, 1.0);
+    }
+  </shader>
+
+</effect>

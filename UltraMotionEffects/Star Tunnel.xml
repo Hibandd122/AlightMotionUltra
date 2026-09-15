@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.star_tunnel_camera" name="Star Tunnel" desc="Procedural star tunnel rendered on a transparent background, with camera position/rotation controls, forward speed, automatic speed-based motion-blur trails, system rotation, two star colors and 1-3 density passes." category="procedural" tags="star,tunnel,space,procedural,particles" thumb="thumb/3D/Star Tunnel.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="camX" default="0.0" min="-5.0" max="500.0" step="0.001" label="Pos X" />
+    <slider id="camY" default="0.0" min="-5.0" max="500.0" step="0.001" label="Pos Y" />
+    <slider id="camZ" default="0.0" min="-50.0" max="500.0" step="0.01" label="Pos Z" />
+    <point id="rotDeg" label="Rotation (deg)" default="0.0,0.0" />
+
+    
+    <slider id="zSpeed" default="1.0" min="-10.0" max="10.0" step="0.01" label="Forward Speed" />
+    <switch id="autoBlur" default="true" label="Auto Motion Blur" />
+    <slider id="blurFactor" default="0.25" min="0.0" max="2.0" step="0.01" label="Blur Factor" />
+    <slider id="rotBlurSpeed" default="0.0" min="0.0" max="3600.0" step="0.1" label="Rot Blur Speed (deg/s)" />
+    <slider id="manualTrail" default="0.008" min="0.0" max="0.1" step="0.0005" label="Manual Trail (if Auto off)" />
+
+    
+    <slider id="brightness" default="2.5" min="0.0" max="6.0" step="0.01" label="Brightness" />
+    <slider id="particleSize" default="0.015" min="0.001" max="0.06" step="0.001" label="Particle Size" />
+    <slider id="particleCount" default="1" min="1" max="3" step="1" label="Pass Count" type="integer" />
+    <color id="colorA" default="#FFFFFFFF" label="Color A" alpha="true" />
+    <color id="colorB" default="#FFCC0000" label="Color B" alpha="true" />
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+    
+    
+    <point id="sysRotDeg" label="System Rotation (deg)" default="0.0,0.0" />
+    <slider id="sysRotSpeedX" default="0.0" min="0.0" max="3600.0" step="0.1" label="System Rot Speed X (deg/s)" />
+    <slider id="sysRotSpeedY" default="0.0" min="0.0" max="3600.0" step="0.1" label="System Rot Speed Y (deg/s)" />
+    <slider id="sysRotSpeedZ" default="0.0" min="0.0" max="3600.0" step="0.1" label="System Rot Speed Z (deg/s)" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Star Tunnel - camera pose + auto motion blur (based on @P_Malin)
+    // AM official style: fixed loops, only builtins
+
+    float Random(float x){
+      return fract(sin(x * 123.456) * 23.4567 + sin(x * 345.678) * 45.6789 + sin(x * 456.789) * 56.789);
+    }
+
+    vec3 RotateX(vec3 v, float a){ float s=sin(a), c=cos(a); return vec3(v.x, c*v.y + s*v.z, -s*v.y + c*v.z); }
+    vec3 RotateY(vec3 v, float a){ float s=sin(a), c=cos(a); return vec3(c*v.x + s*v.z, v.y, -s*v.x + c*v.z); }
+    vec3 RotateZ(vec3 v, float a){ float s=sin(a), c=cos(a); return vec3(c*v.x + s*v.y, -s*v.x + c*v.y, v.z); }
+
+    // Tunables (kept as constants for stability)
+    const float fSteps = 121.0;
+    const float fMinDist = 0.8;
+    const float fMaxDist = 5.0;
+    const float fRepeatMin = 1.0;
+    const float fRepeatMax = 2.0;
+    const float fDepthFade = 0.8;
+
+    vec3 GetParticlePos(vec3 vRayDir, float fZPos, float fSeed){
+      float fAngle = atan(vRayDir.x, vRayDir.y);
+      float fAngleFraction = fract(fAngle / (6.28318530718));
+      float fSegment = floor(fAngleFraction * fSteps + fSeed) + 0.5 - fSeed;
+      float fParticleAngle = fSegment / fSteps * (6.28318530718);
+      float fSegmentPos = fSegment / fSteps;
+      float fRadius = fMinDist + Random(fSegmentPos + fSeed) * (fMaxDist - fMinDist);
+      float tunnelZ = vRayDir.z / length(vRayDir.xy / fRadius);
+      tunnelZ += fZPos;
+      float fRepeat = fRepeatMin + Random(fSegmentPos + 0.1 + fSeed) * (fRepeatMax - fRepeatMin);
+      float fParticleZ = (ceil(tunnelZ / fRepeat) - 0.5) * fRepeat - fZPos;
+      return vec3( sin(fParticleAngle) * fRadius, cos(fParticleAngle) * fRadius, fParticleZ );
+    }
+
+    vec3 GetParticleColour(vec3 vParticlePos, float fParticleSize, vec3 vRayDir, float particleLength, float brightness){
+      vec2 vNormDir = normalize(vRayDir.xy);
+      float d1 = dot(vParticlePos.xy, vNormDir.xy) / max(length(vRayDir.xy), 1e-5);
+      vec3 vClosest2d = vRayDir * d1;
+      vec3 vClampedPos = vParticlePos;
+      vClampedPos.z = clamp(vClosest2d.z, vParticlePos.z - particleLength, vParticlePos.z + particleLength);
+      float d = dot(vClampedPos, vRayDir);
+      vec3 vClosestPos = vRayDir * d;
+      vec3 vDeltaPos = vClampedPos - vClosestPos;
+      float fClosestDist = length(vDeltaPos) / max(fParticleSize, 1e-5);
+      float fShade = clamp(1.0 - fClosestDist, 0.0, 1.0);
+      fShade = fShade * exp2(-d * fDepthFade) * brightness;
+      return vec3(fShade);
+    }
+
+    vec4 GetParticleEx(vec3 vRayDir, float fZPos, float fSeed){
+      float fAngle = atan(vRayDir.x, vRayDir.y);
+      float fAngleFraction = fract(fAngle / (6.28318530718));
+      float fSegment = floor(fAngleFraction * fSteps + fSeed) + 0.5 - fSeed;
+      float fParticleAngle = fSegment / fSteps * (6.28318530718);
+      float fSegmentPos = fSegment / fSteps;
+      float fRadius = fMinDist + Random(fSegmentPos + fSeed) * (fMaxDist - fMinDist);
+      float tunnelZ = vRayDir.z / length(vRayDir.xy / fRadius);
+      tunnelZ += fZPos;
+      float fRepeat = fRepeatMin + Random(fSegmentPos + 0.1 + fSeed) * (fRepeatMax - fRepeatMin);
+      float fRing = (ceil(tunnelZ / fRepeat) - 0.5);
+      float fParticleZ = fRing * fRepeat - fZPos;
+      float id = floor(fSegment) + 4096.0 * floor(fRing);
+      vec3 pos = vec3( sin(fParticleAngle) * fRadius, cos(fParticleAngle) * fRadius, fParticleZ );
+      return vec4(pos, id);
+    }
+
+    vec3 Starfield(vec3 vRayDir, float fZPos, float fSeed, float fParticleSize, float particleLength, float brightness){
+      vec3 sysRad = radians(sysRotDeg);
+      float ax = sysRad.x + radians(sysRotSpeedX) * acTime;
+      float ay = sysRad.y + radians(sysRotSpeedY) * acTime;
+      float az = sysRad.z + radians(sysRotSpeedZ) * acTime;
+      vec3 vRayObj = vRayDir;
+      vRayObj = RotateX(vRayObj, -ax);
+      vRayObj = RotateY(vRayObj, -ay);
+      vRayObj = RotateZ(vRayObj, -az);
+      vec4 P = GetParticleEx(vRayObj, fZPos, fSeed);
+      vec3 vParticlePos = P.xyz;
+      float pid = P.w;
+      vec3 shade = GetParticleColour(vParticlePos, fParticleSize, vRayObj, particleLength, brightness);
+      float h = fract(sin(pid*123.456 + fSeed*7.123) * 43758.5453);
+      vec3 c = (h &lt; 0.5) ? colorA.rgb : colorB.rgb;
+      return shade * c;
+    }
+
+    void main(){
+      // Screen ray
+      vec2 vScreenUV = acScreenNorm;
+      vec2 vScreenPos = vScreenUV * 2.0 - 1.0;
+      vScreenPos.x *= acScreenSize.x / max(acScreenSize.y, 1.0);
+      // Camera XY offsets: shift screen pos (parallax-like)
+      vScreenPos += vec2(camX, camY) * 0.2;
+
+      vec3 vRayDir = normalize(vec3(vScreenPos, 1.0));
+
+      // Apply rotations
+      vec3 rotRad = radians(rotDeg);
+      float rx = rotRad.x;
+      float ry = rotRad.y;
+      float rz = rotRad.z;
+      vRayDir = RotateX(vRayDir, rx);
+      vRayDir = RotateY(vRayDir, ry);
+      vRayDir = RotateZ(vRayDir, rz);
+
+      // Forward motion controlled by zSpeed and camZ offset
+      float t = acTime;
+      float fZPos = camZ + t * zSpeed;
+      float fSpeed = abs(zSpeed);
+
+      // Auto motion-blur -&gt; particle trail length (includes rotation-driven blur)
+      float rotComponent = rotBlurSpeed * 0.002; // deg/s to trail scalar
+      float particleLength = autoBlur ? (blurFactor * (fSpeed + rotComponent + 0.001)) : manualTrail; // in Z units
+
+      // No background: start from black for transparent background
+      vec3 vResult = vec3(0.0);
+
+      // Pass count (1..3 capped)
+      int passes = int(clamp(float(particleCount), 1.0, 3.0));
+      float fSeed = 0.0;
+      for(int i=0;i&lt;3;i++){
+        if(i&gt;=passes) break;
+        vResult += Starfield(vRayDir, fZPos, fSeed, particleSize, particleLength, brightness);
+        fSeed += 1.234;
+      }
+
+      vec3 col = sqrt(vResult);
+      // Alpha derived from star intensity (transparent background)
+      float starIntensity = max(max(col.r, col.g), col.b);
+      float aOut = clamp(starIntensity, 0.0, 1.0) * alpha;
+      gl_FragColor = vec4(col, aOut);
+    }
+  </shader>
+
+</effect>

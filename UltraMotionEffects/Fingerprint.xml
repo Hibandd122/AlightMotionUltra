@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.fingerprint" name="Fingerprint" desc="Generates an animated fingerprint-like pattern of concentric ridged rings from accumulated hash rotations. Iteration, width, smoothing and hash controls shape the ridges; FG/BG colors are applied by luminance with blend modes." category="procedural" tags="other" thumb="thumb/Procedural/Fingerprint.webp" experimental="false">
+
+    <params>
+        
+        <color id="color1" default="#00000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="ITERL" default="10" min="1" max="15" label="Iteration" type="integer" step="1" />
+        <slider id="WIDTHR" label="Inner Width" default="0.8" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SMOOTHL" label="Smooth Lines" default="0.3" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="WIDEL" label="Pattern Wide" default="10" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="LENGTHL" label="Line Length" default="0.3" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="WIDTHL" label="Line Width" default="0.5" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="HASHX" label="Hash X" default="15" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="HASHY" label="Hash Y" default="20" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="scale" default="0.1" min="0.0" max="10.0" step="0.01" label="Scale" type="percent" />
+        <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <menu id="blendMode" style="radio" default="3">
+            <menu label="NORMAL" value="0" />
+            <menu label="LAYER" value="3" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.0)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        vec2 hash2( vec2 p )
+        {
+        	p = vec2( dot(p,vec2(63.31,127.63)), dot(p,vec2(395.467,213.799)) );
+        	return -1.0 + 2.0*fract(sin(p)*43141.59265);
+        }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+        
+        vec2 umefx;
+        // umefx = acScreenNorm; 
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        
+        umefx /= scale;
+        umefx *= rot2m((0.0+angle)*0.0174533);
+        umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.0,1.0)/500.0;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            float invzoom = 75.0;
+            vec2 uv = umefx;
+            // invzoom*((fragCoord-0.5*iResolution.xy)/iResolution.x);
+            float bounds = smoothstep(9.0, WIDEL,length(uv*vec2((1.0-LENGTHL), (1.0-WIDTHL))));
+            // float bounds = smoothstep(9.0,10.0,length(uv*vec2(0.7,0.5)));
+        
+            //cumulate information
+            float a = 0.0;
+            vec2 h = vec2(floor(7.0*iTime), 0.0);
+            for(int i=0; i&lt;int(ITERL); i++){
+                float s=sign(h.x);
+                h = hash2(h)*vec2(HASHX, HASHY);
+            	a += s*atan(uv.x-h.x, uv.y-h.y);
+            }
+            
+            //comment this out for static center
+            uv += 20.0*abs(hash2(h));
+            
+            a+=atan(uv.y, uv.x); //spirallic center more likely
+        
+            float w = WIDTHR; //row width
+            float p=(1.0-bounds)*w; //pressure
+            float s = min(SMOOTHL,p); //smooth
+            float l = length(uv)+0.319*a; //base rings plus information
+            // float w = 0.8; //row width
+            // float p=(1.0-bounds)*w; //pressure
+            // float s = min(0.3,p); //smooth
+            // float l = length(uv)+0.319*a; //base rings plus information
+            
+            //dist -&gt; alternate pattern
+            float m = mod(l,2.0);
+            float v = (1.0-smoothstep(2.0-s, 2.0,m))*smoothstep(p,p+s,m);
+            
+        	fragColor = vec4(v,v,v,1.0);
+        
+    	    // vec4 factor = mix(texColorX,fragColor,1.0);
+
+    	    vec4 factor;
+    	     // = mix(texColorX,fragColor,1.0);
+    	    const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luminance = dot(fragColor.rgb, luminanceWeighting);
+            vec4 gradmap = mix(color2,color1,luminance)*fragColor.a;
+    	    // if(GRADMAP) { 
+    	    factor = mix(texColorX,gradmap,1.0); 
+
+        vec4 resultfinal;
+          if( blendMode==0 ) { resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.0)*(1.0-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.0-((1.0-(texColor.rgb/texColor.a))*(1.0-factor.rgb)),1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

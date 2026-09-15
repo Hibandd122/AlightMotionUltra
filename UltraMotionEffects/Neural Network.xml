@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.neural_network" name="Neural Network" desc="Draws an animated procedural web of jittering line segments radiating from a center point, resembling a neural network. Complexity controls the per-pixel iteration count (high values are very GPU-intensive); includes color, intensity, softness and blend controls." category="procedural" tags="neural,network,lines,abstract,shadertoy" thumb="thumb/Stylize/Neural Network.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <point id="center" default="0.5,0.5" label="Center Point" />
+        <slider id="speed" default="1.0" min="0.0" max="5.0" step="0.01" label="Speed" />
+        <slider id="complexity" default="100.0" min="10.0" max="500.0" step="1.0" label="Complexity" />
+        
+        
+        <color id="lineColor" default="#FF9999FF" label="Line Color" />
+        <slider id="intensity" default="1.0" min="0.1" max="5.0" step="0.1" label="Intensity" />
+        <slider id="softness" default="0.02" min="0.001" max="0.1" label="Line Softness" />
+
+        
+        <switch id="followLayer" default="true" label="Follow Layer" />
+        
+        
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        float dfLine(vec2 start, vec2 end, vec2 uv) {
+            vec2 line = end - start;
+            // guarded divide (max() is a no-op for every non-degenerate segment)
+            float frac = dot(uv - start, line) / max(dot(line, line), 1e-20);
+            return distance(start + line * clamp(frac, 0.0, 1.0), uv);
+        }
+
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
+
+        // OPT: MAX_ITER caps the walk (was 500). The line web saturates far below this; see notes in main().
+        const int MAX_ITER = 128;
+
+        float map(vec2 uv, vec2 mouse, float t, float time, float iterCount, float satLimit) {
+            float col = 0.0;
+            vec2 end = vec2(0.3, 0.3);
+            vec2 p = mouse;
+            vec2 p1 = end;
+
+            vec2 oldP = p;
+            vec2 oldP1 = p1;
+
+            // OPT: loop-invariant subexpressions hoisted. These are the *same* operations on the *same*
+            // operands, just evaluated once, so every hash() argument stays bit-identical (hash is
+            // fract(sin(...)*43758) and would decorrelate completely if the arithmetic were re-associated).
+            float tTime = time * t;
+            float tSqr  = t * t;
+            float sLo   = -softness * 0.5;
+            float sHi   = softness;
+
+            for(int i = 0; i &lt; MAX_ITER; i++) {
+                if(float(i) &gt;= iterCount) break;
+
+                float fi = float(i);
+                float p1Angle = atan(p.y - p1.y, p.x - p1.x);
+                float pAngle = atan(p1.y - p.y, p1.x - p.x);
+
+                p1Angle += (hash(p1 + fi + tTime) - 0.5) * 2.0;
+                pAngle += (hash(p + fi + tTime) - 0.5) * 2.0;
+
+                p += vec2(cos(pAngle), sin(pAngle)) / max(hash(p * p1 * time * fi + t) * 100.0, 60.0);
+                p1 += vec2(cos(p1Angle), sin(p1Angle)) / max(hash(p * p1 * time * fi * 43.324 * t) * 100.0, 60.0);
+
+                col += (1.0 - smoothstep(dfLine(p, oldP, uv), sLo, sHi)) * max(hash(p * fi * time + tSqr) * 2.0, 0.3) / t;
+                col += (1.0 - smoothstep(dfLine(p1, oldP1, uv), sLo, sHi)) * max(hash(p1 * fi * time / t) * 2.0, 0.3) / t;
+
+                if (distance(p, p1) &lt; 0.05) {
+                    col += 1.0 - smoothstep(dfLine(p, p1, uv), sLo, sHi);
+                    break;
+                }
+                // OPT: col only ever grows. Once it passes satLimit, tanh_approx() is saturated to within
+                // ~1e-8 on every non-zero colour channel and the alpha term is already clamped to 1, so no
+                // further iteration can change the output pixel. satLimit is derived from the dimmest
+                // non-zero lineColor channel in main() so this can never fire early on a dark channel.
+                if (col &gt;= satLimit) break;
+                oldP = p;
+                oldP1 = p1;
+            }
+            return col;
+        }
+
+        vec4 tanh_approx(vec4 x) {
+            // min() clamps the argument before exp(): tanh(10) = 0.9999999979, so values above 10 are
+            // indistinguishable from the true result, while exp(2*x) past x~44 overflows to +inf and makes
+            // the (e-1)/(e+1) ratio evaluate to NaN.
+            vec4 e = exp(2.0 * min(x, vec4(10.0)));
+            return (e - 1.0) / (e + 1.0);
+        }
+
+        void main() {
+            vec2 luv = acLayerNorm.xy;
+            vec2 suv = acScreenNorm.xy;
+            
+            vec2 uv;
+            vec2 aspect;
+            if(followLayer) {
+                uv = luv;
+                aspect = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            } else {
+                uv = suv;
+                aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+            }
+            
+            uv = (uv * 2.0 - 1.0) * aspect;
+
+            vec2 mouse = (center * 2.0 - 1.0) * aspect;
+            
+            float time = acTime * speed;
+            
+            // OPT: saturation threshold for the accumulator. The two map() calls use different t (1.0 / 3.0),
+            // so they are genuinely distinct evaluations and cannot be shared; what they CAN share is an
+            // early-out. The threshold is set by the DIMMEST colour channel, because that channel saturates
+            // last: once col*intensity*cMin passes 9, tanh is within 1e-8 of 1 on every channel. A channel so
+            // dim that it cannot reach half an LSB even at the maximum reachable accumulation (col &lt;= 513 per
+            // map call) is excluded instead of dragging the threshold down, via the 1.9e-6 test.
+            float cI = min(min(lineColor.r, lineColor.g), lineColor.b) * intensity;
+            float satLimit = (cI &gt; 1.9e-6) ? (9.0 / cI) : 1.0e9;
+
+            float v = map(uv, mouse, 1.0, time, complexity, satLimit) + map(uv, mouse, 3.0, time, complexity, satLimit);
+
+            vec4 effectCol = tanh_approx(vec4(v * intensity) * lineColor);
+            effectCol.a = clamp(v * intensity, 0.0, 1.0);
+
+            vec4 base = texture2DCv(inputImg.texture, suv);
+            
+            // Apply effect alpha masking based on layer alpha
+            effectCol.a *= base.a;
+            
+            // Standard mix for transparency
+            gl_FragColor = mix(base, effectCol, blend * effectCol.a);
+        }
+    </shader>
+
+</effect>

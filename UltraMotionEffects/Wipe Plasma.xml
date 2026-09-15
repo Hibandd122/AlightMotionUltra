@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.wipe_plasma" name="Wipe Plasma" desc="Organic plasma wipe: thresholded procedural field with soft edges and animation. Transparent by default; optional fill if needed." category="warp" tags="wipe,plasma,mask,transition,organic" thumb="thumb/Transition/Wipe Plasma.webp" overdraw="true" max-overdraw="1.5">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="wipe_percent" default="43.0" min="0.0" max="100.0" step="0.1" label="Wipe Percent" type="percent" />
+    <slider id="edge_softness" default="0.00" min="0.0" max="0.20" step="0.001" label="Edge Softness" />
+
+    
+    <slider id="frequency" default="4.0" min="0.5" max="20.0" step="0.01" label="Frequency" />
+    <slider id="freq_rel_x" default="1.0" min="0.1" max="3.0" step="0.01" label="Freq Rel X" />
+    <slider id="octaves" default="4" min="1" max="8" step="1" label="Octaves" />
+    <slider id="layers" default="8" min="1" max="16" step="1" label="Layers" />
+    <slider id="seed" default="0.120" min="0.0" max="1000.0" step="0.001" label="Seed" />
+
+    
+    <slider id="plasma_grad" default="0.0" min="0.0" max="1.0" step="0.001" label="Plasma Grad" />
+    <slider id="plasma_grad_angle" default="0.0" min="0.0" max="360.0" step="0.01" label="Plasma Grad Angle" />
+    <slider id="grad_add" default="0.50" min="-1.0" max="1.0" step="0.01" label="Grad Add" />
+    <slider id="grad_angle" default="0.0" min="0.0" max="360.0" step="0.01" label="Grad Angle" />
+
+    
+    <slider id="shift_x" default="960.0" min="-4000.0" max="4000.0" step="1.0" label="Shift X (px)" />
+    <slider id="shift_y" default="540.0" min="-4000.0" max="4000.0" step="1.0" label="Shift Y (px)" />
+
+    
+    <slider id="phase_start" default="0.0" min="0.0" max="100.0" step="0.01" label="Phase Start" />
+    <slider id="phase_speed" default="2.0" min="-10.0" max="10.0" step="0.01" label="Phase Speed" />
+
+    
+    <slider id="warp_strength" default="0.80" min="0.0" max="3.0" step="0.01" label="Domain Warp" />
+    <slider id="warp_freq" default="2.0" min="0.2" max="10.0" step="0.01" label="Warp Frequency" />
+    <switch id="lines_enable" default="true" label="Contour Lines" />
+    <slider id="lines_density" default="9.0" min="1.0" max="40.0" step="0.1" label="Lines Density" />
+    <slider id="lines_width" default="0.006" min="0.001" max="0.050" step="0.0005" label="Lines Width" />
+    <slider id="lines_alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Lines Opacity" type="percent" />
+    
+    
+    <color id="fill_color" default="#000000" label="Unrevealed Fill Color" />
+    <slider id="fill_alpha" default="0.0" min="0.0" max="1.0" step="0.01" label="Unrevealed Fill Opacity" type="percent" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Plasma wipe: generates a procedural scalar field and reveals the source
+    // where the field exceeds a threshold. Output remains transparent elsewhere.
+
+    const float PI = 3.14159265358979323846;
+    float hash11(float n){ return fract(sin(n * 127.1 + 311.7) * 43758.5453123); }
+
+    mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c,-s,s,c); }
+
+    // Base plasma using trigonometric composition
+    float plasmaBase(vec2 p, float t){
+      float val = 0.0;
+      val += sin(p.x + t);
+      val += sin(p.y + t*1.13);
+      val += sin((p.x + p.y)*0.7 + t*0.7);
+      return val * (1.0/3.0);
+    }
+
+    // fBm with sinusoidal basis: cheaper than true noise, good for plasma look
+    float fbmPlasma(vec2 p, float t, int oct){
+      float sum = 0.0;
+      float amp = 0.5;
+      float freq = 1.0;
+      for(int i=0;i&lt;8;i++){
+        if(i&gt;=oct) break;
+        float ang = hash11(float(i) + seed) * 6.2831853;
+        vec2 q = rot(ang) * p * freq + vec2(hash11(float(i)+seed*2.0), hash11(float(i)+seed*3.0));
+        sum += amp * plasmaBase(q, t * (1.0 + 0.35*float(i)) + float(i));
+        freq *= 1.9;
+        amp *= 0.55;
+      }
+      return sum;
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      // Normalize pixel shifts to UV
+      vec2 shiftUV = vec2(shift_x / max(acScreenSize.x, 1.0), shift_y / max(acScreenSize.y, 1.0));
+      uv += shiftUV;
+
+      // Anisotropic scale by frequency and X multiplier (keep aspect-ratio aware)
+      float baseFreq = max(frequency, 0.0001);
+      float fx = baseFreq * max(freq_rel_x, 0.0001) * (acScreenSize.x / max(acScreenSize.y, 1.0));
+      float fy = baseFreq;
+      vec2 p = vec2(uv.x * fx, uv.y * fy);
+
+      float t = phase_start + acTime * phase_speed;
+
+      // Layered sinus field
+      float layersF = float(layers);
+      float layerSum = 0.0;
+      for(float i=0.0;i&lt;16.0;i+=1.0){
+        if(i&gt;=layersF) break;
+        float ang = i * (PI * 2.0 / max(layersF,1.0));
+        vec2 dir = rot(ang) * vec2(1.0, 0.0);
+        float off = hash11(i + seed) * 10.0;
+        layerSum += sin(dot(p, dir) + t + off);
+      }
+      layerSum /= max(layersF, 1.0);
+
+      // Domain warp to get long meandering veins like the reference
+      vec2 warpVec;
+      warpVec.x = fbmPlasma(p * warp_freq + 17.0, t*0.8, int(octaves));
+      warpVec.y = fbmPlasma(p * (warp_freq*1.3) - 11.0, t*0.8 + 3.14, int(octaves));
+      p += warp_strength * warpVec;
+
+      float n = 0.55 * layerSum + 0.45 * fbmPlasma(p, t, int(octaves));
+
+      // Directional gradient bias
+      float gradA = plasma_grad_angle * (PI/180.0);
+      vec2 gdir = vec2(cos(gradA), sin(gradA));
+      n += plasma_grad * dot(uv - 0.5, gdir);
+
+      // Secondary gradient add
+      float gA2 = grad_angle * (PI/180.0);
+      vec2 gdir2 = vec2(cos(gA2), sin(gA2));
+      n += grad_add * dot(uv - 0.5, gdir2);
+
+      // Normalize to 0..1
+      n = 0.5 + 0.5 * clamp(n, -1.0, 1.0);
+
+      // Threshold using wipe percent with optional soft edge
+      float th = clamp(wipe_percent / 100.0, 0.0, 1.0);
+      float s = max(edge_softness, 0.0);
+      float mask = smoothstep(th - s, th + s, n);
+      
+      // Optional contour lines across the whole field
+      float lc = 0.0;
+      if(lines_enable){
+        float den = max(lines_density, 0.001);
+        float stripe = fract(n * den);
+        float w = max(lines_width, 0.0001);
+        float line = 1.0 - smoothstep(0.5 - w*0.5, 0.5 + w*0.5, stripe);
+        lc = clamp(line, 0.0, 1.0) * lines_alpha;
+      }
+
+      // Reveal source where mask==1; unrevealed gets fill color (can be transparent)
+      vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+      vec4 revealed = vec4(src.rgb * src.a, src.a) * mask;
+      vec4 fill = vec4(fill_color.rgb * fill_alpha, fill_alpha) * (1.0 - mask);
+      vec4 base = revealed + fill;
+
+      // Composite contour lines (black) on top using premult alpha
+      vec4 lines = vec4(vec3(0.0), lc);
+      vec4 outc = lines + base * (1.0 - lines.a);
+      gl_FragColor = outc;
+    }
+  </shader>
+</effect>

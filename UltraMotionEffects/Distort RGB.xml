@@ -1,0 +1,112 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.noise_distortion_ca" name="Distort RGB" desc="Displaces the layer with 2D gradient noise, then accumulates 16 samples along the displacement vector for a directional warp blur with per-channel RGB offsets (chromatic aberration). Noise scale, animation speed, spread, and channel-tint controls." category="warp" tags="noise,distortion,chromatic,aberration,blur,warp" thumb="thumb/Distort and Warp/Distort RGB.jpg">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="distortion" default="0.00" min="0.0" max="0.5" step="0.01" label="Distortion Strength" />
+        <slider id="spread" default="0.04" min="0.0" max="0.1" step="0.001" label="Color Spread" />
+        <slider id="chromaMix" default="1.00" min="0.0" max="1.0" step="0.01" label="Chromatic Intensity" type="percent" />
+        <slider id="scale" default="5.05" min="0.1" max="10.0" step="0.01" label="Noise Scale" />
+        <slider id="speed" default="0.00" min="0.0" max="2.0" step="0.01" label="Animation Speed" />
+        <slider id="blurStrength" default="0.55" min="0.0" max="5.0" step="0.01" label="Warp Blur Strength" />
+
+        
+        <color id="highlights" default="#FFFF0000" label="Red Channel Tint" alpha="false" />
+        <color id="midtones" default="#FF00FF00" label="Green Channel Tint" alpha="false" />
+        <color id="shadows" default="#FF0000FF" label="Blue Channel Tint" alpha="false" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Simple 2D Hash function
+        vec2 hash2(vec2 p) {
+            p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+            return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+        }
+
+        // 2D Gradient Noise
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+
+            vec2 u = f * f * (3.0 - 2.0 * f);
+
+            return mix(mix(dot(hash2(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
+                           dot(hash2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
+                       mix(dot(hash2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
+                           dot(hash2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x), u.y);
+        }
+
+        void main() {
+            // Normalized pixel coordinates (from 0 to 1)
+            vec2 uv = acLayerNorm.xy;
+            
+            // Fix aspect ratio for noise generation so it looks uniform
+            vec2 noiseUV = uv;
+            noiseUV.x *= acLayerSize.x / acLayerSize.y;
+            
+            // Calculate Noise field for displacement
+            float n = noise(noiseUV * scale + acTime * speed);
+            float n2 = noise(noiseUV * scale + acTime * speed + vec2(17.3, 2.9));
+            
+            // Base displacement vector centered around 0
+            vec2 disp = vec2(n, n2) * distortion;
+            
+            // --- Warp Blur &amp; Chromatic Aberration Logic ---
+            
+            vec3 accumulatedColor = vec3(0.0);
+            float totalWeight = 0.0;
+            float accumulatedAlpha = 0.0;
+            
+            // Number of samples for the blur
+            const int samples = 16;
+            
+            // Loop to accumulate samples along the displacement vector
+            for (int i = 0; i &lt; samples; i++) {
+                // Normalized progress from 0.0 to 1.0
+                float t = float(i) / float(samples - 1);
+                
+                // Calculate a blur offset relative to the main displacement
+                // Centered around 0.5
+                vec2 blurOffset = disp * (t - 0.5) * blurStrength;
+                
+                // The total offset for this specific sample
+                vec2 currentDisp = disp + blurOffset;
+                
+                // Calculate Chromatic coordinates based on spread
+                vec2 uvR = uv + currentDisp * (1.0 + spread * 5.0);
+                vec2 uvG = uv + currentDisp;
+                vec2 uvB = uv + currentDisp * (1.0 - spread * 5.0);
+                
+                // Sample the channels and multiply by specific colors
+                float r = texture2DCv(inputImg.texture, uvR).r * highlights.r;
+                float g = texture2DCv(inputImg.texture, uvG).g * midtones.g;
+                float b = texture2DCv(inputImg.texture, uvB).b * shadows.b;
+                float a = texture2DCv(inputImg.texture, uvG).a;
+                
+                vec3 col = vec3(r, g, b);
+                float w = 1.0; // Box blur weight
+                
+                accumulatedColor += col * w;
+                accumulatedAlpha += a * w;
+                totalWeight += w;
+            }
+            
+            // Average the samples
+            vec3 chromaticBlurred = accumulatedColor / totalWeight;
+            float finalAlpha = accumulatedAlpha / totalWeight;
+            
+            // Calculate standard non-chromatic, non-blurred center for mixing
+            vec2 centerUV = uv + disp;
+            vec3 standardColor = texture2DCv(inputImg.texture, centerUV).rgb;
+            
+            // Mix based on user control 'chromaMix'
+            vec3 finalColor = mix(standardColor, chromaticBlurred, chromaMix);
+
+            // Output to screen
+            gl_FragColor = vec4(finalColor, finalAlpha);
+        }
+    </shader>
+
+</effect>

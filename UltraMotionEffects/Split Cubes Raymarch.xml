@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.split_cubes_raymarch" name="Split Cubes Raymarch" desc="Raymarched spinning split cubes with BPM-driven ticks (Shadertoy port)" category="procedural" tags="raymarch, cubes, bpm" thumb="thumb/Procedural/Split Cubes Raymarch.webp">
+
+    <params>
+        
+        <slider id="BPM" label="Beats Per Minute" default="180.0" min="1.0" max="300.0" step="1.0" type="float" />
+
+        
+        <slider id="STEPS" label="Max Steps" default="100.0" min="1.0" max="200.0" step="1.0" type="float" />
+        <slider id="EPS" label="Hit Epsilon" default="0.001" min="0.0001" max="0.01" step="0.0001" type="float" />
+        <slider id="MAX_DIST" label="Max Distance" default="10.0" min="1.0" max="50.0" step="0.1" type="float" />
+
+        
+        <slider id="SPIN_SCALE" label="Spin Scale" default="1.0" min="0.0" max="2.0" step="0.01" type="float" />
+    </params>
+
+    <shader type="fragment" precision="high">
+// Split Cubes Raymarch - GLES-friendly single pass
+
+#define PI 3.14159265359
+#define HALFPI (PI*0.5)
+
+vec2 rot2(vec2 a, float b){
+    float c = cos(b), s = sin(b);
+    return vec2(a.x*c - a.y*s, a.x*s + a.y*c);
+}
+
+float sdBox(vec3 p, vec3 r){
+    vec3 d = abs(p) - r;
+    return min(max(d.x, max(d.y, d.z)), 0.0) + length(max(d, 0.0));
+}
+
+float sdRoundBox(vec3 p, vec3 r, float rr){
+    return sdBox(p, r - vec3(rr)) - rr;
+}
+
+float tick(float t){
+    t = smoothstep(0.0, 1.0, t);
+    t = smoothstep(0.0, 1.0, t);
+    return t;
+}
+
+float noise1(float a){
+    return fract(a * 123.4762831);
+}
+
+float hash2(vec2 a){
+    return fract(sin(dot(a, vec2(4.43243, 12.4762)) * 13.43762));
+}
+
+vec2 splitScene(vec3 p, float spinScale, float SPEED){
+    float time = acTime * SPEED;
+    float t = tick(fract(time));
+    float mode = noise1(floor(time)) * 3.0;
+
+    float axisDirection = (fract(mode) &lt; 0.5) ? -1.0 : 1.0;
+    float spinDirection = (mod(mode, 0.5) &lt; 0.25) ? -1.0 : 1.0;
+    t *= spinDirection;
+
+    float clipDist = 0.0;
+    if (mode &lt; 1.0){
+        p.yz = rot2(p.yz, t * HALFPI * spinScale);
+        clipDist = p.x * axisDirection - 0.5;
+    } else if (mode &lt; 2.0){
+        p.xz = rot2(p.xz, t * HALFPI * spinScale);
+        clipDist = p.y * axisDirection - 0.5;
+    } else {
+        p.xy = rot2(p.xy, t * HALFPI * spinScale);
+        clipDist = p.z * axisDirection - 0.5;
+    }
+    clipDist *= (1.0 - spinScale * 2.0);
+
+    vec3 lp = mod(p + 0.5, 1.0) - 0.5;
+    float distCubes = max(
+        sdBox(p, vec3(1.5)),
+        sdRoundBox(lp, vec3(0.48), 0.04)
+    );
+
+    vec3 stickerSize = vec3(0.4, 0.4, 1.0);
+    float stickerRadius = 0.05;
+    float distStickers = min(
+        min(
+            sdRoundBox(lp, stickerSize.xyz, stickerRadius),
+            sdRoundBox(lp, stickerSize.yzx, stickerRadius)
+        ),
+        sdRoundBox(lp, stickerSize.zxy, stickerRadius)
+    );
+    distStickers = max(distStickers, -sdBox(p, vec3(1.4)));
+
+    distCubes = max(distCubes, clipDist);
+
+    float color = 0.0;
+    color += floor(p.x + 1.5) * 3.0;
+    color += floor(p.y + 1.5) * 7.0;
+    color += floor(p.z + 1.5) * 11.0;
+    color += mode;
+
+    return vec2(distCubes, (distStickers &lt; 0.0) ? (1.0 + color) : 0.0);
+}
+
+vec2 sceneSDF(vec3 p, float SPEED){
+    vec2 a = splitScene(p, 0.0, SPEED);
+    vec2 b = splitScene(p, SPIN_SCALE, SPEED);
+    return (a.x &lt; b.x) ? vec2(a.x, a.y) : vec2(b.x, b.y);
+}
+
+vec3 colorForIndex(int idx){
+    // Map 0..5 to fixed palette without dynamic array indexing
+    if (idx == 0) return vec3(1.0, 0.0, 0.0);
+    if (idx == 1) return vec3(1.0, 1.0, 0.0);
+    if (idx == 2) return vec3(0.0, 1.0, 0.0);
+    if (idx == 3) return vec3(1.0, 1.0, 1.0);
+    if (idx == 4) return vec3(0.0, 0.0, 1.0);
+    return vec3(1.0, 0.5, 0.0);
+}
+
+void main(){
+    vec2 R = acScreenSize;
+    vec2 uv = acScreenNorm - 0.5;
+    uv.x *= R.x / max(R.y, 1.0);
+
+    float SPEED = max(BPM, 1.0) / 60.0;
+
+    vec3 cam = vec3(0.0, 0.0, -10.0);
+    vec3 dir = normalize(vec3(uv, 1.5));
+
+    float angYZ = sin(acTime) * 0.3 + 0.3;
+    cam.yz = rot2(cam.yz, angYZ);
+    dir.yz = rot2(dir.yz, angYZ);
+
+    float angXZ = acTime * 0.5;
+    cam.xz = rot2(cam.xz, angXZ);
+    dir.xz = rot2(dir.xz, angXZ);
+
+    float t = 0.0;
+    vec2 k = vec2(0.0);
+
+    int maxSteps = int(clamp(STEPS, 1.0, 200.0));
+    const int MAX_IT = 200;
+    for (int i = 0; i &lt; MAX_IT; ++i){
+        if (i &gt;= maxSteps) break;
+        k = sceneSDF(cam + dir * t, SPEED);
+        t += k.x;
+        if (k.x &lt; EPS) break;
+        if (t &gt; MAX_DIST){
+            k.y = -1.0;
+            break;
+        }
+    }
+
+    vec3 h = cam + dir * t;
+    vec2 o = vec2(0.001, 0.0);
+    vec3 n = normalize(vec3(
+        sceneSDF(h + vec3(o.x, o.y, o.y), SPEED).x - sceneSDF(h - vec3(o.x, o.y, o.y), SPEED).x,
+        sceneSDF(h + vec3(o.y, o.x, o.y), SPEED).x - sceneSDF(h - vec3(o.y, o.x, o.y), SPEED).x,
+        sceneSDF(h + vec3(o.y, o.y, o.x), SPEED).x - sceneSDF(h - vec3(o.y, o.y, o.x), SPEED).x
+    ));
+    float mat = k.y;
+
+    vec3 outc;
+    if (abs(mat) &lt; 1e-6){
+        float fresnel = pow(1.0 - dot(-dir, n), 5.0);
+        fresnel = mix(0.0016, 0.1, fresnel);
+        outc = vec3(fresnel);
+    } else if (mat &lt; -0.5){
+        vec2 luv = uv * (1.0 - length(uv) * 0.2);
+        vec2 c = floor(luv * 10.0 + acTime);
+        vec2 u = fract(luv * 10.0 + acTime) - 0.5;
+        int colorIndex = int(floor(hash2(c + 0.1 * floor(acTime * SPEED)) * 6.0 + 1e-4));
+        colorIndex = clamp(colorIndex, 0, 5);
+        float d = sdRoundBox(vec3(u, 0.0), vec3(0.46), 0.05);
+        float mask = smoothstep(0.0, 0.01, -d);
+        float vignette = smoothstep(1.0, 0.3, length(luv)) * 0.7;
+        outc = colorForIndex(colorIndex) * mask * vignette;
+    } else {
+        float m = mod(mat, 6.0);
+        // Determine face influence
+        m += (step(0.1, n.x) + 0.0) * float(abs(n.x) &gt; 0.1);
+        m += (step(0.1, n.y) + 2.0) * float(abs(n.y) &gt; 0.1);
+        m += (step(0.1, n.z) + 4.0) * float(abs(n.z) &gt; 0.1);
+        int idx = int(mod(m, 6.0));
+        outc = colorForIndex(idx);
+    }
+
+    outc = pow(max(outc, 0.0), vec3(0.4545));
+    outc = pow(outc, vec3(1.2, 1.1, 1.0));
+
+    gl_FragColor = vec4(outc, 1.0);
+}
+    </shader>
+</effect>

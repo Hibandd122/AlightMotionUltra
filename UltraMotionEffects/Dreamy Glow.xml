@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.dreamy-glow" name="Dreamy Glow" desc="Screen-blends a 12-sample ring blur of the image over itself for a soft hazy glow. Radius sets the blur size and Glow sets the blend strength." category="colorlight" thumb="thumb/Stylize/Dreamy Glow.webp" tags="stylize,glow,soft,dream,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="radius" default="0.02" min="0.0" max="0.08" label="Radius" />
+        <slider id="glow" default="0.7" min="0.0" max="1.5" label="Glow" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.rgb;
+            vec3 acc = c;
+            for(int i=0;i&lt;12;i++){
+                float a = float(i)/12.0*6.28318;
+                vec2 o = vec2(cos(a),sin(a))*radius;
+                acc += texture2DCv(inputImg.texture, acScreenNorm+o).rgb;
+            }
+            acc /= 13.0;
+            vec3 outc = 1.0 - (1.0-c)*(1.0-acc*glow);
+            gl_FragColor = vec4(outc, src.a);
+        }
+    </shader>
+
+</effect>

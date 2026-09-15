@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.warped_noise_field" name="Warped Noise Field" desc="Generates an animated field of 3D simplex noise warped by its own finite-difference derivatives, tinted with a base color; it replaces the layer content or optionally multiplies with the source. UV scale, time/speed, warp amount, and derivative epsilon shape the pattern." category="procedural" tags="extra" thumb="thumb/Procedural/Warped Noise Field.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" optional="true" />
+
+        
+        <slider id="scale" default="8.0" min="0.1" max="32.0" label="UV Scale" step="0.01" />
+        <slider id="time" default="0.0" min="0.0" max="10000.0" label="Time" step="0.001" />
+        <slider id="speed" default="1.0" min="0.0" max="10.0" label="Time Speed" step="0.01" />
+        <slider id="warpAmount" default="0.0625" min="0.0" max="0.5" label="Warp Amount (1/denom)" step="0.0005" />
+        <slider id="eps" default="0.002" min="0.0001" max="0.02" label="Derivative Epsilon" step="0.0001" />
+        <color id="baseColor" default="#6ED0FFFF" label="Base Color" alpha="false" />
+        <switch id="blendSource" default="false" label="Blend with Source (Multiply)" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Warped noise field, approximating os2NoiseWithDerivatives_ImproveXY via
+        // simplex noise + finite-difference derivatives.
+        const float PI = 3.14159265358979323846264;
+
+        /* 3D Simplex noise from IQ (public domain-ish) */
+        vec3 mod289(vec3 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 permute(vec4 x){ return mod289(((x*34.0)+1.0)*x); }
+        vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
+        float snoise(vec3 v){
+            const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
+            const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+            // First corner
+            vec3 i  = floor(v + dot(v, C.yyy) );
+            vec3 x0 = v - i + dot(i, C.xxx) ;
+            // Other corners
+            vec3 g = step(x0.yzx, x0.xyz);
+            vec3 l = 1.0 - g;
+            vec3 i1 = min( g.xyz, l.zxy );
+            vec3 i2 = max( g.xyz, l.zxy );
+            //  x0 = x0 - 0.0 + 0.0 * C.xxx;
+            vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+            vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+            vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
+            // Permutations
+            i = mod289(i);
+            vec4 p = permute( permute( permute(
+                       i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                     + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
+                     + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+            // Gradients: 7x7 points over a square, mapped onto an octahedron.
+            float n_ = 0.142857142857; // 1.0/7.0
+            vec3  ns = n_ * D.wyz - D.xzx;
+            vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+            vec4 x_ = floor(j * ns.z);
+            vec4 y_ = floor(j - 7.0 * x_ );
+            vec4 x = x_ *ns.x + ns.yyyy;
+            vec4 y = y_ *ns.x + ns.yyyy;
+            vec4 h = 1.0 - abs(x) - abs(y);
+            vec4 b0 = vec4( x.xy, y.xy );
+            vec4 b1 = vec4( x.zw, y.zw );
+            vec4 s0 = floor(b0)*2.0 + 1.0;
+            vec4 s1 = floor(b1)*2.0 + 1.0;
+            vec4 sh = -step(h, vec4(0.0));
+            vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+            vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+            vec3 p0 = vec3(a0.xy,h.x);
+            vec3 p1 = vec3(a0.zw,h.y);
+            vec3 p2 = vec3(a1.xy,h.z);
+            vec3 p3 = vec3(a1.zw,h.w);
+            // Normalise gradients
+            vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+            p0 *= norm.x;
+            p1 *= norm.y;
+            p2 *= norm.z;
+            p3 *= norm.w;
+            // Mix contributions from the four corners
+            vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1),
+                                    dot(x2,x2), dot(x3,x3)), 0.0);
+            m = m * m;
+            return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),
+                                          dot(p2,x2), dot(p3,x3) ) );
+        }
+
+        // Approximate derivatives by finite differences
+        vec4 snoiseWithDerivatives(vec3 p, float e){
+            float n  = snoise(p);
+            vec3 ex = vec3(e,0.0,0.0);
+            vec3 ey = vec3(0.0,e,0.0);
+            vec3 ez = vec3(0.0,0.0,e);
+            float nx = snoise(p+ex) - snoise(p-ex);
+            float ny = snoise(p+ey) - snoise(p-ey);
+            float nz = snoise(p+ez) - snoise(p-ez);
+            vec3 d = vec3(nx,ny,nz) / (2.0*e);
+            return vec4(d, n);
+        }
+
+        void main(){
+            vec2 res = acScreenSize;
+            float m = max(res.x, res.y);
+            vec2 frag = acScreenNorm * res; // convert back to pixel space
+            vec2 uv = frag / m * scale;
+
+            float t = mod(time * speed, 578.0) * 0.8660254037844386; // tan(60)/? factor from source
+            vec3 X = vec3(uv, t);
+
+            // First evaluation
+            vec4 nr = snoiseWithDerivatives(X, eps);
+            // Warped evaluation
+            nr = snoiseWithDerivatives(X - nr.xyz * warpAmount, eps);
+            float value = nr.w;
+
+            vec3 col = baseColor.rgb * (0.5 + 0.5 * value);
+            vec4 outC = vec4(col, 1.0);
+
+            if (blendSource) {
+                vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+                outC.rgb *= src.rgb;
+                outC.a = 1.0;
+            }
+            gl_FragColor = outC;
+        }
+    </shader>
+</effect>

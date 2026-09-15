@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ccscalewipe" name="Directional Smear" desc="Stretches pixels from a start point toward an end point with a radial falloff mask, smearing the image along that direction. Strength sets stretch amount, Radius the affected area, and Keep Edge clamps sampling at the borders." category="warp" tags="wipe,stretch,distort,shadertoy" thumb="thumb/Distort and Warp/Directional Smear.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <point id="startPoint" label="Start" default="500,500" />
+        <point id="endPoint" label="End" default="1000,500" />
+        <slider id="strength" label="Strength" default="1.00" min="0.0" max="10.0" step="0.01" />
+        <slider id="radius" label="Radius" default="0.10" min="0.0" max="1.0" step="0.005" />
+        <switch id="keepEdge" label="Keep Edge" default="false" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        precision highp float;
+
+        void main() {
+            // Normalized coordinates (0.0 to 1.0)
+            vec2 uv = acScreenNorm;
+            
+            // Adjust for aspect ratio to make circle/distortions uniform
+            float aspect = acScreenSize.x / acScreenSize.y;
+            vec2 aspectUV = uv * vec2(aspect, 1.0);
+
+            // Convert Alight Motion point params (0-1000) to 0-1 range
+            // Then apply aspect ratio correction
+            vec2 center = (startPoint / 1000.0) * vec2(aspect, 1.0);
+            vec2 end = (endPoint / 1000.0) * vec2(aspect, 1.0);
+
+            float stretchStrength = strength * 3.0; // Scaled to match Shadertoys multiplier
+            vec2 dirVec = end - center;
+            vec2 dir = normalize(dirVec);
+
+            // 1. Calculate how far along the stretch axis the pixel is
+            float projection = dot(aspectUV - center, dir);
+            
+            // 2. Calculate the distance from center for the Radius mask
+            float dist = length(aspectUV - center);
+            
+            // 3. Create the Radius Falloff (normalized radius)
+            // Shadertoy used a raw float, here we use radius param
+            // smoothstep(radius, 0.0, dist) means:
+            // dist &gt;= radius -&gt; 0.0
+            // dist &lt;= 0.0 -&gt; 1.0
+            float mask = smoothstep(radius, 0.0, dist);
+
+            vec2 distortedUV = uv;
+
+            if (projection &gt; 0.0) {
+                // Apply the stretch, but multiply the intensity by the mask
+                float amount = (stretchStrength / (1.0 + stretchStrength)) * mask;
+                // Move aspect-corrected uv back towards center
+                vec2 deltaDistort = dir * projection * amount;
+                // Scale delta back to non-aspect space for final UV
+                deltaDistort.x /= aspect;
+                distortedUV -= deltaDistort;
+            }
+
+            // Sample inputImg
+            vec4 col = texture2DCv(inputImg.texture, distortedUV);
+            
+            // Edge clamping / Keep Edge logic
+            if (!keepEdge) {
+                if (distortedUV.x &gt; 1.0 || distortedUV.x &lt; 0.0 || distortedUV.y &gt; 1.0 || distortedUV.y &lt; 0.0) {
+                    col = vec4(0.0);
+                }
+            } else {
+                col = texture2DCv(inputImg.texture, clamp(distortedUV, 0.0, 1.0));
+            }
+
+            gl_FragColor = col;
+        }
+    </shader>
+
+    <passes>
+        <pass />
+    </passes>
+
+</effect>

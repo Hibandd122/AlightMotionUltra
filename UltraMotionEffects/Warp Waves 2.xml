@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_warp_waves2" name="Warp Waves 2" desc="Warps the image with two independent directional sine-wave displacements, each with its own amplitude, frequency, wave angle, displacement angle and phase animation. Includes zoom (Z Dist), tile/reflect wrap modes, layer-follow option and blend." category="warp" tags="warp,waves,distortion,sine" thumb="thumb/Distort and Warp/Warp Waves 2.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="aAmplitude" default="0.08" min="0.0" max="1.0" step="0.001" label="A Amplitude" />
+        <slider id="aFrequency" default="16.0" min="0.0" max="100.0" step="0.1" label="A Frequency" />
+        <slider id="aAngle" default="45.0" min="-180.0" max="180.0" step="0.1" label="A Angle" />
+        <slider id="aDisplaceAngle" default="90.0" min="-180.0" max="180.0" step="0.1" label="A Displace Angle" />
+        <slider id="aPhaseStart" default="0.0" min="-10.0" max="10.0" step="0.01" label="A Phase Start" />
+        <slider id="aPhaseSpeed" default="0.5" min="-10.0" max="10.0" step="0.01" label="A Phase Speed" />
+
+        
+        <slider id="bAmplitude" default="0.12" min="0.0" max="1.0" step="0.001" label="B Amplitude" />
+        <slider id="bFrequency" default="3.0" min="0.0" max="100.0" step="0.1" label="B Frequency" />
+        <slider id="bAngle" default="15.0" min="-180.0" max="180.0" step="0.1" label="B Angle" />
+        <slider id="bDisplaceAngle" default="-45.0" min="-180.0" max="180.0" step="0.1" label="B Displace Angle" />
+        <slider id="bPhaseStart" default="0.0" min="-10.0" max="10.0" step="0.01" label="B Phase Start" />
+        <slider id="bPhaseSpeed" default="-0.8" min="-10.0" max="10.0" step="0.01" label="B Phase Speed" />
+
+        
+        <slider id="zDist" default="1.05" min="0.1" max="10.0" step="0.01" label="Z Dist (Zoom)" />
+        <slider id="wrapMode" default="2" min="0" max="2" step="1" snap="1" label="Wrap Mode (0:No, 1:Tile, 2:Reflect)" />
+        <switch id="followLayer" default="true" label="Follow Layer" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // S_WarpWaves2 implementation for Alight Motion
+        
+        #define PI 3.14159265359
+
+        vec2 applyWrap(vec2 uv, int mode) {
+            if (mode == 1) return fract(uv); 
+            if (mode == 2) return abs(mod(uv - 1.0, 2.0) - 1.0); 
+            return uv;
+        }
+
+        vec2 getWaveOffset(vec2 p, float amp, float freq, float angle, float dispAngle, float pStart, float pSpeed, float time, float aspect) {
+            float rad = angle * (PI / 180.0);
+            float dispRad = dispAngle * (PI / 180.0);
+            
+            vec2 waveDir = vec2(cos(rad), sin(rad));
+            vec2 dispDir = vec2(cos(rad + dispRad), sin(rad + dispRad));
+            
+            vec2 pCorrected = p;
+            pCorrected.x *= aspect;
+            
+            float phase = dot(pCorrected, waveDir) * freq + pStart + time * pSpeed;
+            
+            return dispDir * sin(phase) * amp;
+        }
+
+        void main() {
+            vec2 luv = acLayerNorm.xy;
+            vec2 suv = acScreenNorm.xy;
+            
+            vec2 uv;
+            vec2 aspect;
+            if(followLayer) {
+                uv = luv;
+                aspect = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            } else {
+                uv = suv;
+                aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+            }
+            
+            // 2. Apply Z Dist (Zoom) from center
+            vec2 p = (uv - 0.5) * zDist + 0.5;
+            
+            // 3. Calculate Displacement from Waves A and B
+            vec2 offsetA = getWaveOffset(p, aAmplitude, aFrequency, aAngle, aDisplaceAngle, aPhaseStart, aPhaseSpeed, acTime, aspect.x);
+            vec2 offsetB = getWaveOffset(p, bAmplitude, bFrequency, bAngle, bDisplaceAngle, bPhaseStart, bPhaseSpeed, acTime, aspect.x);
+            
+            // 4. Combine Warps
+            // Offsets calculated in aspect-corrected space, divide X by aspect before adding to UV
+            vec2 totalOffset = offsetA + offsetB;
+            totalOffset.x /= aspect.x;
+            
+            vec2 warpedUV = p + totalOffset;
+            
+            // 5. Apply Wrap and Sample
+            warpedUV = applyWrap(warpedUV, int(wrapMode));
+            vec4 color = texture2DCv(inputImg.texture, warpedUV);
+            
+            vec4 base = texture2DCv(inputImg.texture, suv);
+            gl_FragColor = mix(base, color, blend);
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.glass_balls" name="Glass Balls" desc="Raytraces a set of animated glass spheres over the layer; each sphere refracts and reflects the underlying image with a Fresnel-weighted mix, color absorption tint, and specular highlight. Count, size, spread, seed, optics, and light-direction controls." category="drawingedge" thumb="thumb/Stylize/Glass Balls.webp" tags="shadertoy,glass,refraction,reflection">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="ballCount" default="9" min="1" max="200" step="1.0" label="Count" />
+    <slider id="ballRadius" default="0.09" min="0.01" max="0.5" step="0.001" label="Radius" />
+    <slider id="spread" default="1.0" min="0.1" max="4.0" step="0.01" label="Spread" />
+    <slider id="zSpread" default="0.2" min="0.0" max="2.0" step="0.01" label="Z Spread" />
+    <color id="ballColor" default="#E6000EFF" label="Color" alpha="false" />
+    <slider id="progress" default="0.0" min="0.0" max="1.0" step="0.001" label="Progress" />
+    <switch id="randomSize" default="true" label="Random Size" />
+    <slider id="sizeVar" default="0.5" min="0.0" max="2.0" step="0.01" label="Size Variance" />
+    <slider id="randSeed" default="0.0" min="0.0" max="100.0" step="0.01" label="Seed" />
+    <slider id="posX" default="0.0" min="-2.0" max="2.0" step="0.01" label="Position X" />
+    <slider id="posY" default="0.0" min="-2.0" max="2.0" step="0.01" label="Position Y" />
+    <slider id="posZ" default="0.0" min="-2.0" max="2.0" step="0.01" label="Position Z" />
+
+    
+    <slider id="ior" default="1.45" min="1.0" max="2.5" step="0.001" label="Index of Refraction" />
+    <slider id="shininess" default="100.0" min="1.0" max="300.0" step="1.0" label="Shininess" />
+    <slider id="reflectMix" default="1.0" min="0.0" max="2.0" step="0.01" label="Reflection Mix" />
+    <slider id="refractScale" default="0.6" min="0.0" max="2.0" step="0.01" label="Refraction UV Scale" />
+    <slider id="reflectScale" default="0.5" min="0.0" max="2.0" step="0.01" label="Reflection UV Scale" />
+    <slider id="fov" default="1.5" min="0.5" max="3.0" step="0.01" label="FOV" />
+
+    
+    <slider id="lightX" default="0.5" min="-2.0" max="2.0" step="0.01" label="Light X" />
+    <slider id="lightY" default="0.8" min="-2.0" max="2.0" step="0.01" label="Light Y" />
+    <slider id="lightZ" default="-1.0" min="-2.0" max="2.0" step="0.01" label="Light Z" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec2 getResolution(){
+      vec2 s = getTexSize(inputImg.size);
+      if (s.x &lt;= 0.0 || s.y &lt;= 0.0) s = vec2(1920.0, 1080.0);
+      return s;
+    }
+    vec2 hash2(float n){ return fract(sin(vec2(n, n + 1.0)) * 43758.5453); }
+    float intersectSphere(vec3 ro, vec3 rd, vec3 center, float radius){
+      vec3 oc = ro - center;
+      float b = dot(oc, rd);
+      float c = dot(oc, oc) - radius * radius;
+      float h = b*b - c;
+      if (h &lt; 0.0) return -1.0;
+      return -b - sqrt(h);
+    }
+    void main(){
+      vec2 res = getResolution();
+      vec2 fragCoord = acScreenNorm * res;
+      vec2 uv = acScreenNorm;
+      vec2 p = (fragCoord - 0.5 * res) / res.y;
+      vec3 ro = vec3(0.0, 0.0, -2.0);
+      vec3 rd = normalize(vec3(p, fov));
+      vec3 lightPos = normalize(vec3(lightX, lightY, lightZ));
+      vec3 col = texture2DCv(inputImg.texture, uv).rgb;
+      float minT = 10000.0;
+      vec3 hitCenter = vec3(0.0);
+      int maxBalls = int(ballCount);
+      float aspect = res.x / res.y;
+      for(int i=0;i&lt;400;i++){
+        if (i &gt;= maxBalls) break;
+        vec2 rnd = hash2(float(i) * 56.7 + randSeed);
+        float t_anim = progress * 20.0 + (float(i) * 12.0);
+        vec3 center = vec3(0.0);
+        center.x = sin(t_anim + rnd.x * 6.2831853) * 0.8 * aspect * spread;
+        center.y = cos(t_anim * 0.9 + rnd.y * 6.2831853) * 0.4 * spread;
+        center.z = sin(t_anim * 0.5) * zSpread;
+        center += vec3(posX, posY, posZ);
+        float rVar = 1.0;
+        if (randomSize){ rVar = 1.0 + (rnd.x * 2.0 - 1.0) * sizeVar; }
+        float rBall = clamp(ballRadius * rVar, 0.001, 10.0);
+        float t = intersectSphere(ro, rd, center, rBall);
+        if (t &gt; 0.0 &amp;&amp; t &lt; minT){ minT = t; hitCenter = center; }
+      }
+      if (minT &lt; 10000.0){
+        vec3 pos = ro + rd * minT;
+        vec3 normal = normalize(pos - hitCenter);
+        vec3 viewDir = -rd;
+        float cosTheta = clamp(dot(normal, viewDir), 0.0, 1.0);
+        float fresnel = pow(1.0 - cosTheta, 4.0);
+        float reflStrength = (0.1 + 0.9 * fresnel) * reflectMix;
+        vec3 refrVec = refract(rd, normal, 1.0 / ior);
+        vec2 refrUV = uv + refrVec.xy * refractScale;
+        vec3 glassColor = texture2DCv(inputImg.texture, refrUV).rgb;
+        vec3 absorb = ballColor.rgb * (0.5 + 0.5 * cosTheta);
+        glassColor *= absorb * 1.5;
+        vec3 reflVec = reflect(rd, normal);
+        vec2 reflUV = uv + reflVec.xy * reflectScale;
+        vec3 reflColor = texture2DCv(inputImg.texture, reflUV).rgb;
+        vec3 halfVec = normalize(lightPos + viewDir);
+        float spec = pow(max(dot(normal, halfVec), 0.0), shininess);
+        vec3 sphereCol = mix(glassColor, reflColor, reflStrength);
+        sphereCol += vec3(1.0) * spec;
+        sphereCol += vec3(1.0, 0.2, 0.2) * fresnel * 0.3;
+        col = sphereCol;
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }
+  </shader>
+
+</effect>

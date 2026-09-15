@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.negative" name="Negative" desc="Invert and convert to high-contrast black and white manga-style negative" category="colorlight" tags="invert,negative,manga,blackwhite,monochrome" thumb="thumb/Color/Negative.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="contrast" default="1.4" min="0.5" max="4.0" step="0.01" label="Contrast" />
+        <slider id="brightness" default="0.0" min="-1.0" max="1.0" step="0.01" label="Brightness" />
+        <slider id="blackPoint" default="0.08" min="0.0" max="0.5" step="0.005" label="Black Point (Crush Blacks)" />
+        <slider id="whitePoint" default="0.92" min="0.5" max="1.0" step="0.005" label="White Point (Clip Whites)" />
+        <slider id="sharpness" default="0.6" min="0.0" max="2.0" step="0.01" label="Edge Sharpness" />
+        <slider id="grainAmount" default="0.03" min="0.0" max="0.2" step="0.005" label="Film Grain" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+
+        float hash(vec2 p) {
+            vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            vec4 src = texture2DCv(inputImg.texture, uv);
+
+            // --- Invert ---
+            vec3 inverted = vec3(1.0) - src.rgb;
+
+            // --- Luminance-weighted grayscale (perceptual) ---
+            float lum = dot(inverted, vec3(0.299, 0.587, 0.114));
+
+            // --- Sharpening via unsharp mask on grayscale ---
+            float str = 0.0015;
+            float lumTL = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2(-str,  str)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumTM = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2( 0.0,  str)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumTR = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2( str,  str)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumML = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2(-str,  0.0)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumMR = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2( str,  0.0)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumBL = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2(-str, -str)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumBM = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2( 0.0, -str)).rgb, vec3(0.299, 0.587, 0.114));
+            float lumBR = dot(vec3(1.0) - texture2DCv(inputImg.texture, uv + vec2( str, -str)).rgb, vec3(0.299, 0.587, 0.114));
+            float blurred = (lumTL + lumTM + lumTR + lumML + lumMR + lumBL + lumBM + lumBR) / 8.0;
+            lum = lum + (lum - blurred) * sharpness;
+
+            // --- Brightness &amp; Contrast ---
+            lum += brightness;
+            lum = (lum - 0.5) * contrast + 0.5;
+
+            // --- Black/White point remap ---
+            lum = (lum - blackPoint) / max(whitePoint - blackPoint, 0.001);
+            lum = clamp(lum, 0.0, 1.0);
+
+            // --- Film grain ---
+            float grain = (hash(uv * acScreenSize + fract(acTime * 100.0)) - 0.5) * grainAmount;
+            lum = clamp(lum + grain, 0.0, 1.0);
+
+            gl_FragColor = vec4(vec3(lum), src.a);
+        }
+
+    </shader>
+</effect>

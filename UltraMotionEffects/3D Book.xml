@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.creative.mystery_book" name="3D Book" desc="Raymarched 3D book on a procedural wooden table, with the layer mapped onto the page faces. Book Opening animates the left cover/pages; camera zoom and rotation orbit the scene, which is lit with diffuse shading and soft raymarched shadows." category="3d" thumb="thumb/3D/3D Book.webp" tags="3d,book,raymarching,glsl">
+
+    <params>
+        <texture id="iChannel0" srcType="content" label="Page Texture" />
+        
+        <slider id="openProgress" default="0.0" min="0.0" max="1.0" step="0.01" label="Book Opening" />
+        <slider id="zoom" default="1.0" min="0.5" max="2.5" step="0.01" label="Camera Zoom" />
+        <slider id="camRot" default="0.0" min="-3.14" max="3.14" step="0.01" label="Camera Rotation" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        precision highp float;
+
+        // Shadertoy constants
+        #define MAX_STEPS 100
+        #define MAX_DIST 50.0
+        #define SURF_DIST 0.001
+        #define PI 3.14159265
+
+        // Helpers
+        float hash21(vec2 p) {
+            vec3 p3  = fract(vec3(p.xyx) * .1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        mat2 rot(float a) {
+            float s = sin(a);
+            float c = cos(a);
+            return mat2(c, -s, s, c);
+        }
+
+        float sdBox(vec3 p, vec3 b) {
+            vec3 q = abs(p) - b;
+            return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
+        }
+
+        float sdRoundBox(vec3 p, vec3 b, float r) {
+            vec3 q = abs(p) - b;
+            return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+        }
+
+        // Scene Logic
+        vec2 map(vec3 p) {
+            vec2 res = vec2(100.0, 0.0);
+            
+            // 1. Wooden Table
+            float dTable = p.y + 0.05;
+            if (dTable &lt; res.x) res = vec2(dTable, 1.0);
+            
+            // Book Dimensions
+            vec3 dim = vec3(1.2, 0.15, 1.6);
+            float coverThick = 0.02;
+            vec3 pb = p - vec3(0.0, 0.05, 0.0);
+            
+            // Spine
+            vec3 pSpine = pb;
+            pSpine.y -= dim.y * 0.5;
+            float dSpine = sdRoundBox(pSpine, vec3(0.1, dim.y * 0.6, dim.z), 0.02);
+            if (dSpine &lt; res.x) res = vec2(dSpine, 5.0);
+            
+            // Right Side
+            vec3 pR = pb;
+            vec3 localR = pR - vec3(dim.x + 0.02, 0.0, 0.0);
+            float dRCover = sdBox(localR - vec3(0.0, -dim.y*0.5, 0.0), vec3(dim.x, coverThick, dim.z));
+            float dRPages = sdBox(localR - vec3(0.0, coverThick, 0.0), vec3(dim.x - 0.05, dim.y*0.5 - coverThick, dim.z - 0.05));
+            if (dRCover &lt; res.x) res = vec2(dRCover, 2.0);
+            if (dRPages &lt; res.x) res = vec2(dRPages, 4.0);
+            
+            // Left Side
+            float rotAng = (1.0 - openProgress) * PI;
+            vec3 pL_rot = pb;
+            pL_rot.xy *= rot(rotAng);
+            vec3 localL = pL_rot - vec3(-dim.x - 0.02, 0.0, 0.0);
+            float dLCover = sdBox(localL - vec3(0.0, -dim.y*0.5, 0.0), vec3(dim.x, coverThick, dim.z));
+            float dLPages = sdBox(localL - vec3(0.0, coverThick, 0.0), vec3(dim.x - 0.05, dim.y*0.5 - coverThick, dim.z - 0.05));
+            if (dLCover &lt; res.x) res = vec2(dLCover, 2.0);
+            if (dLPages &lt; res.x) res = vec2(dLPages, 3.0);
+
+            return res;
+        }
+
+        float rayMarch(vec3 ro, vec3 rd, out float m) {
+            float dO = 0.0;
+            m = 0.0;
+            for(int i=0; i&lt;MAX_STEPS; i++) {
+                vec3 p = ro + rd * dO;
+                vec2 dS = map(p);
+                dO += dS.x;
+                m = dS.y;
+                if(dO &gt; MAX_DIST || abs(dS.x) &lt; SURF_DIST) break;
+            }
+            return dO;
+        }
+
+        vec3 getNormal(vec3 p) {
+            float d = map(p).x;
+            vec2 e = vec2(0.001, 0);
+            vec3 n = d - vec3(
+                map(p-e.xyy).x,
+                map(p-e.yxy).x,
+                map(p-e.yyx).x);
+            return normalize(n);
+        }
+
+        vec3 getWood(vec2 uv) {
+            float n = sin(uv.x * 20.0 + sin(uv.y * 50.0) * 2.0);
+            return vec3(0.3, 0.15, 0.05) * (0.8 + 0.2 * n);
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm - 0.5;
+            uv.x *= (acLayerSize.x / acLayerSize.y);
+
+            // Camera
+            vec3 ro = vec3(0.0, 3.5, -4.0) * zoom;
+            ro.xz *= rot(camRot);
+            
+            vec3 lookAt = vec3(0.0, 0.0, 0.0);
+            vec3 f = normalize(lookAt - ro);
+            vec3 r = normalize(cross(vec3(0,1,0), f));
+            vec3 u = cross(f, r);
+            vec3 rd = normalize(f + uv.x * r + uv.y * u);
+
+            float m = 0.0;
+            float d = rayMarch(ro, rd, m);
+            
+            vec3 col = vec3(0.01, 0.0, 0.02);
+            
+            if(d &lt; MAX_DIST) {
+                vec3 p = ro + rd * d;
+                vec3 n = getNormal(p);
+                vec3 lightPos = vec3(1.0, 3.0, -1.0);
+                vec3 l = normalize(lightPos - p);
+                float dif = clamp(dot(n, l), 0.0, 1.0);
+                float amb = 0.1;
+                vec3 albedo = vec3(0.5);
+                
+                if (m == 1.0) { // Table
+                     albedo = getWood(p.xz);
+                     float spec = pow(max(dot(reflect(-l, n), -rd), 0.0), 16.0);
+                     albedo += spec * 0.1;
+                } 
+                else if (m == 2.0 || m == 5.0) { // Cover &amp; Spine
+                     float grain = hash21(p.xz * 10.0);
+                     albedo = vec3(0.15, 0.02, 0.02) * (0.8 + 0.2 * grain);
+                     float spec = pow(max(dot(reflect(-l, n), -rd), 0.0), 8.0);
+                     albedo += spec * 0.2;
+                }
+                else if (m == 3.0 || m == 4.0) { // Pages
+                     albedo = vec3(0.9, 0.85, 0.75);
+                     vec3 dim = vec3(1.2, 0.15, 1.6);
+                     vec2 pageUV = vec2(0.0);
+                     bool isTopFace = false;
+                     
+                     if (m == 4.0) { // Right
+                         vec3 local = p - vec3(0.0, 0.05, 0.0) - vec3(dim.x + 0.02, 0.0, 0.0);
+                         if (n.y &gt; 0.5) {
+                             isTopFace = true;
+                             pageUV.x = clamp((local.x + dim.x) / (2.0 * dim.x), 0.0, 1.0);
+                             pageUV.y = clamp((local.z + dim.z) / (2.0 * dim.z), 0.0, 1.0);
+                         }
+                     } else { // Left
+                         vec3 pb = p - vec3(0.0, 0.05, 0.0);
+                         float rotAng = (1.0 - openProgress) * PI;
+                         vec3 pL_rot = pb;
+                         pL_rot.xy *= rot(rotAng);
+                         vec3 local = pL_rot - vec3(-dim.x - 0.02, 0.0, 0.0);
+                         
+                         if (n.y &gt; -0.5) { 
+                              isTopFace = true;
+                              pageUV.x = clamp((local.x + dim.x) / (2.0 * dim.x), 0.0, 1.0);
+                              pageUV.y = clamp((local.z + dim.z) / (2.0 * dim.z), 0.0, 1.0);
+                              pageUV.x = 1.0 - pageUV.x; 
+                         }
+                     }
+                     
+                     if (isTopFace) {
+                         vec3 tex = texture2D(iChannel0.texture, pageUV).rgb;
+                         tex *= 0.9 + 0.1 * hash21(p.xz * 50.0);
+                         float vig = smoothstep(0.49, 0.45, abs(pageUV.x - 0.5)) * 
+                                     smoothstep(0.49, 0.45, abs(pageUV.y - 0.5));
+                         albedo = mix(albedo * 0.5, tex, vig);
+                     } else {
+                         float lines = sin(p.y * 200.0);
+                         albedo *= 0.8 + 0.2 * lines;
+                     }
+                }
+                
+                vec3 color = albedo * (amb + dif);
+                
+                // Shadows
+                float sh = 1.0;
+                float dS = 0.02;
+                float shadowVal = 1.0;
+                for(int i=0; i&lt;20; i++) {
+                    float h = map(p + l * dS).x;
+                    if (h &lt; 0.001) { shadowVal = 0.1; break; }
+                    shadowVal = min(shadowVal, 10.0 * h / dS);
+                    dS += h;
+                    if (dS &gt; 2.0) break;
+                }
+                color *= mix(0.2, 1.0, shadowVal);
+                color = mix(color, vec3(0.01, 0.0, 0.02), smoothstep(5.0, 15.0, d));
+                col = color;
+            }
+            
+            col = pow(col, vec3(0.4545));
+            col *= 1.0 - length(uv) * 0.5;
+
+            gl_FragColor = vec4(col, 1.0);
+        }
+    </shader>
+</effect>

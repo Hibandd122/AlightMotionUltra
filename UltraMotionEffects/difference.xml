@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.diff" name="@string/name" desc="@string/desc" category="colorlight" internal="true" thumb="thumb/efek.png">
+
+    
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="comp" srcType="comp" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        void main() {
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 compColor = texture2DCv(comp.texture,acScreenNorm);
+            gl_FragColor = vec4(abs(compColor.rgb*texColor.a - texColor.rgb),texColor.a);
+        }
+
+    </shader>
+
+</effect>

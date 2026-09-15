@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra3d.perspective-tilt" name="3D Tilt" desc="Tilts the layer as a flat plane around the X and Y axes using per-pixel ray-plane intersection with fixed-distance perspective. Zoom scales the mapped image on the plane." category="3d" thumb="thumb/Distort and Warp/3D Tilt.webp" tags="3d,perspective,tilt,transform,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="tiltX" default="20.0" min="-80.0" max="80.0" label="Tilt X" type="angle" step="1" />
+        <slider id="tiltY" default="25.0" min="-80.0" max="80.0" label="Tilt Y" type="angle" step="1" />
+        <slider id="zoom" default="1.0" min="0.4" max="2.0" label="Zoom" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        const float PI = 3.14159265;
+        mat3 mrotX(float a){ float s=sin(a),c=cos(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
+        mat3 mrotY(float a){ float s=sin(a),c=cos(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
+        mat3 mrotZ(float a){ float s=sin(a),c=cos(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
+        void main(){
+            mat3 R = mrotY(radians(tiltY))*mrotX(radians(tiltX));
+            vec2 ndc = acScreenNorm*2.0-1.0;
+            float asp = acScreenSize.x/acScreenSize.y; ndc.x *= asp;
+            vec3 ro=vec3(0.0,0.0,-2.8), rd=normalize(vec3(ndc,2.8));
+            vec3 N=R*vec3(0.0,0.0,1.0), RU=R*vec3(1.0,0.0,0.0), UP=R*vec3(0.0,1.0,0.0);
+            float dn=dot(rd,N);
+            if(abs(dn)&lt;0.001){gl_FragColor=vec4(0.0);return;}
+            float t=dot(-ro,N)/dn; vec3 hit=ro+rd*t;
+            vec2 uv=vec2(dot(hit,RU)/asp, dot(hit,UP))/zoom*0.5+0.5;
+            if(t&lt;0.0||uv.x&lt;0.0||uv.x&gt;1.0||uv.y&lt;0.0||uv.y&gt;1.0){gl_FragColor=vec4(0.0);return;}
+            gl_FragColor=texture2DCv(inputImg.texture, uv);
+        }
+    </shader>
+
+</effect>

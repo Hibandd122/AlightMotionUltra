@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.film_damage_dots" name="Film Damage Dots" desc="Overlays procedural film dust/damage dots (one jittered dot per random grid cell) with controls for size, softness, density, color, drift, flicker and blend mode (Normal, Add, Screen, Multiply)." category="other" tags="film,dust,damage,grain,dots" thumb="thumb/Stylize/Film Damage Dots.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <color id="dotColor" default="#D0C7B0" label="Dot Color" />
+    <slider id="dotSize" default="2.0" min="0.5" max="100.0" step="0.1" label="Dot Size (px)" />
+    <slider id="softness" default="0.0" min="0.0" max="1.0" step="0.01" label="Softness" />
+    <slider id="density" default="40.0" min="0.0" max="800.0" step="1.0" label="Density (per 1000x1000)" />
+    <slider id="opacity" default="0.8" min="0.0" max="1.0" step="0.01" label="Dot Opacity" />
+
+    
+    <slider id="speed" default="0.2" min="0.0" max="5.0" step="0.01" label="Drift Speed" />
+    <slider id="flicker" default="0.0" min="0.0" max="1.0" step="0.01" label="Flicker" />
+    <slider id="seed" default="0.0" min="-1000.0" max="1000.0" step="1.0" label="Seed" />
+
+    
+    <menu id="blendMode" style="dropdown" default="2" label="Blend Mode">
+      <menu label="Normal" value="1" />
+      <menu label="Add" value="2" />
+      <menu label="Screen" value="3" />
+      <menu label="Multiply" value="4" />
+    </menu>
+    <slider id="mixAmount" default="1.0" min="0.0" max="1.0" step="0.01" label="Mix" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Procedural film damage dots
+    vec4 src(vec2 uv){ return texture2DCv(inputImg.texture, uv); }
+
+    float hash11(float n){ return fract(sin(n)*43758.5453123); }
+    float hash12(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)) + seed)*43758.5453); }
+    vec2  hash22(vec2 p){
+      float n = sin(dot(p, vec2(12.9898,78.233)) + seed);
+      return fract(vec2(262144.0, 32768.0) * n);
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec2 px = uv * acScreenSize; // pixel space for consistent radius
+
+      // Convert density per 1000x1000 pixels to expected cell size in px
+      float D = max(density, 1e-3);
+      float area = acScreenSize.x * acScreenSize.y;
+      float cells = D * (area / 1000000.0);
+      float cellSize = sqrt(max(area / max(cells, 1.0), 1.0));
+
+      // Grid cell in pixel space
+      vec2 cell = floor(px / cellSize);
+      vec2 cellOrigin = cell * cellSize;
+
+      // Random jittered dot center per cell
+      vec2 rnd = hash22(cell);
+      // Drift over time for organic motion
+      float t = acTime * speed;
+      vec2 drift = 0.35 * (rnd - 0.5) * cellSize * t;
+      vec2 center = cellOrigin + (rnd * cellSize) + drift;
+
+      // Circle SDF
+      float r = max(dotSize, 0.0);
+      float d = length(px - center);
+      float feather = mix(0.001, 0.8, clamp(softness, 0.0, 1.0));
+      float m = 1.0 - smoothstep(r, r * (1.0 + feather), d);
+
+      // Sparse flicker to emulate film dust popping
+      float f = mix(1.0, hash12(cell + floor(t*7.0)), flicker);
+      m *= f;
+
+      vec4 base = src(uv);
+      vec3 dotRGB = dotColor.rgb * opacity * m;
+
+      int bm = int(blendMode);
+      vec3 outRGB;
+      if (bm == 1) {
+        // Normal (over)
+        vec3 mixed = mix(base.rgb, dotRGB, clamp(mixAmount, 0.0, 1.0));
+        outRGB = mixed;
+      } else if (bm == 2) {
+        // Add
+        outRGB = base.rgb + dotRGB * clamp(mixAmount, 0.0, 1.0);
+      } else if (bm == 3) {
+        // Screen
+        vec3 scr = 1.0 - (1.0 - base.rgb) * (1.0 - clamp(dotRGB, 0.0, 100.0));
+        outRGB = mix(base.rgb, scr, clamp(mixAmount, 0.0, 1.0));
+      } else {
+        // Multiply
+        vec3 mul = base.rgb * (1.0 - m + dotRGB);
+        outRGB = mix(base.rgb, mul, clamp(mixAmount, 0.0, 1.0));
+      }
+
+      gl_FragColor = vec4(outRGB, base.a);
+    }
+  </shader>
+
+</effect>

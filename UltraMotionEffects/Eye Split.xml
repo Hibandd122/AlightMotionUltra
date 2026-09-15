@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.eye_split_bend" name="Eye Split" desc="Cuts an eye-shaped transparent opening along the axis between two points; the outside shows the layer (invertible). Split height, tip sharpness, lobe shaping, asymmetric upper/lower scales, and bend controls allow animated open/close." category="warp" tags="split,mask,transition,shadertoy,procedural" thumb="thumb/Matte and Mask/Eye Split.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <point id="pointA" default="200,540" label="Point A" />
+    <point id="pointB" default="1720,540" label="Point B" />
+
+    
+    
+    <slider id="split" default="54.0" min="0.0" max="1000.0" step="0.5" label="Split" />
+
+    
+    <slider id="sharpness" default="8.8" min="0.5" max="32.0" step="0.1" label="Sharpness" />
+    <slider id="bendFactor" default="0.10" min="-1.0" max="1.0" step="0.01" label="Bend" />
+    <slider id="tipSharpness" default="2.5" min="0.5" max="10.0" step="0.05" label="Tip Sharpness" />
+    <slider id="lobePower" default="1.2" min="0.5" max="4.0" step="0.05" label="Lobe Power" />
+    <slider id="upperScale" default="1.15" min="0.5" max="2.0" step="0.01" label="Upper Scale" />
+    <slider id="lowerScale" default="0.85" min="0.5" max="2.0" step="0.01" label="Lower Scale" />
+    <switch id="invertInside" default="false" label="Invert Inside/Outside" />
+    
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Eye Split Bend
+    // Port of the provided ShaderToy with AM coordinate + param mapping
+    // - Uses Point A/B to define the split axis
+    // - Split (px) sets the height manually (keyframe as needed)
+
+    // Helper: perpendicular
+    vec2 perp(vec2 v){ return vec2(-v.y, v.x); }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec4 src = texture2DCv(inputImg.texture, uv);
+
+      // Points in pixels -&gt; normalize to UV
+      vec2 Auv = pointA / acScreenSize;
+      vec2 Buv = pointB / acScreenSize;
+      vec2 Muv = (Auv + Buv) * 0.5;              // midpoint in UV
+      vec2 dir = normalize(Buv - Auv);           // axis unit in UV
+      vec2 nrm = perp(dir);                      // normal unit in UV
+      float halfLen = max(length(Buv - Auv) * 0.5, 1e-6); // half-length in UV units
+
+      // Local coordinates relative to the AB frame
+      vec2 p = uv - Muv;
+      float x = dot(p, dir);                     // along AB
+      float y = dot(p, nrm);                     // across AB
+      float xN = x / halfLen;                    // normalize so A/B map to -1..+1 along 2*range
+
+      // Split height in UV units (based on screen height to be pixel-consistent)
+      // Manual control: keyframe 'split' as needed; no time-based animation here.
+      float splitUV = (split / max(acScreenSize.y, 1.0));
+      // Superellipse-like longitudinal profile with sharper tips
+      // base runs 0..1 across x, with tip shaping and global sharpness
+      float xAbs = abs(xN);
+      float base = pow(max(0.0, 1.0 - pow(xAbs, tipSharpness)), sharpness);
+      base = pow(base, lobePower);
+
+      // Asymmetric upper / lower lobe scales
+      float topBoundary    = splitUV * upperScale * base;
+      float bottomBoundary = splitUV * lowerScale * base;
+
+      // Vertical bend profile along x
+      float vertical_bend = bendFactor * (0.25 - (xN * xN));
+
+      // Inside if within the piecewise top/bottom boundaries around the bent centerline
+      float yRel = y - vertical_bend;
+      bool inside = (yRel &lt;= topBoundary) &amp;&amp; (yRel &gt;= -bottomBoundary);
+
+      vec4 transparent = vec4(0.0,0.0,0.0,0.0);
+      vec4 outCol = (invertInside ? (inside ? src : transparent)
+                                  : (inside ? transparent : src));
+
+      float aSrc = src.a * alpha;
+      gl_FragColor = outCol * aSrc;
+    }
+  </shader>
+
+</effect>

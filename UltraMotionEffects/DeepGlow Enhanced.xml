@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.deepglow2" name="DeepGlow Enhanced" desc="Gaussian-blur based glow with luminance thresholding (low/high with feather), screen/color-dodge/linear-add/layer blending, and up to 3 iterations. Extras include chromatic RGB-split of the glow, hue/saturation/vibrance adjustment, gamma correction, glow color blending and offset/stretch." category="colorlight" tags="lighting,raster" thumb="thumb/Light and Glow/DeepGlow Enhanced.webp" overdraw="true" max-overdraw="1.5">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="vblur" srcType="buffer" />
+        <texture id="hblur" srcType="buffer" />
+        <texture id="blurBuf" srcType="buffer" />
+        <menu id="bmode" default="2" style="radio">
+            <menu label="SCREEN" value="0" />
+            <menu label="COLOR" value="1" />
+            <menu label="LINEAR" value="2" />
+            <menu label="LAYER" value="3" />
+        </menu>
+        <switch id="overd" default="false" label="Anti Overdraw" />
+        <slider id="strength" default="0.15" min="0.0" max="2.0" label="Glow Radius" step="0.005" />
+        <slider id="oalpha" default="0.75" min="0.0" max="3.0" step="0.01" label="Glow Alpha" type="percent" ticks="0,0.25,0.5,0.75,1.0" snap="0,0.25,0.5,0.75,1.0" />
+        <slider id="lowThreshold" default="0.1" min="0" max="1" step="0.005" label="Low Threshold" type="percent" />
+        <slider id="highThreshold" default="1" min="0" max="1" step="0.005" label="High Threshold" type="percent" />
+        <slider id="feather" default="0.3" min="0" max="10" step="0.01" label="Feather" type="percent" ticks="0,0.25,0.5,0.75,1.0" snap="0,0.25,0.5,0.75,1.0" />
+        <point id="position" label="Offset" />
+        <point id="stretch" default="0,0" min="0,0" max="10, 10" label="Stretch" step="0.01" />
+        <point id="satvib" default="0.0,1.0" min="-1.0,1.0" max="1, 2" label="Saturate Vibrance" step="0.01" />
+        <slider id="hue" default="360.0" min="0.0" max="3600.0" label="@am:string/effect_param_hueshift" ticks="0,60,120,180,240,300,360" snap="60,120,180,240,300" type="angle" step="0.5" />
+        <slider id="calpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Comp Alpha" type="percent" />
+        <switch id="GCE" default="false" label="Gamma Correction" />
+        
+        <switch id="CHROM" default="false" label="Enable Chromatic FX" />
+        <slider id="strengthhh" default="0.15" min="-8.0" max="8.0" step="0.01" label="@am:string/effect_param_strength" ticks="0" />
+        <slider id="angleee" default="0.0" min="0.0" max="3600.0" label="@am:string/effect_param_angle" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+        <point id="OFT" label="Offset RGB" />
+        <menu id="centerChannel" default="1" style="radio" label="@am:string/effect_param_center">
+            <menu label="R" value="0" />
+            <menu label="G" value="1" />
+            <menu label="B" value="2" />
+        </menu>
+        
+        <switch id="cblend" default="false" label="Glow ColorBlend" />
+        <menu id="cmode" default="0" style="radio">
+            <menu label="ADD" value="0" />
+            <menu label="REPLACE" value="1" />
+        </menu>
+        <color id="colblend" default="#FFFFA800" label="Key Color" alpha="true" ticks="0,0.25,0.5,0.75,1.0" snap="0,0.25,0.5,0.75,1.0" />
+        <slider id="alpb" default="0.5" min="0" max="1" label="Alpha Blend" type="percent" step="0.01" snap="0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9" />
+        <slider id="iter" default="1" min="1" max="3" label="Iteration" type="integer" step="1" />
+    </params>
+
+    <iterations param="iter" />
+
+    <passes>
+        
+        <pass target="vblur" effect="com.alightcreative.effects.gaussianblur" />
+        
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+    
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+
+       mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+               vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.)*acLayerToScreen).xy; }
+    
+       vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b; }
+    
+         float blendScreen(float base, float blend) {
+             return 1.0 - ((1.0 - base) * (1.0 - blend)); }
+         
+       vec3 blendScreen(vec3 base, vec3 blend) {
+         return vec3( blendScreen(base.r, blend.r), blendScreen(base.g, blend.g), blendScreen(base.b, blend.b) ); }
+
+        void main() {
+        
+            highp mat3 rgb2yuv = mat3(
+                 0.299,     0.587,    0.114,
+                -0.14713,  -0.28886,  0.436,
+                 0.615,    -0.51499, -0.10001
+            );
+            highp mat3 yuv2rgb = mat3(
+                1.0,  0.0,      1.13983,
+                1.0, -0.39465, -0.58060,
+                1.0,  2.03211,  0.0
+            );
+            float rad = hue * 0.0174533;
+            highp mat3 huemat = mat3(
+                1.0,  0.0,       0.0,
+                0.0,  cos(rad),  sin(rad),
+                0.0,  -sin(rad), cos(rad)
+            );
+            
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            
+                    /// GLOW UV
+                    vec2 umefx = acScreenNorm.st;
+                    umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+                    
+                    umefx.y -= (umefx.y - 0.5) * 0.7 * fract(stretch.y * 0.5); 
+                    umefx.x -= (umefx.x - 0.5) * 0.7 * fract(stretch.x * 0.5); 
+
+            vec4 baseColor;
+            vec4 vColor;
+            
+            baseColor = texture2DCv(inputImg.texture, acScreenNorm.st)*calpha;
+            vColor = texture2DCv(vblur.texture, acScreenNorm.st);
+                        
+            /////// CHROMATIC FX
+            float raddd = angleee * 0.0174533;
+            float adjStrength = strengthhh / 8.0;
+            vec2 offset = vec2(cos(raddd)*adjStrength,-sin(raddd)*adjStrength);
+            offset += vec2((0.0+OFT.x), (0.0+OFT.y))*vec2(-1.,1.)/500.;
+            vec2 sampleLow = (vec4(acLayerNorm - offset,0.0,1.0) * acLayerToScreen).xy;
+            vec2 sampleHigh = (vec4(acLayerNorm + offset,0.0,1.0) * acLayerToScreen).xy;
+            vec4 colorLow = texture2DCv(vblur.texture,sampleLow);
+            vec4 colorHigh = texture2DCv(vblur.texture,sampleHigh);
+            
+            vec4 colorMid = texture2DCv(vblur.texture,umefx);
+            // vec4 colorMid = texture2DCv(vblur.texture,acScreenNorm);
+            
+            vec4 outColor;
+            if( centerChannel==0 ) {
+                outColor = vec4(colorMid.r,colorLow.g,colorHigh.b,1.0);
+            } else if( centerChannel==1 ) {
+                outColor = vec4(colorLow.r,colorMid.g,colorHigh.b,1.0);
+            } else {
+                outColor = vec4(colorLow.r,colorHigh.g,colorMid.b,1.0);
+            }
+            
+            vec4 compColorr;
+            vec4 gammaComp;
+            
+            compColorr = CHROM? vec4(outColor.rgb,colorMid.a) :
+                            texture2DCv(vblur.texture, umefx);
+                         // texture2DCv(blurBuf.texture, umefx);
+
+             //////////////////////////
+            
+            ///GAMMA CORRECTION
+            vec3 normCol = compColorr.rgb;
+            vec3 gamcor = pow(normCol, vec3(1.0 / 2.2));
+            vec4 gamcorComp = vec4(gamcor, compColorr.a);
+            
+            gammaComp = GCE? gamcorComp*compColorr.a : compColorr;
+            
+            ///SATVIB
+            // highp vec3 rgb = compColorr.rgb;
+            highp vec3 rgb = gammaComp.rgb;
+            highp vec3 yuv = rgb * rgb2yuv;
+            yuv = yuv * huemat; //HUE
+            float origSat = min(1.0,length(yuv.yz)*2.5); //
+            vec2 satUV = yuv.yz * satvib.y;
+            yuv.yz = mix(satUV,yuv.yz,origSat);
+            yuv.yz = yuv.yz * (satvib.x+1.0);
+            rgb = yuv * yuv2rgb;
+            // vec4 satComp = vec4(rgb, compColorr.a);
+            vec4 satComp = vec4(rgb, gammaComp.a);
+            ///////
+            
+            vec4 dblur = vec4(satComp.rgb / satComp.a, 1.0);
+            
+            vec4 targetLuma = dblur ;
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (lowThreshold*(1.0+feather))-0.0001;
+            float lowThresholdA = lowThresholdB-max(feather,0.00001);
+            float highThresholdA = (highThreshold*(1.0+feather)-feather)+0.0001;
+            float highThresholdB = highThresholdA+max(feather,0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 dblurr = targetLuma;
+            if (lowThreshold &gt; 0.001 || highThreshold &lt; 0.001) { dblurr *= lumafx; }
+            // if (thrs) { dblurr *= lumafx; }
+            
+            dblurr *= satComp.a;
+            dblurr *= oalpha;
+            
+            /// GLOW BLENDCOLOR
+            vec3 blendGlow;
+            if(cmode == 0) {
+            blendGlow = vec3(dblurr.rgb+colblend.rgb); }
+            else if(cmode == 1) {
+            blendGlow = vec3(colblend.rgb); }
+            
+            vec4 mixcblend = mix(dblurr, vec4(blendGlow, dblurr.a), alpb);
+            vec4 blendComp = cblend? mixcblend * dblurr.a : dblurr;
+            ///
+            
+            /// SHADOW
+            // vec4 shadowComp= texture2DCv(hblur.texture, acScreenNorm.st);
+            // shadowComp = vec4(vec3(0.0, 0.0, 0.0), shadowComp.a);
+            // shadowComp *= SDA;
+
+            
+            /////// BLEND SECTION
+            vec4 finalGlow;
+            if(bmode == 0) {
+            vec3 colorScreen = blendScreen(baseColor.rgb, blendComp.rgb);
+            finalGlow = newLayer(baseColor, vec4(colorScreen.rgb, blendComp.a) ); }
+            // finalGlow = vec4( 1.-((1.-(baseColor.rgb/baseColor.a))*(1.-blendComp.rgb)),1.0);
+            // finalGlow *= blendComp.a; }
+            else if(bmode == 1) {
+            finalGlow = baseColor / (1.0-blendComp); }
+            else if(bmode == 2) {
+            finalGlow = baseColor + blendComp; }
+            else if(bmode == 3) {
+            finalGlow = newLayer(baseColor, blendComp); }
+            
+            gl_FragColor = strength &gt; 0.00001? finalGlow : texColor;
+            if(overd) { gl_FragColor *= texColor.a; }
+            
+        }
+
+    </shader>
+
+</effect>

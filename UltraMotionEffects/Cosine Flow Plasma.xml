@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cos_uv_flow" name="Cosine Flow Plasma" desc="Generates an animated plasma-like light pattern by iteratively warping coordinates with cosine flow (Shadertoy port) and composites it over the layer. Frequency X/Y, Amount, Speed, and Base Brightness shape the pattern; Opacity blends it with the source." category="colorlight" tags="shadertoy,flow,warp,procedural" thumb="thumb/Procedural/Cosine Flow Plasma.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="speed" default="1.0" min="-4.0" max="4.0" step="0.01" label="Speed" />
+    <slider id="amount" default="0.6" min="0.0" max="2.0" step="0.01" label="Amount" />
+    <slider id="freqX" default="2.5" min="0.0" max="10.0" step="0.05" label="Freq X" />
+    <slider id="freqY" default="1.5" min="0.0" max="10.0" step="0.05" label="Freq Y" />
+    <slider id="base" default="0.1" min="0.0" max="1.0" step="0.01" label="Base Brightness" />
+    <slider id="opacity" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    void main(){
+      vec2 fragCoord = acScreenNorm * acScreenSize;
+      vec2 iResolution = acScreenSize;
+      float iTime = acTime * speed;
+
+      // Shadertoy uv mapping
+      vec2 uv = (2.0 * fragCoord - iResolution.xy) / max(iResolution.x, iResolution.y);
+
+      // Fixed 9 iterations like original (1..9)
+      for (float i = 1.0; i &lt; 10.0; i += 1.0) {
+        uv.x += amount / i * cos(i * freqX * uv.y + iTime);
+        uv.y += amount / i * cos(i * freqY * uv.x + iTime);
+      }
+
+      vec3 col = vec3(base) / max(abs(sin(iTime - uv.y - uv.x)), 1e-4);
+      vec4 gen = vec4(col, 1.0);
+
+      // Composite over input layer
+      vec4 baseCol = texture2DCv(inputImg.texture, acScreenNorm);
+      vec4 outC = gen * opacity;
+      outC = baseCol * (1.0 - outC.a) + outC;
+      gl_FragColor = outC;
+    }
+  </shader>
+</effect>

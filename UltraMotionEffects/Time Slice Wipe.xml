@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.time_slice_wipe" name="Time Slice Wipe" desc="Directional striped wipe between the layer and the composition behind it. A mask sub-pass slices the wipe axis into repeating bands (Count) that dissolve with adjustable smoothness, feather, angle, speed, and reverse direction." category="warp" thumb="thumb/Transition/Time Slice Wipe.webp" overdraw="true" tags="wipe,frame,temporal,time,slice,transition" experimental="false" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <texture id="inputImg2" srcType="comp" />
+    <texture id="mask" srcType="buffer" />
+
+    
+    <slider id="count" default="10.0" min="1.0" max="200.0" label="Count" step="1.0" />
+    <slider id="smoothness" default="0.5" min="0.0" max="1.0" label="Smoothness" step="0.01" />
+    <slider id="speed" default="1.0" min="-5.0" max="5.0" label="Speed" step="0.01" />
+    <slider id="angle" default="0.0" min="0.0" max="3600.0" label="Angle" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+    <slider id="feather" default="0.02" min="0.0" max="100.0" label="Feather" step="0.001" />
+    <slider id="reverse" default="0.0" min="0.0" max="1.0" label="Reverse (0/1)" step="1.0" />
+  </params>
+
+  <passes>
+    <pass target="mask" effect="com.alightcreative.effects.time_slice_mask" />
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    vec4 getFromColor(vec2 coord){ return texture2DCv(inputImg.texture, coord); }
+    vec4 getToColor(vec2 coord){ return texture2DCv(inputImg2.texture, coord); }
+    vec4 getMask(vec2 coord){ return texture2DCv(mask.texture, coord); }
+    void main(){
+      vec2 uv = acLayerNorm;
+      float s = getMask(uv).a;
+      vec4 fromCol = getFromColor(uv);
+      vec4 toCol = getToColor(uv);
+      float rev = step(0.5, reverse);
+      vec4 f = mix(fromCol, toCol, rev);
+      vec4 t = mix(toCol, fromCol, rev);
+      vec4 col = mix(f, t, s);
+      gl_FragColor = col;
+    }
+  </shader>
+</effect>

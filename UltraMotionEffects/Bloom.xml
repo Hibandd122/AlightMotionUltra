@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.bloom" name="Bloom" desc="Extracts pixels above a brightness threshold with a 12-sample radial blur and adds them back over the image as a glow. Threshold sets the cutoff, Radius the halo size, Intensity the glow strength." category="colorlight" thumb="thumb/Stylize/Bloom.webp" tags="stylize,bloom,glow,light,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="threshold" default="0.6" min="0.0" max="1.0" label="Threshold" />
+        <slider id="radius" default="0.03" min="0.0" max="0.1" label="Radius" />
+        <slider id="intensity" default="1.0" min="0.0" max="3.0" label="Intensity" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 b = vec3(0.0);
+            for(int i=0;i&lt;12;i++){
+                float a = float(i)/12.0*6.28318;
+                vec2 o = vec2(cos(a),sin(a))*radius;
+                vec3 s = texture2DCv(inputImg.texture, acScreenNorm+o).rgb;
+                b += max(s - threshold, 0.0);
+            }
+            b /= 12.0;
+            gl_FragColor = vec4(src.rgb + b*intensity, src.a);
+        }
+    </shader>
+
+</effect>

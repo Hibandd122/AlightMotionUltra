@@ -1,0 +1,216 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.jellycubes" name="Jelly Cubes" desc="Raymarches an undulating field of glossy cubes with normal-based shading, a subsurface-scatter approximation, an ambient-occlusion march and five adjustable shading colors. RayMarching sets the step budget (up to 250); camera position, cubeness, bevel and shadow are adjustable. Very GPU-intensive." category="procedural" tags="other" thumb="thumb/Procedural/Jelly Cubes.webp" experimental="false">
+
+    <params>
+    <slider id="AMOUNT" label="RayMarching" default="200" min="1" max="250" step="1.0" type="integer" />
+    <slider id="ITER" label="Iterations" default="2" min="0" max="5" step="1.0" type="integer" />
+        <slider id="xxa" label="Progress" default="0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="xxp" label="X Camera" default="0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="xxq" label="Y Camera" default="2" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="xxr" label="Z Camera" default="6" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="xxs" label="T Camera" default="0.2" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="xxe" label="Cubeness" default="0.1" min="0.0" max="0.5" step="0.01" type="percent" />
+        <slider id="xxf" label="Bevel" default="0.3" min="0.0" max="5.0" step="0.01" type="percent" />
+        <slider id="xxg" label="Shadow" default="0" min="0.0" max="10.0" step="0.01" type="percent" />
+        <slider id="xxm" label="Intensity" default="0" min="0.0" max="10.0" step="0.01" type="percent" />
+        <slider id="scale" default="0.75" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        
+        <color id="color1" default="#FF000000" label="Color" alpha="true" />
+        <color id="color2" default="#FFFF00FF" label="Color" alpha="true" />
+        <color id="color3" default="#FFFF00FF" label="Color" alpha="true" />
+        <color id="color4" default="#FFFF00FF" label="Color" alpha="true" />
+        <color id="color5" default="#FFFF00FF" label="Color" alpha="true" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+    <texture id="inputImg" srcType="content" />
+    <texture id="xcipher" srcType="buffer" downsample="2" />
+    </params>
+    
+    <passes>
+        <pass target="xcipher" />
+        <pass />
+    </passes>
+    
+    
+
+    <shader type="fragment">
+    //////////////////////////
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.0,1.0)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+        mat2 rot(float a)
+        {
+            float c = cos(a);
+            float s = sin(a);
+            return mat2(c, s, -s, c);
+        }
+        
+        float field(vec3 p)
+        {
+            p.x -= 2.0;
+            p.y += sin(p.z*0.2+xxa)*2.;
+            p.y += cos(p.x*0.2-xxa)*2.;
+            p.z += xxa;
+            p.xz = mod(p.xz+vec2(2.0), 4.0)-vec2(2.0);
+            vec3 bp = abs(p) - 1.;
+            return min(max(max(bp.x, bp.y), bp.z), p.y+.9);
+        }
+        
+        // Primary march. Capped at a compile-time constant; the user's AMOUNT is
+        // still honoured below the cap. Steps are unscaled sphere-tracing steps,
+        // so the cap costs convergence on grazing rays only, not reach.
+        const int MARCH_STEPS = 96;
+
+        float march(vec3 ro, vec3 rd)
+        {
+            float t = 0.0;
+            for(int i=0; i&lt;MARCH_STEPS; ++i) {
+            // for(int i=0; i&lt;228; ++i) {
+                if(float(i) &gt;= AMOUNT) break;
+            	float d = field(ro+rd*t);
+                if(d &lt; 0.0001 || d &gt; 200.0) break;
+                t += d*1.0;
+                // t += d*0.5;
+                if(t &gt; 100.0) break;   // past the shading cut-off, result identical
+            }
+            return t;
+        }
+        
+        vec3 getNormal(vec3 p)
+        {
+            vec2 eps = vec2(xxe*pow(length(p), xxf), xxg);
+            // vec2 eps = vec2(3.0*pow(length(p), 0.001), 0.0);
+            return normalize(vec3(
+            	field(p+eps.xyy) - field(p-eps.xyy),
+                field(p+eps.yxy) - field(p-eps.yxy),
+                field(p+eps.yyx) - field(p-eps.yyx)
+            ));
+        }
+        
+        // Translucency integral over the same 0..ITER depth, sampled 8 times
+        // instead of ITER/0.1 times. The exponent constant was the sample
+        // spacing (0.1), so it is rescaled to the new spacing and the
+        // accumulated optical depth - and therefore the falloff - is unchanged.
+        const int SSS_STEPS = 8;
+
+        float getSss(vec3 ro, vec3 rd)
+        {
+            if(ITER &lt;= 0.0) return clamp(1.0, 0.0, xxm);   // empty loop in the original
+            float sp = ITER/float(SSS_STEPS);
+            float t = 0.0;
+            // float t = 0.0;
+            for(int i=0; i&lt;SSS_STEPS; ++i) {
+            	t += field(ro+rd*(float(i)*sp));
+            }
+            return clamp(exp(t*sp), 0.0, xxm);
+            // return clamp(exp(t*0.1), 0.0, 1.0);
+        }
+
+        // The AO term is "how many steps does an escape march burn", so the count
+        // itself is the output. Out in the open the field grows geometrically, so
+        // the tail of that march is closed-form and does not need to be walked;
+        // a ray that is not growing is trapped and would have burned the whole
+        // 64-step budget, which is what the original returned for it.
+        const int AO_STEPS = 16;
+
+        float getAo(vec3 ro, vec3 rd)
+        {
+            float t = 0.0;
+            ro += rd*0.002;
+            float d = 0.0, dPrev = 0.0;
+            float i = 0.0;
+            for(int k=0; k&lt;AO_STEPS; ++k) {
+                dPrev = d;
+            	d = field(ro+rd*t);
+                if(d &lt; 0.001 || d &gt; 100.0) break;
+                t += d;
+                i += 1.0;
+            }
+            if(i &gt;= float(AO_STEPS)) {
+                float r = dPrev &gt; 1e-6 ? d/dPrev : 1.0;
+                i = r &gt; 1.02 ? min(i + log2(100.0/max(d,1e-4))/log2(r), 64.0) : 64.0;
+            }
+            return i;
+        }
+    //////////////////////////
+        void main() {
+        if( acPass == 0 ) { gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st); } else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        // The final blend is multiplied by texColor.a, so a transparent input
+        // pixel outputs zero whatever the raymarch would have produced.
+        if( texColor.a &lt;= 0.0 ) { gl_FragColor = vec4(0.0); return; }
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec2 iMouse = vec2(0.5, 0.5);
+        
+        vec2 umefx;
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        umefx /= scale;
+        umefx *= rot2m((-180.0+angle)*0.0174533);
+        umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.0,1.0)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+            vec2 uv = umefx;
+        
+            vec3 cam = vec3(xxp, xxq, xxr);
+            // vec3 cam = vec3(0.0, 2.0, 6.0);
+            vec3 dir = normalize(vec3(uv, -1));
+            dir.yz *= rot(xxs);
+            cam.z -= xxa*5.0;
+            dir.xz *= rot(xxa*0.1);
+            vec3 col = vec3(0.0);
+            if(abs(uv.y) &lt; 0.85) {
+                // march only inside the band that can actually be shaded
+                float d = march(cam, dir);
+                col = vec3(color1.rgb) * uv.y+0.25;
+                // col = vec3(0.2, 0.06, 0.1) * uv.y+0.25;
+
+                if(d &lt; 100.0) {
+                    vec3 p = cam+dir*d;
+                    vec3 normal = getNormal(p);
+                    col += vec3(color2.rgb) * (pow(1.0-max(0.0, dot(normal, -dir)), 0.6));
+                    // col += vec3(0.5, 0.2, 0.2) * (pow(1.0-max(0.0, dot(normal, -dir)), 0.6));
+                    col = vec3(1.0)-pow(col, vec3(0.1));
+                    float ss = getSss(p, dir);
+                    col += 0.2*vec3(pow(ss, 0.5));
+                    float ao = getAo(p, normal);
+                    col *= vec3(1.0-ao/428.0);
+                    col += 0.5*vec3(color3.rgb) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, 2.0)))), 2.0));
+                    col += 0.5*vec3(color4.rgb) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, -2.0)))), 2.0));
+                    col = mix(col, vec3(color5.rgb), d/100.0);
+                    // col += 0.5*vec3(0.3, 0.2, 0.4) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, 2.0)))), 2.0));
+                    // col += 0.5*vec3(1.0, 0.1, 0.3) * (pow(max(0.0, dot(normal, normalize(vec3(-2.0, 2.0, -2.0)))), 2.0));
+                    // col = mix(col, vec3(0.27, 0.24, 0.25), d/100.0);
+                }
+                col = pow(col, vec3(2));
+            }
+        
+            // Output to screen
+            col *= 1.0-length(uv)*0.4;
+            fragColor = vec4(pow(col, vec3(1.0/2.2)),1.0);
+        
+    	vec4 factor = mix(texColorX,fragColor,1.0);
+    	
+    	gl_FragColor = mix(texColor, factor, alpha) * texColor.a;
+          }
+        }
+
+    </shader>
+
+</effect>

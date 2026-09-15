@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect afxver="2" id="com.alightcreative.effects.s_fluid_ae_ultimate" name="Fluid Warp" desc="Warps the layer along a pseudo-fluid flow field combining an emitter direction, curl of fBm noise (vorticity/turbulence), gravity/buoyancy, viscosity damping, and swirl. This is a single-pass displacement, not a true fluid simulation; extras include dual-color tinting, blur-based shading, bloom, and Normal/Add/Screen blending." category="warp" tags="liquid,fluid,distortion,ae,simulation,viscosity,vorticity,glitch,physics,pro" thumb="thumb/Distort and Warp/Fluid Warp.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="blurBuf" srcType="buffer" />
+        
+        
+        <point id="sourcePoint" default="0.0,0.0" label="Source Point" />
+        <slider id="rotation" default="90.0" min="-360.0" max="360.0" label="Rotation" type="angle" />
+        
+        
+        <slider id="emitRadius" default="30.0" min="1.0" max="500.0" label="Emit Radius" />
+        <slider id="force" default="60.0" min="0.0" max="500.0" label="Force" />
+        <slider id="intensity" default="120.0" min="0.0" max="500.0" step="1.0" label="Intensity" />
+        <slider id="spread" default="45.0" min="0.0" max="100.0" label="Spread" type="percent" />
+        
+        
+        <slider id="speed" default="100.0" min="0.0" max="1000.0" step="1.0" label="Speed" />
+        <slider id="gravity" default="-5.0" min="-100.0" max="100.0" step="0.1" label="Gravity" />
+        <slider id="buoyancy" default="30.0" min="0.0" max="100.0" label="Buoyancy" />
+        
+        
+        <slider id="vorticity" default="10.0" min="0.0" max="100.0" label="Vorticity" />
+        <slider id="viscosity" default="0.0" min="0.0" max="100.0" label="Viscosity" />
+        <slider id="swirl" default="0.0" min="0.0" max="100.0" label="Swirl" />
+        
+        
+        <slider id="turbAmount" default="0.0" min="0.0" max="100.0" label="Amount" />
+        <slider id="turbSize" default="50.0" min="1.0" max="500.0" label="Size" />
+        <slider id="turbSpeed" default="100.0" min="0.0" max="1000.0" label="Speed" />
+        
+        
+        <slider id="tailLength" default="50.0" min="0.0" max="100.0" label="Tail Length" />
+        <slider id="evolution" default="0.0" min="0.0" max="1000.0" step="0.01" label="Evolution" />
+        
+        
+        <slider id="shading" default="50.0" min="0.0" max="100.0" label="Shading" />
+        <slider id="bloomIntensity" default="10.0" min="0.0" max="100.0" label="Bloom Intensity" />
+        <slider id="bloomThreshold" default="15.0" min="0.0" max="100.0" label="Bloom Threshold" />
+
+        
+        <menu id="colorMode" style="dropdown" default="1" label="Color Mode">
+            <menu value="0" label="None" />
+            <menu value="1" label="Dual Color" />
+        </menu>
+        <color id="colorA" default="#FFFFFF" label="Color A" />
+        <color id="colorB" default="#FF0088" label="Color B" />
+        <slider id="colorMix" default="0.0" min="-3600.0" max="3600.0" label="Color Mix" type="angle" />
+        
+        
+        <menu id="blendMode" style="dropdown" default="2" label="Blend Mode">
+            <menu label="Normal" value="0" />
+            <menu label="Add" value="1" />
+            <menu label="Screen" value="2" />
+        </menu>
+        <slider id="opacity" default="100.0" min="0.0" max="100.0" label="Opacity" type="percent" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Overall Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass target="blurBuf" effect="com.alightcreative.effects.gaussianblur" />
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // S_Fluid Pro Ultimate - Physical Fluid Solver Reconstruction
+        
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(mix(hash(i), hash(i + vec2(1,0)), f.x),
+                       mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), f.x), f.y);
+        }
+
+        float fbm(vec2 p, float time) {
+            float v = 0.0;
+            float a = 0.5;
+            mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+            for (int i = 0; i &lt; 4; i++) {
+                v += a * noise(p + time);
+                p = rot * p * 2.1;
+                a *= 0.5;
+            }
+            return v;
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            float aspect = acScreenSize.x / acScreenSize.y;
+            vec2 p = uv; p.x *= aspect;
+            
+            float t = acTime * (speed / 100.0) + evolution;
+            vec2 emit = (sourcePoint / 500.0) + vec2(0.5 * aspect, 0.5);
+
+            // 1. Velocity Field Calculation
+            float eps = 0.05;
+            vec2 nUV = p * (100.0 / max(turbSize, 1.0));
+            float n1 = fbm(nUV, t * (turbSpeed / 100.0) * 0.1);
+            
+            // Central Force from Emitter
+            float dist = distance(p, emit);
+            float emitMask = smoothstep(emitRadius / 100.0, 0.0, dist);
+            float rad = radians(rotation);
+            vec2 dirVec = vec2(cos(rad), sin(rad));
+            vec2 emitDir = dirVec * (force / 100.0) * emitMask;
+            
+            // Vorticity &amp; Curl (Eddies)
+            float dndx = (fbm(nUV + vec2(eps, 0.0), t * 0.1) - n1) / eps;
+            float dndy = (fbm(nUV + vec2(0.0, eps), t * 0.1) - n1) / eps;
+            vec2 curlDir = vec2(dndy, -dndx) * (vorticity / 10.0) * (turbAmount / 100.0);
+            
+            // Physics forces
+            vec2 gForce = vec2(0.0, (gravity / 100.0) + (buoyancy / 100.0));
+            
+            // Resulting Flow Field
+            vec2 flow = (emitDir + curlDir + gForce) * (intensity / 100.0);
+            
+            // 2. Advection with Viscosity
+            // Advection defines how the "paint" moves along the flow
+            float visFactor = mix(1.0, 0.05, viscosity / 100.0);
+            vec2 flowOffset = flow * visFactor;
+            
+            // Swirl modifier
+            if(swirl &gt; 0.0) {
+                float sRad = radians(swirl * 3.6);
+                mat2 sRot = mat2(cos(sRad * n1), sin(sRad * n1), -sin(sRad * n1), cos(sRad * n1));
+                flowOffset *= sRot;
+            }
+            
+            vec2 sampleUV = uv - flowOffset;
+            
+            // 3. Dual-Pass Sampling &amp; Shading
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec4 fluid = texture2DCv(inputImg.texture, clamp(sampleUV, 0.0, 1.0));
+            
+            // Color Engine
+            vec3 finalRgb = fluid.rgb;
+            if(colorMode == 1) {
+                float mixVal = clamp(length(flow) * 10.0 + (colorMix / 360.0), 0.0, 1.0);
+                vec3 tint = mix(colorA.rgb, colorB.rgb, mixVal);
+                finalRgb = mix(finalRgb, tint, length(flow) * 2.0);
+            }
+            
+            // Post-Process: Shading &amp; Bloom
+            if(shading &gt; 0.0) {
+                vec4 blur = texture2DCv(blurBuf.texture, sampleUV);
+                float shadow = smoothstep(0.5, 0.0, blur.a - fluid.a);
+                finalRgb *= mix(1.0, 1.0 - shadow, shading / 100.0);
+            }
+            
+            if(bloomIntensity &gt; 0.0) {
+                float lum = dot(finalRgb, vec3(0.299, 0.587, 0.114));
+                float bloom = smoothstep(bloomThreshold / 100.0, 1.0, lum);
+                finalRgb += finalRgb * bloom * (bloomIntensity / 100.0) * 2.0;
+            }
+
+            // Composite
+            vec3 result;
+            if(blendMode == 1) result = src.rgb + finalRgb;
+            else if(blendMode == 2) result = 1.0 - (1.0 - src.rgb) * (1.0 - finalRgb);
+            else result = mix(src.rgb, finalRgb, fluid.a);
+            
+            float finalAlpha = fluid.a * (opacity / 100.0);
+            vec3 finalOutput = mix(src.rgb, result, blend);
+            
+            gl_FragColor = vec4(clamp(finalOutput, 0.0, 4.0), max(src.a, finalAlpha));
+        }
+    </shader>
+</effect>

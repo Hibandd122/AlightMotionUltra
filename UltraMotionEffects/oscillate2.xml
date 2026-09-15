@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.oscillate2" name="@am:string/effect_oscillate_name" desc="@am:string/effect_oscillate_desc" auto-transform="true" category="movetransform" tags="transform,auto,essentials,shake,propAdjust" deprecated="true" thumb="thumb/oscillate.webp">
+
+    
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+    
+
+    <params>
+            <slider id="angle" default="45" min="-3600.0" max="3600.0" step="0.1" label="@am:string/effect_param_angle" type="angle" />
+            <slider id="freq" default="2.0" min="0.0" max="16.0" step="0.01" label="@am:string/effect_param_freq" type="hz" />
+            <slider id="mag" default="25" min="1" max="500" step="0.1" label="@am:string/effect_param_mag" />
+        <menu id="type" default="0" style="radio" label="@am:string/effect_param_wave">
+            <menu label="@am:string/effect_param_sine" value="0" />
+            <menu label="@am:string/effect_param_triangle" value="1" />
+        </menu>
+        <slider id="phase" default="0.0" min="0.0" max="1000.0" label="@am:string/effect_param_phase" step="0.01" ticks="1,2,3,4,5" />
+    </params>
+
+    
+
+</effect>

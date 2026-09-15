@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.pixel_polly" name="Pixel Polly" desc="Break the image into polygon shards that fly apart" category="warp" tags="shatter,fragment,explode,polygon" thumb="thumb/Distort and Warp/Pixel Polly.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="force" default="209.0" min="0.0" max="1000.0" step="0.1" label="Force" />
+    <slider id="gravity" default="1.0" min="-10.0" max="10.0" step="0.01" label="Gravity" />
+    <slider id="spinRate" default="0.0" min="-720.0" max="720.0" step="0.1" type="angle" label="Spinning (deg/s)" />
+
+    
+    <point id="forceCenter" default="0.5,0.5" min="0.0,0.0" max="1.0,1.0" step="0.001" label="Force Center" />
+    <slider id="dirRand" default="0.10" min="0.0" max="1.0" step="0.01" label="Direction Randomness" type="percent" />
+    <slider id="speedRand" default="0.15" min="0.0" max="1.0" step="0.01" label="Speed Randomness" type="percent" />
+    <slider id="grid" default="25.0" min="4.0" max="200.0" step="1.0" label="Grid Spacing (px)" />
+    <menu id="objectType" style="radio" default="1" label="Object">
+      <menu label="Textured Polygon" value="1" />
+    </menu>
+    <slider id="startTime" default="0.0" min="0.0" max="60.0" step="0.01" label="Start Time (sec)" />
+    <slider id="depthAmount" default="0.35" min="0.0" max="2.0" step="0.01" label="Depth Amount" />
+    <slider id="searchMax" default="6" min="1" max="12" step="1" label="Search Radius Max (cells)" />
+    <slider id="seed" default="0" min="0" max="100000" step="1" label="Seed" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Pixel Polly style triangle shatter with hard shards (no dissolve).
+    // We test nearby candidate pieces and use the one whose inverse mapping
+    // yields a valid original-triangle membership.
+
+    float hash12(vec2 p){
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
+
+    mat2 r2(float a){ float s = sin(a), c = cos(a); return mat2(c,-s,s,c); }
+
+    // Decide triangle inside mask for a square cell, local coord q in [0,1)
+    bool triMask(vec2 q, bool diag){
+      // Small epsilon to avoid edge flicker differences across backends
+      float e = 1e-5;
+      if(!diag){
+        return (q.x + q.y) &lt;= 1.0 - e;
+      } else {
+        return (q.x - q.y) &gt;= e;
+      }
+    }
+
+    vec2 toPx(vec2 uv){ return uv * getTexSize(inputImg.size); }
+    vec2 toUv(vec2 px){ vec2 s = getTexSize(inputImg.size); return px / max(s, vec2(1.0)); }
+
+    vec4 sampleSafe(vec2 uv){
+      return texture2DCv(inputImg.texture, clamp(uv, 0.0, 1.0));
+    }
+
+    struct PieceParams { vec2 disp; float rot; vec2 pivotUv; bool diag; float scale; float depth; };
+
+    PieceParams getPiece(vec2 cid, float t, float g){
+      PieceParams P;
+      vec2 texSize = getTexSize(inputImg.size);
+      float rnd1 = hash12(cid + float(seed));
+      float rnd2 = hash12(cid.yx + float(seed)*1.113);
+      bool diag = mod(cid.x + cid.y, 2.0) &lt; 0.5; P.diag = diag;
+
+      // cell center and triangle pivot
+      vec2 cellOriginPx = (cid + 0.5) * g;
+      vec2 triPivotOff = (diag ? vec2(0.25, 0.75) : vec2(0.75, 0.25)) - vec2(0.5);
+      vec2 pivotPx = cellOriginPx + triPivotOff * g * 0.5;
+      P.pivotUv = toUv(pivotPx);
+
+      // direction with randomness
+      vec2 fc = forceCenter;
+      vec2 dir = normalize((toUv(cellOriginPx) - fc));
+      float angleJitter = (rnd1 - 0.5) * 6.28318530718 * dirRand;
+      dir = r2(angleJitter) * dir;
+      float speedMul = 1.0 + (rnd2 - 0.5) * 2.0 * speedRand;
+
+      float F = force / max(texSize.x, texSize.y);
+      vec2 v0 = dir * F * speedMul;
+      vec2 gy = vec2(0.0, -gravity / max(texSize.y, 1.0));
+      P.disp = v0 * t + 0.5 * gy * (t*t);
+      P.rot = radians(spinRate) * t * (0.5 + rnd1);
+      // Pseudo depth: farther shards shrink more; depth randomized per shard
+      P.depth = depthAmount * t * (0.25 + rnd2); // grows over time
+      P.scale = 1.0 / (1.0 + max(P.depth, 0.0));
+      return P;
+    }
+
+    // Try inverse for a candidate cell id; return color.rgb and encoded depth in alpha; ok flag
+    vec4 tryCandidate(vec2 cidC, float t, float g, vec2 uvNow, out bool ok){
+      PieceParams P = getPiece(cidC, t, g);
+      // inverse transform: current -&gt; original uv0
+      vec2 uv0 = uvNow - P.disp;
+      // apply inverse of scale and rotation around pivot
+      uv0 = (r2(-P.rot) * ((uv0 - P.pivotUv) / max(P.scale, 1e-4))) + P.pivotUv;
+      // check original membership is within this candidate triangle
+      vec2 pxy0 = toPx(uv0);
+      vec2 cid0 = floor(pxy0 / g);
+      vec2 q0 = fract(pxy0 / g);
+      bool diag0 = mod(cid0.x + cid0.y, 2.0) &lt; 0.5;
+      bool inside0 = triMask(q0, diag0);
+      // Avoid strict float equality; tolerate tiny differences
+      bool sameCell = all(lessThan(abs(cid0 - cidC), vec2(0.25)));
+      ok = sameCell &amp;&amp; inside0;
+      vec4 s = ok ? sampleSafe(uv0) : vec4(0.0);
+      // Pack depth in alpha for frontmost selection (smaller depth =&gt; front)
+      s.a = ok ? P.depth : 1e9;
+      return s;
+    }
+
+    void main(){
+      // If we're before the start time, render the original image (no break)
+      if (acTime &lt; startTime) {
+        vec4 src0 = texture2DCv(inputImg.texture, acScreenNorm);
+        gl_FragColor = src0;
+        return;
+      }
+      float t = max(0.0, acTime - startTime);
+      float g = max(grid, 2.0);
+      vec2 uvNow = acScreenNorm;
+
+      // Base guess cell from current pixel
+      vec2 pxy = toPx(uvNow);
+      vec2 baseCid = floor(pxy / g);
+
+      // Adaptive search radius in cells based on estimated displacement
+      float texMax = max(getTexSize(inputImg.size).x, getTexSize(inputImg.size).y);
+      float estDisp = (force / max(texMax, 1.0)) * t + 0.5 * abs(gravity / max(texMax, 1.0)) * t*t; // uv
+      float cells = estDisp * (texMax / g); // approximate cells traveled
+      int Rcap = int(clamp(searchMax, 1.0, 12.0));
+      int R = int(clamp(ceil(cells) + 1.0, 1.0, float(Rcap))); // adaptive, capped by control
+
+      vec4 col = vec4(0.0);
+      bool found = false;
+      float bestDepth = 1e9;
+      for(int dy=-4; dy&lt;=4 &amp;&amp; !found; ++dy){
+        if(dy &lt; -R || dy &gt; R) continue;
+        for(int dx=-4; dx&lt;=4 &amp;&amp; !found; ++dx){
+          if(dx &lt; -R || dx &gt; R) continue;
+          vec2 cidC = baseCid + vec2(float(dx), float(dy));
+          bool ok; vec4 c = tryCandidate(cidC, t, g, uvNow, ok);
+          if(ok){
+            // choose shard with smallest depth (closest)
+            if(c.a &lt; bestDepth){ bestDepth = c.a; col = vec4(c.rgb, 1.0); }
+            found = true;
+          }
+        }
+      }
+
+      gl_FragColor = found ? col : vec4(0.0);
+    }
+  </shader>
+</effect>

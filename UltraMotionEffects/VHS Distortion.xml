@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vhsdistort" name="VHS Distortion" desc="VHS tape distortion: horizontally offsets traveling scanline bands, adds static, left-edge black dropouts, splotches and white streaks, plus a 16-direction disc blur (Quality/Blurry) over the image." category="other" tags="distort" thumb="thumb/Distort and Warp/VHS Distortion.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="timeMod" label="Time Mod" default="2.5" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="lineSize" label="Line Size" default="50.0" min="0.0" max="100.0" step="0.5" type="percent" />
+        <slider id="offsetMul" label="VHS Offset" default="0.01" min="0.0" max="10.0" step="0.01" type="percent" />
+        <slider id="quality" label="Quality" default="1.5" min="0.0" max="10.0" step="0.01" type="percent" />
+        <slider id="size" label="Blurry" default="0.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <menu id="blendMode" style="radio" default="3">
+            <menu label="NORMAL" value="0" />
+            <menu label="LAYER" value="3" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+                 #define id vec2(0.,1.)
+                 #define PI 3.141592653
+                 #define TAU PI * 2.
+                 // #define inputImg.texture 
+                 // #define texture2DCv texture 
+                 // #define gl_FragColor fragColor 
+         
+         // vec3 hash(vec3 x) {
+             // vec3 q = vec3(dot(x, vec3(127.1, 311.7, 74.7)),
+                           // dot(x, vec3(269.5, 183.3, 246.1)),
+                           // dot(x, vec3(113.5, 271.9, 124.6)));
+             // return fract(sin(q) * 43758.5453);
+                  // }
+         
+         vec3 hash(vec3 x) {
+             const float k = 0.142857142857; // Konstanta pengganti
+             x = fract(x * k);
+             x += dot(x, x.yzx + 19.19);
+             x = fract(x * k);
+             x += dot(x, x.yzx + 19.19);
+             x = fract(x * k);
+             return x;
+         }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec3 iMouse = vec3(0.5, 0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+        
+        vec2 umefx;
+        // umefx = acScreenNorm; 
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        
+        umefx /= scale;
+        umefx *= rot2m((0.0+angle)*0.0174533);
+        umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+                     bool flag = false;
+                     bool flag2 = false;
+         
+                     vec2 uv = acScreenNorm.st;
+                     // vec2 uv = fragCoord/iResolution.xy;
+                     
+                     //picture offset
+                     float timee = 2.0;
+                     // float timeMod = 2.5;
+                     float repeatTime = 1.25;
+                     // float lineSize = 50.0;
+                     // float offsetMul = 0.01;
+                     float updateRate2 = 50.0;
+                     float uvyMul = 100.0;
+                     
+                     float realSize = lineSize / iResolution.y / 2.0;
+                     float position = mod(iTime, timeMod) / timee;
+                     float position2 = 99.;
+                     if (iTime &gt; repeatTime) {
+                         position2 = mod(iTime - repeatTime, timeMod) / timee;
+                     }
+                     if (!(uv.y - position &gt; realSize || uv.y - position &lt; -realSize)) {
+                         uv.x -= hash(vec3(0., uv.y * uvyMul, iTime * updateRate2)).x * offsetMul;
+                         flag = true;
+                     } else if (position2 != 99.) {
+                         if (!(uv.y - position2 &gt; realSize || uv.y - position2 &lt; -realSize)) {
+                             uv.x -= hash(vec3(0., uv.y * uvyMul, iTime * updateRate2)).x * offsetMul;
+                             flag = true;
+                         }
+                     }
+                     
+                     vec4 col = texture2DCv(inputImg.texture, uv);
+                     
+                     //blur, from https://www.shadertoy.com/view/Xltfzj
+                     float directions = 16.0;
+                     // float quality = 3.0;
+                     // float size = 4.0;
+         
+                     vec2 radius = size / iResolution.xy;
+                     for(float d = 0.0; d &lt; TAU; d += TAU / directions) {
+                         for(float i= 1.0 / quality; i &lt;= 1.0; i += 1.0 / quality) {
+                             col += texture2DCv(inputImg.texture, uv + vec2(cos(d), sin(d)) * radius * i);	
+                         }
+                     }
+                     col /= quality * directions - 14.0;
+                     
+                     //for the black on the left
+                     if (uv.x &lt; 0.) {
+                         col = id.xxxy;
+                         flag = false;
+                         flag2 = true;
+                     }
+                     
+                     //randomized black shit and sploches
+                     float updateRate4 = 100.0;
+                     float uvyMul3 = 100.0;
+                     float cutoff2 = 0.92;
+                     float valMul2 = 0.007;
+                     
+                     float val2 = hash(vec3(uv.y * uvyMul3, 0., iTime * updateRate4)).x;
+                     if (val2 &gt; cutoff2) {
+                         float adjVal2 = (val2 - cutoff2) * valMul2 * (1. / (1. - cutoff2));
+                         if (uv.x &lt; adjVal2) {
+                             col = id.xxxy;
+                             flag2 = true;
+                         } else {
+                             flag = true;
+                         }
+                     }
+         
+                     //static
+                     if (!flag2) {
+                         float updateRate = 100.0;
+                         float mixPercent = 0.05; 
+                         col = mix(col, vec4(hash(vec3(uv * iResolution.xy, iTime * updateRate)).rrr, 1.), mixPercent);
+                     }
+                     
+                     //white sploches
+                     float updateRate3 = 75.0;
+                     float uvyMul2 = 400.0;
+                     float uvxMul = 20.0;
+                     float cutoff = 0.95;
+                     float valMul = 0.7;
+                     float falloffMul = 0.7;
+                     
+                     if (flag) {
+                         float val = hash(vec3(uv.x * uvxMul, uv.y * uvyMul2, iTime * updateRate3)).x;
+                         if (val &gt; cutoff) {
+                             float offset = hash(vec3(uv.y * uvyMul2, uv.x * uvxMul, iTime * updateRate3)).x;
+                             float adjVal = (val - cutoff) * valMul * (1. / (1. - cutoff));
+                             adjVal -= abs((uv.x * uvxMul - (floor(uv.x * uvxMul) + offset)) * falloffMul);
+                             adjVal = clamp(adjVal, 0., 1.);
+                             col = vec4(mix(col.rgb, id.yyy, adjVal), col.a);
+                         }
+                     }
+                     
+                     fragColor = col;
+        
+    	    vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+          if( blendMode==0 ) { resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

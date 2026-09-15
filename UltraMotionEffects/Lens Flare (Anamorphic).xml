@@ -1,0 +1,159 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.new_lensflare_shadertoy" name="Lens Flare (Anamorphic)" desc="Generates a procedural lens flare (Shadertoy port) with ghost reflections and an anamorphic horizontal streak, composited over the layer via Normal/Multiply/Screen blending. Position, orientation, strength, reflection, luminance, and three tint colors control the look." category="colorlight" tags="lensflare, glow, glare" thumb="thumb/Light and Glow/Lens Flare (Anamorphic).webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="position" label="Position" default="0.0,0.0" />
+        <slider id="progressc" label="Orient X" default="1.0" min="-10.0" max="10.0" step="0.01" type="percent" />
+        <slider id="progressd" label="Orient Y" default="0.0" min="0.0" max="10.0" step="0.025" type="percent" />
+        <slider id="progresse" label="Strength" default="0.25" min="0.1" max="10.0" step="0.01" type="percent" />
+        <slider id="progressa" label="Reflection" default="1.8" min="0" max="1000.0" step="0.01" type="percent" />
+        <slider id="progressb" label="Luminance" default="1.0" min="0" max="10.0" step="0.01" type="percent" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <color id="color1" default="#FF703D33" label="Flare Color" alpha="true" />
+        <color id="color3" default="#FF4C3305" label="Base Color" alpha="true" />
+        <color id="color4" default="#FF3380CC" label="Secondary Color" alpha="true" />
+        <menu id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <menu label="NORMAL" value="0" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+    </params>
+
+    <shader type="fragment" precision="high">
+// Shadertoy lens flare port adapted to Alight Motion.
+
+const float PI = 3.14159265359;
+const vec3 suncolor = vec3(0.643,0.494,0.867);
+
+float getSun(vec2 uv){ return (length(uv) &lt; 0.009) ? 1.0 : 0.0; }
+
+vec3 lensflares(vec2 uv, vec2 pos, out vec3 sunflare, out vec3 lensflare){
+    vec2 main = uv - pos;
+    vec2 uvd = uv * (length(uv));
+
+    float ang = atan(main.y, main.x);
+    float dist = length(main);
+    dist = pow(dist, 0.1);
+
+    float f0 = 1.0 / (length(uv - pos) * 25.0 + 1.0);
+    f0 = pow(f0, 2.0);
+    f0 = f0 + f0 * (sin((ang + 1.0/18.0) * 12.0) * 0.1 + dist * 0.1 + 0.8);
+
+    float f2  = max(1.0/(1.0 + 32.0*pow(length(uvd + 0.8*pos),  2.0)), 0.0) * 0.25;
+    float f22 = max(1.0/(1.0 + 32.0*pow(length(uvd + 0.85*pos), 2.0)), 0.0) * 0.23;
+    float f23 = max(1.0/(1.0 + 32.0*pow(length(uvd + 0.9*pos),  2.0)), 0.0) * 0.21;
+
+    vec2 uvx = mix(uv, uvd, -0.5);
+    float f4  = max(0.01 - pow(length(uvx + 0.4*pos),  2.4), 0.0) * 6.0;
+    float f42 = max(0.01 - pow(length(uvx + 0.45*pos), 2.4), 0.0) * 5.0;
+    float f43 = max(0.01 - pow(length(uvx + 0.5*pos),  2.4), 0.0) * 3.0;
+
+    uvx = mix(uv, uvd, -0.4);
+    float f5  = max(0.01 - pow(length(uvx + 0.2*pos),  5.5), 0.0) * 2.0;
+    float f52 = max(0.01 - pow(length(uvx + 0.4*pos),  5.5), 0.0) * 2.0;
+    float f53 = max(0.01 - pow(length(uvx + 0.6*pos),  5.5), 0.0) * 2.0;
+
+    uvx = mix(uv, uvd, -0.5);
+    float f6  = max(0.01 - pow(length(uvx - 0.3*pos), 1.6), 0.0) * 6.0;
+    float f62 = max(0.01 - pow(length(uvx - 0.325*pos),1.6), 0.0) * 3.0;
+    float f63 = max(0.01 - pow(length(uvx - 0.35*pos), 1.6), 0.0) * 5.0;
+
+    sunflare = vec3(f0);
+    lensflare = vec3(f2+f4+f5+f6, f22+f42+f52+f62, f23+f43+f53+f63);
+    return sunflare + lensflare;
+}
+
+vec3 anflares1(vec2 uv, float intensity, float stretch, float brightness){
+    uv.x *= 1.0 / max(intensity*stretch, 1e-3);
+    uv.y *= 0.5;
+    return vec3(smoothstep(0.009, 0.0, length(uv))) * brightness;
+}
+
+vec3 anflares2(vec2 uv, float threshold, float intensity, float stretch, float brightness){
+    threshold = 1.0 - threshold;
+    vec3 hdr = vec3(getSun(uv));
+    hdr = vec3(floor(threshold + pow(hdr.r, 1.0)));
+    float d = max(intensity, 1e-3);
+    float c = max(intensity * stretch, 0.0);
+    const int STEPS = 64;
+    for (int k = 0; k &lt;= STEPS; k++){
+        float i = float(k) * (c / float(STEPS));
+        float texL = getSun(uv + vec2(i/d, 0.0));
+        float texR = getSun(uv - vec2(i/d, 0.0));
+        float w = (c &gt; 0.0) ? (1.0 - i / c) : 0.0;
+        hdr += floor(threshold + pow(max(texL, texR), 4.0)) * max(w, 0.0);
+    }
+    return hdr * brightness;
+}
+
+vec3 applyBlend(vec3 base, vec3 over, float a, int mode){
+    vec3 outc = base;
+    if (mode == 0){ // NORMAL
+        outc = mix(base, over, a);
+    } else if (mode == 1){ // MULTIPLY
+        outc = mix(base, base * over, a);
+    } else if (mode == 2){ // SCREEN
+        vec3 screen = 1.0 - (1.0 - base) * (1.0 - over);
+        outc = mix(base, screen, a);
+    }
+    return outc;
+}
+
+void main(){
+    vec2 R = acScreenSize;
+    vec2 uv = acScreenNorm - 0.5;
+    uv.x *= R.x / max(R.y, 1.0);
+
+    // Position mapping: interpret position.x/y as percentage (0..100) of screen
+    vec2 pos01 = clamp(vec2(position.x, position.y) / 100.0, 0.0, 1.0);
+    vec2 mouse = pos01 - 0.5;
+    mouse.x *= R.x / max(R.y, 1.0);
+
+    // Orient controls slightly skew the mouse
+    mouse += vec2(progressc * 0.05, progressd * 0.05);
+
+    vec3 col = vec3(0.0);
+
+    vec3 sun, sunflare, lensflare;
+    vec3 flare = lensflares(uv * 1.5, mouse * 1.5, sunflare, lensflare);
+
+    // Two variants of anamorphic flare; choose richer one similar to non-cheap path
+    vec3 anflare = pow(anflares2(uv - mouse, 0.5, 400.0, 0.9, 0.1), vec3(4.0));
+
+    vec3 tint1 = color1.rgb;
+    vec3 tintBase = color3.rgb;
+    vec3 tintSec = color4.rgb;
+
+    float refl = progressa;      // reflection strength scaler
+    float lumin = progressb;     // luminance scaler
+    float Strength = progresse;  // global intensity
+
+    vec3 flareCol = (flare + anflare) * suncolor * 2.0;
+    flareCol *= lumin;
+    flareCol = mix(flareCol, flareCol * tint1, 0.6);
+    flareCol += sunflare * tintBase * 0.5;
+    flareCol += lensflare * tintSec * 0.25 * refl;
+
+    vec3 src = texture2DCv(inputImg.texture, acScreenNorm).rgb;
+
+    // gamma-like tone on flare
+    flareCol = pow(max(flareCol, 0.0), vec3(1.0/2.2));
+
+    float a = clamp(alpha * Strength, 0.0, 1.0);
+    // Float-based selection to avoid int/float mismatch across platforms
+    float bmode = float(blendMode);
+    float wN = 1.0 - step(0.5, abs(bmode - 0.0)); // NORMAL
+    float wM = 1.0 - step(0.5, abs(bmode - 1.0)); // MULTIPLY
+    float wS = 1.0 - step(0.5, abs(bmode - 2.0)); // SCREEN
+
+    vec3 colNormal   = mix(src, flareCol, a);
+    vec3 colMultiply = mix(src, src * flareCol, a);
+    vec3 screenMix   = 1.0 - (1.0 - src) * (1.0 - flareCol);
+    vec3 colScreen   = mix(src, screenMix, a);
+
+    vec3 outc = colNormal * wN + colMultiply * wM + colScreen * wS;
+    gl_FragColor = vec4(outc, 1.0);
+}
+    </shader>
+</effect>

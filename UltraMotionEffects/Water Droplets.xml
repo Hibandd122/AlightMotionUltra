@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.water_droplets" name="Water Droplets" desc="Procedural expanding water-droplet ripples: a hashed height field of up to 64 rings drives derived surface normals that refract an environment texture, with droplet count/speed/frequency, normal strength, droplets-only or additive compositing, and an optional shockwave distortion of the source." category="procedural" tags="water,droplets,ripples,normal,shader" thumb="thumb/Distort and Warp/Water Droplets.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    
+    <texture id="inputImg" srcType="content" />
+    <texture id="envTex" srcType="content" />
+
+    
+    <slider id="dropletCount" default="10" min="1" max="64" step="1" type="integer" label="Droplet Count" />
+    <slider id="expandSpeed" default="1.5" min="0.0" max="5.0" step="0.01" label="Expand Speed" />
+    <slider id="heightFactor" default="0.3" min="0.0" max="2.0" step="0.01" label="Height Factor" />
+    <slider id="rippleFreq" default="80.0" min="0.0" max="200.0" step="0.5" label="Ripple Frequency" />
+    <slider id="timeSpeed" default="0.5" min="0.0" max="5.0" step="0.01" label="Time Speed" />
+    <slider id="seed" default="1245.6789" min="0.0" max="99999.0" step="0.1" label="Random Seed" />
+
+    
+    <slider id="normalOffset" default="0.0078125" min="0.001" max="0.05" step="0.0005" label="Normal Sample Offset" />
+    <slider id="normalStrength" default="1.0" min="0.0" max="4.0" step="0.01" label="Normal Strength" />
+
+    
+    <slider id="blend" default="1.0" min="0.0" max="1.0" step="0.01" label="Additive Blend with Source" />
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+    <switch id="dropletsOnly" default="true" label="Show Only Droplets" />
+
+    
+    <switch id="shockwave" default="false" label="Shockwave Distort (affects clip)" />
+    <slider id="shockStrength" default="0.02" min="0.0" max="0.2" step="0.001" label="Strength" />
+    <slider id="shockWidth" default="8.0" min="1.0" max="40.0" step="0.5" label="Edge Sharpness" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Water Droplets (Shadertoy-style) -&gt; Alight Motion port
+
+    const float PI = 3.141592653589793;
+
+    // Small hash helpers (no texture required)
+    float hash11(float p) {
+      p = fract(p * 0.1031);
+      p *= p + 33.33;
+      p *= p + p;
+      return fract(p);
+    }
+    float hash21(vec2 p) {
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
+    vec2 hash22(vec2 p) {
+      float n = hash21(p);
+      float m = hash21(p + 17.17);
+      return vec2(n, m);
+    }
+
+    // Droplet height field
+    float getDropletHeight(vec2 uv) {
+      float timeVal = (acTime + seed) * timeSpeed;
+      float height = 0.0;
+
+      int N = int(clamp(float(dropletCount), 1.0, 64.0));
+      for (int i = 0; i &lt; 64; ++i) {
+        if (i &gt;= N) break;
+        float fi = float(i);
+
+        // Derive per-droplet properties from hashes
+        float decayRate = 0.323 + 2.0 * hash11(fi * 1.123 + 0.237);
+        float dropletStrength = hash11(fi * 0.713 + 0.001);
+        float dropletStrengthBias = 0.1 + 0.2 * hash11(fi * 2.371 + 0.345);
+
+        float dropFractionFull = timeVal / decayRate;
+        float dropIndex = floor(dropFractionFull);
+        float dropFraction = fract(dropFractionFull);
+
+        // Position per (i, dropIndex)
+        vec2 rnd = hash22(vec2(fi * 0.731 + dropIndex * 0.1, dropIndex * 1.123));
+        vec2 dropletPosition = rnd * 2.0 - 1.0; // [-1,1] range like original code
+
+        float ringRadius = expandSpeed * dropFraction * dropletStrength - dropletStrengthBias;
+        ringRadius = max(ringRadius, 0.0001);
+
+        float distToDroplet = distance(uv, dropletPosition);
+        float within = distToDroplet &gt; ringRadius ? 0.0 : 1.0;
+
+        float edgeDist = max(0.0, ringRadius - distToDroplet) / ringRadius;
+        float h = within &gt; 0.5 ? distToDroplet : 0.0;
+        // Cosine ripples
+        h = cos(PI + (h - ringRadius) * rippleFreq * dropletStrength) * 0.5 + 0.5;
+        h *= 1.0 - dropFraction; // fade as ring expands
+        h *= within &gt; 0.5 ? distToDroplet / ringRadius : 0.0;
+
+        // Nonlinear shaping similar to original
+        float shaped = (1.0 - (cos(h * PI) + 1.0) * 0.5);
+        height += shaped * heightFactor;
+      }
+      return height;
+    }
+
+    // Compute surface normal from height field
+    vec3 getDropletNormal(vec2 uv) {
+      float off = normalOffset;
+      vec3 ofs = vec3(-off, 0.0, off);
+
+      float s11 = getDropletHeight(uv);
+      float s01 = getDropletHeight(uv + ofs.xy);
+      float s21 = getDropletHeight(uv + ofs.zy);
+      float s10 = getDropletHeight(uv + ofs.yx);
+      float s12 = getDropletHeight(uv + ofs.yz);
+
+      vec3 va = normalize(vec3(ofs.z, 0.0, s21 - s11));
+      vec3 vb = normalize(vec3(0.0, ofs.z, s12 - s11));
+
+      vec3 n = normalize(cross(va, vb));
+      n.xy *= s11 * normalStrength;
+      return normalize(n);
+    }
+
+    void main(){
+      // Aspect-correct droplet space: x scaled by screen aspect, centered [-1,1]
+      vec2 aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+      vec2 uv = (acScreenNorm - 0.5) * 2.0;
+      uv.x *= aspect.x;
+
+      // Generate normal
+      vec3 normal = getDropletNormal(uv);
+
+      // Droplet mask from height field (limits effect region)
+      float h = getDropletHeight(uv);
+      float mask = clamp(h * 8.0, 0.0, 1.0);
+
+      // Sample environment by normal.xy mapped to UV
+      // If no envTex provided, sample the input image instead
+      vec2 envUV = normal.xy * 0.5 + 0.5;
+      vec3 envColor = texture2DCv(envTex.texture, envUV).rgb;
+
+      // Optionally distort the clip using a shockwave derived from the droplet gradient
+      vec2 srcUV = acScreenNorm;
+      if(shockwave &amp;&amp; !dropletsOnly){
+        float eps = max(0.001, normalOffset);
+        float hx = getDropletHeight(uv + vec2(eps, 0.0)) - getDropletHeight(uv - vec2(eps, 0.0));
+        float hy = getDropletHeight(uv + vec2(0.0, eps)) - getDropletHeight(uv - vec2(0.0, eps));
+        vec2 grad = vec2(hx, hy) / (2.0 * eps);
+        float edge = clamp(length(grad) * shockWidth, 0.0, 1.0);
+        vec2 dir = normalize(grad + 1e-6);
+        vec2 offset = dir * edge * shockStrength;
+        // Convert from aspect-correct droplet space to normalized screen UVs
+        vec2 offsetScreen = vec2(offset.x / aspect.x, offset.y) * 0.5;
+        // apply only where droplets exist
+        srcUV += offsetScreen * mask;
+      }
+
+      vec4 src = texture2DCv(inputImg.texture, srcUV);
+
+      // Output
+      if(dropletsOnly){
+        // Only droplets: color from env, masked by droplet presence
+        vec3 col = envColor * mask;
+        float a = mask * alpha;
+        gl_FragColor = vec4(col, 1.0) * a;
+      } else {
+        // Masked additive over source to avoid global brightening
+        vec3 outRGB = mix(src.rgb, src.rgb + envColor * mask, clamp(blend, 0.0, 1.0));
+        float a = src.a * alpha;
+        gl_FragColor = vec4(outRGB, 1.0) * a;
+      }
+    }
+  </shader>
+
+</effect>

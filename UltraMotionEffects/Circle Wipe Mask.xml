@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.wipecircle" name="Circle Wipe Mask" desc="Masks the layer with an elliptical region: Width and Height set the two radii, Circle Size scales both, and Feather softens the edge with a smoothstep falloff. Invert Mask flips inside and outside; color and alpha are both multiplied by the mask, so it works as a reveal matte." category="warp" tags="wipe,circle,reveal,transition,mask" thumb="thumb/Matte and Mask/Circle Wipe Mask.webp" experimental="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="size" default="1.0" min="0.0" max="100.0" step="0.01" label="Circle Size" />
+    <slider id="width" default="0.3" min="0.0" max="2.0" step="0.01" label="Width" />
+    <slider id="height" default="0.3" min="0.0" max="2.0" step="0.01" label="Height" />
+    <slider id="feather" default="0.05" min="0.0" max="1000.0" step="0.01" label="Feather" />
+    <slider id="centerX" default="0.5" min="0.0" max="1.0" step="0.01" label="Center X" />
+    <slider id="centerY" default="0.5" min="0.0" max="1.0" step="0.01" label="Center Y" />
+    <switch id="invert" default="false" label="Invert Mask" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    void main() {
+      vec2 uv = acScreenNorm;
+
+      // Circle/ellipse center
+      vec2 center = vec2(centerX, centerY);
+
+      // Apply size scaling to width/height
+      vec2 radii = vec2(width, height) * size;
+
+      // Normalized ellipse distance
+      vec2 d = (uv - center) / max(radii, vec2(1e-5));
+      float dist = length(d);
+
+      // Feathered edge transition
+      float edge = smoothstep(1.0, 1.0 - feather, dist);
+
+      if (invert) edge = 1.0 - edge;
+
+      // Sample texture and apply alpha mask
+      vec4 tex = texture2DCv(inputImg.texture, uv);
+      gl_FragColor = vec4(tex.rgb * edge, tex.a * edge);
+    }
+  </shader>
+</effect>

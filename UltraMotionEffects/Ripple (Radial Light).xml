@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ripplelight" name="Ripple (Radial Light)" desc="Animated concentric ripple distortion radiating from an adjustable center, with distance decay and a directional specular light highlight on the wave crests. Controls include strength, frequency, speed, decay, light intensity/sharpness/color and blend." category="procedural" thumb="thumb/Distort and Warp/Ripple (Radial Light).webp" overdraw="true" tags="ripple,distort,water,light,warp" experimental="false" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="strength" default="0.02" min="0.0" max="0.2" label="Strength" step="0.001" />
+    <slider id="frequency" default="20.0" min="1.0" max="100.0" label="Frequency" step="0.1" />
+    <slider id="speed" default="1.0" min="0.0" max="10.0" label="Speed" step="0.01" />
+    <slider id="radius" default="1.0" min="0.1" max="2.0" label="Radius Scale" step="0.01" />
+    <slider id="decay" default="0.5" min="0.0" max="2.0" label="Ripple Decay" step="0.01" />
+
+    
+    <slider id="centerX" default="0.5" min="0.0" max="1.0" label="Center X" step="0.01" />
+    <slider id="centerY" default="0.5" min="0.0" max="1.0" label="Center Y" step="0.01" />
+
+    
+    <slider id="lightIntensity" default="0.3" min="0.0" max="1.0" label="Light Intensity" step="0.01" />
+    <slider id="lightSharpness" default="2.0" min="0.1" max="10.0" label="Light Sharpness" step="0.1" />
+    <color id="lightColor" default="#FFFFFFFF" label="Light Color" alpha="false" />
+
+    
+    <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend with Original" step="0.01" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    void main() {
+      vec2 uv = acLayerNorm;
+      vec2 center = vec2(centerX, centerY);
+
+      // Vector from center (aspect-corrected)
+      float aspect = acLayerSize.x / acLayerSize.y;
+      vec2 diff = uv - center;
+      vec2 diffA = vec2(diff.x * aspect, diff.y);
+      float dist = length(diffA) * radius;
+
+      // Ripple wave (animated with time)
+      float ripple = sin(dist * frequency - acTime * speed);
+
+      // Decay (fade as distance increases)
+      ripple *= exp(-decay * dist);
+
+      // Offset in radial direction (convert back from aspect space)
+      vec2 dirA = diffA / max(length(diffA), 1e-6);
+      vec2 dirUV = vec2(dirA.x / aspect, dirA.y);
+      vec2 displacedUV = uv + dirUV * ripple * strength;
+
+      // Sample displaced image
+      vec4 displacedColor = texture2DCv(inputImg.texture, displacedUV);
+      vec4 originalColor  = texture2DCv(inputImg.texture, uv);
+
+      float lRaw = cos(dist * frequency - acTime * speed) * exp(-decay * dist);
+      float light = max(lRaw, 0.0);
+      vec2 light2D = normalize(vec2(0.6, 0.8));
+      float orient = clamp(0.5 + 0.5 * dot(dirUV, light2D), 0.0, 1.0);
+      light = pow(light, lightSharpness) * pow(orient, lightSharpness) * lightIntensity;
+
+      vec3 finalColor = displacedColor.rgb;
+      finalColor += lightColor.rgb * light;
+
+      // Blend with original
+      vec3 mixedColor = mix(originalColor.rgb, finalColor, blend);
+
+      gl_FragColor = vec4(mixedColor, displacedColor.a);
+    }
+  </shader>
+</effect>

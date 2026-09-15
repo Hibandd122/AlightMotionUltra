@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bumpmap_universal" name="Bump Map Pro" desc="Bump-maps the layer using its own luminance or a separate height map, deriving normals with a 4-tap or Sobel 8-tap filter. Includes directional or point lighting, ambient, roughness-driven specular with tint, and exposure controls." category="drawingedge" tags="bump,lighting,normal,depth,shading,realtime" thumb="thumb/Stylize/Bump Map Pro.webp" overdraw="false" experimental="false" deprecated="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <menu id="heightSource" style="dropdown" default="0" label="Height Source">
+      <menu label="Input Luminance" value="0" />
+      <menu label="Separate Height Map" value="1" />
+    </menu>
+    <texture id="heightMap" srcType="content" />
+    <slider id="heightScale" default="1.0" min="0.0" max="5.0" step="0.05" label="Height Scale" ticks="0,0.5,1,2,3,5" />
+
+    
+    <slider id="bumpIntensity" default="1.0" min="0.0" max="5.0" step="0.05" label="Bump Intensity" ticks="0,0.5,1,2,3,5" />
+    <slider id="normalRes" default="1.0" min="0.1" max="10.0" step="0.1" label="Normal Sample Radius (px)" ticks="0.5,1,2,3,5,10" />
+    <menu id="quality" style="dropdown" default="0" label="Normal Quality">
+      <menu label="Standard (4 taps)" value="0" />
+      <menu label="High (Sobel 8 taps)" value="1" />
+    </menu>
+
+    
+    <menu id="lightType" style="dropdown" default="1" label="Light Type">
+      <menu label="Directional" value="0" />
+      <menu label="Point" value="1" />
+    </menu>
+    <point id="lightDir" default="75,-75" label="Light Direction/Position (X,Y)" />
+    <slider id="lightDepth" default="100.0" min="-1000.0" max="1000.0" step="1.0" label="Light Depth (Z)" ticks="-500,-250,0,250,500,1000" />
+    <slider id="lightIntensity" default="1.0" min="0.0" max="4.0" step="0.05" label="Light Intensity" type="percent" />
+    <slider id="ambient" default="0.20" min="0.0" max="1.0" step="0.01" label="Ambient (Environment)" type="percent" />
+    <slider id="roughness" default="0.50" min="0.0" max="1.0" step="0.01" label="Surface Roughness" type="percent" />
+    <slider id="specularIntensity" default="0.75" min="0.0" max="2.0" step="0.01" label="Specular Intensity" />
+    <color id="specularTint" default="#FFFFFFFF" label="Specular Tint" alpha="false" />
+
+    
+    <switch id="preserveAlpha" default="true" label="Preserve Source Alpha" />
+    <switch id="unpremultBeforeShade" default="false" label="Unpremultiply Before Shading" />
+    <slider id="exposure" default="1.00" min="0.25" max="4.0" step="0.01" label="Exposure" ticks="0.5,1.0,1.5,2.0,3.0,4.0" />
+    
+  </params>
+
+  <shader type="fragment" precision="high">
+    const vec3 W = vec3(0.2126, 0.7152, 0.0722);
+
+    float luma(vec3 c){ return dot(c, W); }
+
+    float heightAt(vec2 uv){
+      if (heightSource == 1) {
+        vec4 h = texture2DCv(heightMap.texture, uv);
+        return luma(h.rgb) * heightScale;
+      }
+      vec4 s = texture2DCv(inputImg.texture, uv);
+      return luma(s.rgb) * heightScale;
+    }
+
+    vec3 computeNormal(vec2 uv, vec2 texel, float radius){
+      float r = radius;
+      if (quality == 1) {
+        // Sobel (8 taps)
+        float tl = heightAt(uv + vec2(-texel.x,  texel.y) * r);
+        float tc = heightAt(uv + vec2( 0.0     ,  texel.y) * r);
+        float tr = heightAt(uv + vec2( texel.x ,  texel.y) * r);
+        float ml = heightAt(uv + vec2(-texel.x,  0.0    ) * r);
+        float mr = heightAt(uv + vec2( texel.x ,  0.0    ) * r);
+        float bl = heightAt(uv + vec2(-texel.x, -texel.y) * r);
+        float bc = heightAt(uv + vec2( 0.0     , -texel.y) * r);
+        float br = heightAt(uv + vec2( texel.x , -texel.y) * r);
+        float dx = (tr + 2.0*mr + br) - (tl + 2.0*ml + bl);
+        float dy = (tl + 2.0*tc + tr) - (bl + 2.0*bc + br);
+        return normalize(vec3(-dx * bumpIntensity, -dy * bumpIntensity, 1.0));
+      } else {
+        // Standard (4 taps)
+        float hR = heightAt(uv + vec2(texel.x * r, 0.0));
+        float hL = heightAt(uv - vec2(texel.x * r, 0.0));
+        float hU = heightAt(uv + vec2(0.0, texel.y * r));
+        float hD = heightAt(uv - vec2(0.0, texel.y * r));
+        float dx = (hR - hL);
+        float dy = (hU - hD);
+        return normalize(vec3(-dx * bumpIntensity, -dy * bumpIntensity, 1.0));
+      }
+    }
+
+    float shininessFromRoughness(float r){
+      // Map roughness 0..1 to shininess ~ 256..8 (inverse relation)
+      return mix(256.0, 8.0, clamp(r, 0.0, 1.0));
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec2 texel = 1.0 / acScreenSize;
+
+      vec4 base = texture2DCv(inputImg.texture, uv);
+      vec4 src = base;
+      if (unpremultBeforeShade &amp;&amp; src.a &gt; 0.0) src.rgb /= src.a;
+
+      // Normal from height
+      vec3 n = computeNormal(uv, texel, normalRes);
+
+      // Light vector: directional or point
+      vec3 V = vec3(0.0, 0.0, 1.0);
+      vec3 L;
+      if (lightType == 1) {
+        // Point: position in screen space, depth controls Z
+        vec3 lightPos = vec3(lightDir.x / 2.0, -lightDir.y / 2.0, -lightDepth * 0.02);
+        vec3 p = vec3(uv * 2.0 - 1.0, 0.0);
+        L = normalize(lightPos - p);
+      } else {
+        // Directional: use (lightDir, lightDepth) as a direction vector
+        L = normalize(vec3(lightDir.x, -lightDir.y, lightDepth));
+      }
+
+      float diff = max(dot(n, L), 0.0) * lightIntensity;
+
+      vec3 H = normalize(L + V);
+      float specPow = shininessFromRoughness(roughness);
+      float spec = pow(max(dot(n, H), 0.0), specPow) * specularIntensity;
+
+      // Composite lighting
+      float amb = ambient;
+      vec3 lit = src.rgb * (amb + diff * (1.0 - amb));
+      lit += specularTint.rgb * spec;
+      lit *= exposure;
+
+      vec4 outC = vec4(lit, src.a);
+      if (unpremultBeforeShade &amp;&amp; src.a &gt; 0.0) outC.rgb *= src.a;
+      if (preserveAlpha) outC.a = base.a;
+      gl_FragColor = outC;
+    }
+  </shader>
+
+</effect>

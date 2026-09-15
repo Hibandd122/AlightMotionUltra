@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.colorgrid" name="Color Grid" desc="Generates a grid of square cells, each assigned a hashed color that pulses over the Evolution value. Hue shifts the cell palette, Scale sets cell density, and the result composites over the layer with normal, multiply, or screen blending." category="procedural" tags="other" thumb="thumb/Procedural/Color Grid.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="progressa" label="Evolution" default="10.0" min="0" max="100.0" step="0.05" type="percent" />
+        <slider id="progressb" label="Hue" default="2.5" min="0" max="100.0" step="0.01" type="percent" />
+        <slider id="scale" default="10.0" min="0.0" max="20.0" step="0.05" label="Scale" type="percent" />
+        <slider id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+
+        <menu id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <menu label="NORMAL" value="0" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+
+    </params>
+    
+    <shader type="fragment" precision="high">
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define FragCoord gl_FragCoord
+    
+   /////////////////////////
+    
+    
+    
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        // vec2 umefx;
+        // if (adaptive) { umefx = acScreenNorm; }
+        // else { 
+        // umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        // umefx.y*=acLayerSize.y/acLayerSize.x;
+        // }
+
+        // umefx /= 1.0;
+        // umefx *= rot2m(0.0*0.0174533);
+        // umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+
+        
+        /////////////////////////
+
+    	vec4 result;
+    	
+    	// vec2  px = 4.0*(-acScreenNorm + scale*acLayerNorm.xy) / acScreenSize.y;
+    	vec2  px = 4.0*(-acScreenNorm + scale*FragCoord.xy) / acScreenSize.y;
+        
+        float id = 0.5 + 0.5*cos(progressa + sin(dot(floor(px+0.5),vec2(113.1,17.81)))*43758.545);
+        
+        vec3  co = 0.5 + 0.5*cos(progressb + 2.0*id + vec3(0.0,1.0,2.0) );
+        
+        vec2  pa = smoothstep( 0.0, 0.2, id*(0.5 + 0.5*cos(6.2831*px)) );
+        
+        result = vec4( co*pa.x*pa.y, 1.0 );
+        
+    	    // result
+    	    // const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            // vec4 gradmap;
+            // float luminance = dot(result.rgb, luminanceWeighting);
+            // gradmap = mix(color1,color2,luminance)*result.a;
+        
+    	// vec4 factor = mix(texColorX,gradmap,alpha);
+    	vec4 factor = mix(texColorX,result,alpha);
+    	
+        vec4 resultfinal;
+        if( blendMode==0 ) {                // normal
+            resultfinal = (factor * bright) * texColor.a;
+        } else if( blendMode==1 ) {         // multiply
+            factor *= bright;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a;
+        } else if( blendMode==2 ) {         // screen
+            factor *= bright;
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a;
+        }
+            
+    	gl_FragColor = resultfinal;
+    }
+
+
+    </shader>
+
+</effect>

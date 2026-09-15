@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vhs_glitch" name="VCR Glitch" desc="Retro VHS-style look: intermittent horizontal tape wobble and vertical roll, per-channel RGB offset (chromatic aberration), barrel screen distortion, vignette, value-noise grain, and contrast/saturation shaping." category="other" tags="vhs,glitch,retro,chromatic,scanline,distortion,noise" thumb="thumb/Stylize/VCR Glitch.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="glitchAmount" default="1.0" min="0.0" max="2.0" step="0.1" label="Glitch Amount" />
+        <slider id="glitchSpeed" default="1.0" min="0.1" max="5.0" step="0.1" label="Glitch Speed" />
+        
+        
+        <slider id="chromaticAmount" default="1.0" min="0.0" max="3.0" step="0.1" label="Chromatic Amount" />
+        <slider id="chromaticOffset" default="0.002" min="0.0" max="0.01" step="0.001" label="RGB Offset" />
+        
+        
+        <slider id="distortionAmount" default="1.0" min="0.0" max="2.0" step="0.1" label="Distortion" />
+        <slider id="barrelAmount" default="1.0" min="0.0" max="2.0" step="0.1" label="Barrel/Pincushion" />
+        
+        
+        <slider id="scanlineAmount" default="1.0" min="0.0" max="2.0" step="0.1" label="Scanline Intensity" />
+        <slider id="scanlineSpeed" default="1.0" min="0.1" max="5.0" step="0.1" label="Scanline Speed" />
+        
+        
+        <slider id="vignetteAmount" default="1.0" min="0.0" max="2.0" step="0.1" label="Vignette" />
+        <slider id="vignetteIntensity" default="3.0" min="0.0" max="5.0" step="0.1" label="Vignette Intensity" />
+        
+        
+        <slider id="noiseAmount" default="0.05" min="0.0" max="0.5" step="0.01" label="Noise Amount" />
+        <slider id="noiseScale" default="75.0" min="10.0" max="200.0" step="5.0" label="Noise Scale" />
+        
+        
+        <slider id="saturation" default="1.0" min="0.0" max="2.0" step="0.1" label="Saturation" />
+        <slider id="contrast" default="1.0" min="0.5" max="2.0" step="0.1" label="Contrast" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        
+        float onOff(float a, float b, float c) {
+            return step(c, sin(acTime * glitchSpeed + a * cos(acTime * glitchSpeed * b)));
+        }
+        
+        float ramp(float y, float start, float end) {
+            float inside = step(start, y) - step(end, y);
+            float fact = (y - start) / (end - start) * inside;
+            return (1.0 - fact) * inside;
+        }
+        
+        vec4 getVideo(vec2 uv) {
+            vec2 look = uv;
+            float window = 1.0 / (1.0 + 20.0 * (look.y - mod(acTime * glitchSpeed / 4.0, 1.0)) * (look.y - mod(acTime * glitchSpeed / 4.0, 1.0)));
+            look.x = look.x + (sin(look.y * 10.0 + acTime * glitchSpeed) / 50.0 * onOff(4.0, 4.0, 0.3) * (1.0 + cos(acTime * glitchSpeed * 80.0)) * window) * (0.1 * 2.0);
+            float vShift = 0.4 * onOff(2.0, 3.0, 0.9) * (sin(acTime * glitchSpeed) * sin(acTime * glitchSpeed * 20.0) + (0.5 + 0.1 * sin(acTime * glitchSpeed * 200.0) * cos(acTime * glitchSpeed)));
+            look.y = mod(look.y + vShift * 0.1, 1.0);
+            
+            vec4 video = texture2DCv(inputImg.texture, look);
+            return video;
+        }
+        
+        vec2 screenDistort(vec2 uv) {
+            uv = (uv - 0.5) * 2.0;
+            uv *= 1.1 * distortionAmount;
+            uv.x *= 1.0 + pow((abs(uv.y) / 5.0), 2.0) * barrelAmount;
+            uv.y *= 1.0 + pow((abs(uv.x) / 4.0), 2.0) * barrelAmount;
+            uv = (uv / 2.0) + 0.5;
+            uv = uv * 0.92 + 0.04;
+            return uv;
+        }
+        
+        float random(vec2 uv) {
+            return fract(sin(dot(uv, vec2(15.5151, 42.2561))) * 12341.14122 * sin(acTime * glitchSpeed * 0.03));
+        }
+        
+        float noise(vec2 uv) {
+            vec2 i = floor(uv);
+            vec2 f = fract(uv);
+            
+            float a = random(i);
+            float b = random(i + vec2(1.0, 0.0));
+            float c = random(i + vec2(0.0, 1.0));
+            float d = random(i + vec2(1.0));
+            
+            vec2 u = smoothstep(0.0, 1.0, f);
+            
+            return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        
+        vec2 scandistort(vec2 uv) {
+            float scan1 = clamp(cos(uv.y * 2.0 + acTime * glitchSpeed * scanlineSpeed), 0.0, 1.0);
+            float scan2 = clamp(cos(uv.y * 2.0 + acTime * glitchSpeed * scanlineSpeed + 4.0) * 10.0, 0.0, 1.0);
+            float amount = scan1 * scan2 * uv.x * scanlineAmount;
+            return uv;
+        }
+        
+        void main() {
+            vec2 uv = acScreenNorm;
+            vec2 curUV = screenDistort(uv);
+            uv = scandistort(curUV);
+            
+            vec4 video = getVideo(uv);
+            
+            float vigAmt = vignetteIntensity + 0.3 * sin(acTime * glitchSpeed + 5.0 * cos(acTime * glitchSpeed * 5.0));
+            float x = 0.0;
+            
+            // Chromatic aberration
+            float offset = chromaticOffset * chromaticAmount;
+            video.r = getVideo(vec2(x + uv.x + offset, uv.y + offset)).x + 0.05;
+            video.g = getVideo(vec2(x + uv.x + 0.0, uv.y - offset * 2.0)).y + 0.05;
+            video.b = getVideo(vec2(x + uv.x - offset * 2.0, uv.y + 0.0)).z + 0.05;
+            
+            // Additional chromatic aberration
+            video.r += 0.08 * getVideo(0.75 * vec2(x + 0.025, -0.027) + vec2(uv.x + offset, uv.y + offset)).x;
+            video.g += 0.05 * getVideo(0.75 * vec2(x + -0.022, -0.02) + vec2(uv.x + 0.0, uv.y - offset * 2.0)).y;
+            video.b += 0.08 * getVideo(0.75 * vec2(x + -0.02, -0.018) + vec2(uv.x - offset * 2.0, uv.y + 0.0)).z;
+            
+            // Contrast and saturation
+            video = clamp(video * 0.6 * contrast + 0.4 * video * video * 1.0 * saturation, 0.0, 1.0);
+            
+            // Vignette
+            float vignette = (1.0 - vigAmt * (uv.y - 0.5) * (uv.y - 0.5)) * (1.0 - vigAmt * (uv.x - 0.5) * (uv.x - 0.5));
+            video *= vignette * vignetteAmount;
+            
+            // Noise
+            video = mix(video, vec4(noise(uv * noiseScale)), noiseAmount);
+            
+            // Border check
+            if (curUV.x &lt; 0.0 || curUV.x &gt; 1.0 || curUV.y &lt; 0.0 || curUV.y &gt; 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            } else {
+                gl_FragColor = video;
+            }
+        }
+        
+    </shader>
+
+</effect>

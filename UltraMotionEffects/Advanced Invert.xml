@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_invert" name="Advanced Invert" desc="Color inversion with 16 modes: full invert, luminance-only flip, hue rotate 180°, per-channel and channel-pair inversion, desaturated negative, soft gamma invert, threshold-limited shadow/midtone/highlight inversion, film-style color negative, and solarize. Includes amount, threshold, and brightness/contrast/saturation adjustments." category="colorlight" tags="color,invert,negative,flip,channel,hue,luma" thumb="thumb/Color/Advanced Invert.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <menu id="invertMode" style="dropdown" default="0" label="Invert Mode">
+            <menu value="0" label="Full Invert" />
+            <menu value="1" label="Luminance Only" />
+            <menu value="2" label="Hue Rotate 180°" />
+            <menu value="3" label="Red Channel" />
+            <menu value="4" label="Green Channel" />
+            <menu value="5" label="Blue Channel" />
+            <menu value="6" label="Red + Green" />
+            <menu value="7" label="Red + Blue" />
+            <menu value="8" label="Green + Blue" />
+            <menu value="9" label="Invert + Desaturate" />
+            <menu value="10" label="Soft Invert (Gamma)" />
+            <menu value="11" label="Invert Shadows Only" />
+            <menu value="12" label="Invert Highlights Only" />
+            <menu value="13" label="Invert Midtones Only" />
+            <menu value="14" label="Color Negative" />
+            <menu value="15" label="Solarize" />
+        </menu>
+
+        <slider id="amount" default="1.0" min="0.0" max="1.0" label="Invert Amount" type="percent" />
+        <slider id="threshold" default="0.5" min="0.0" max="1.0" label="Threshold (Solarize/Range)" type="percent" />
+
+        
+        <slider id="brightness" default="0.0" min="-1.0" max="1.0" step="0.01" label="Brightness" />
+        <slider id="contrast" default="1.0" min="0.0" max="2.0" step="0.01" label="Contrast" />
+        <slider id="saturation" default="1.0" min="0.0" max="2.0" step="0.01" label="Saturation" />
+
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Overall Blend" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        // --- Utility Functions ---
+
+        vec3 saturateCol(vec3 col, float sat) {
+            float grey = dot(col, vec3(0.2126, 0.7152, 0.0722));
+            return mix(vec3(grey), col, sat);
+        }
+
+        vec3 applyContrast(vec3 col, float con) {
+            return (col - 0.5) * con + 0.5;
+        }
+
+        float getLuma(vec3 col) {
+            return dot(col, vec3(0.2126, 0.7152, 0.0722));
+        }
+
+        // RGB to HSV
+        vec3 rgb2hsv(vec3 c) {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+
+        // HSV to RGB
+        vec3 hsv2rgb(vec3 c) {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec3 col = src.rgb;
+            float alpha = src.a;
+
+            vec3 invertCol = col;
+
+            if (invertMode == 0) {
+                // Full Invert
+                invertCol = 1.0 - col;
+            }
+            else if (invertMode == 1) {
+                // Luminance Only — invert brightness, preserve hue/sat
+                float luma = getLuma(col);
+
+float invertLuma = 1.0 - luma;
+                invertCol = col * (invertLuma / max(luma, 0.001));
+            }
+            else if (invertMode == 2) {
+                // Hue Rotate 180 degrees
+                vec3 hsv = rgb2hsv(col);
+                hsv.x = fract(hsv.x + 0.5);
+                invertCol = hsv2rgb(hsv);
+            }
+            else if (invertMode == 3) {
+                // Red Channel only
+                invertCol = vec3(1.0 - col.r, col.g, col.b);
+            }
+            else if (invertMode == 4) {
+                // Green Channel only
+                invertCol = vec3(col.r, 1.0 - col.g, col.b);
+            }
+            else if (invertMode == 5) {
+                // Blue Channel only
+                invertCol = vec3(col.r, col.g, 1.0 - col.b);
+            }
+            else if (invertMode == 6) {
+                // Red + Green
+                invertCol = vec3(1.0 - col.r, 1.0 - col.g, col.b);
+            }
+            else if (invertMode == 7) {
+                // Red + Blue
+                invertCol = vec3(1.0 - col.r, col.g, 1.0 - col.b);
+            }
+            else if (invertMode == 8) {
+                // Green + Blue
+                invertCol = vec3(col.r, 1.0 - col.g, 1.0 - col.b);
+            }
+            else if (invertMode == 9) {
+                // Invert + Desaturate (grayscale negative)
+                vec3 inv = 1.0 - col;
+                float luma = getLuma(inv);
+                invertCol = vec3(luma);
+            }
+            else if (invertMode == 10) {
+                // Soft Invert via gamma (gentler, non-linear)
+                invertCol = pow(1.0 - col, vec3(0.7));
+            }
+            else if (invertMode == 11) {
+                // Invert Shadows Only (below threshold)
+                float luma = getLuma(col);
+                float mask = 1.0 - smoothstep(0.0, threshold, luma);
+                invertCol = mix(col, 1.0 - col, mask);
+            }
+            else if (invertMode == 12) {
+                // Invert Highlights Only (above threshold)
+                float luma = getLuma(col);
+                float mask = smoothstep(threshold, 1.0, luma);
+                invertCol = mix(col, 1.0 - col, mask);
+            }
+            else if (invertMode == 13) {
+                // Invert Midtones Only
+                float luma = getLuma(col);
+                float lo = threshold * 0.5;
+                float hi = threshold + (1.0 - threshold) * 0.5;
+                float mask = smoothstep(lo, threshold, luma) * (1.0 - smoothstep(threshold, hi, luma));
+                invertCol = mix(col, 1.0 - col, mask);
+            }
+            else if (invertMode == 14) {
+                // Color Negative (film negative simulation)
+                invertCol = vec3(1.0) - col * vec3(0.95, 0.85, 0.75);
+                invertCol = clamp(invertCol, 0.0, 1.0);
+            }
+            else if (invertMode == 15) {
+                // Solarize — invert values above threshold
+                float luma = getLuma(col);
+                float mask = step(threshold, luma);
+                invertCol = mix(col, 1.0 - col, mask);
+            }
+
+            // Blend invert with original by amount
+            vec3 result = mix(col, invertCol, amount);
+
+            // Global adjustments
+            result += brightness;
+            result = applyContrast(result, contrast);
+            result = saturateCol(result, saturation);
+            result = clamp(result, 0.0, 1.0);
+
+            gl_FragColor = vec4(result, alpha) * blend + (1.0 - blend) * src;
+        }
+    </shader>
+</effect>

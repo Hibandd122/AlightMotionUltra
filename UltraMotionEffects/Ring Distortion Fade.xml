@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ring_distortion_fade" name="Ring Distortion Fade" desc="Animated radial band that distorts pixels toward the center; fades strength over time." category="procedural" tags="distort,transition,radial,fade,ripple" thumb="thumb/Distort and Warp/Ring Distortion Fade.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" label="Layer" />
+
+    
+    <switch id="autoTime" default="true" label="Auto Time (use clip time)" />
+    <slider id="duration" default="1.0" min="0.05" max="20.0" step="0.01" label="Effect Duration (s)" />
+    <slider id="progress" default="0.0" min="0.0" max="1.0" step="0.001" label="Progress (manual when Auto Time off)" />
+
+    
+    <slider id="effectWidth" default="0.4" min="0.01" max="1.0" step="0.001" label="Band Width" />
+    <slider id="fadeInTimeFactor" default="0.5" min="0.0" max="1.0" step="0.001" label="Fade-In Time Factor" />
+    <slider id="maxTexelOffset" default="20.0" min="0.0" max="200.0" step="0.1" label="Max Texel Offset" />
+
+    
+    <slider id="centerX" default="0.5" min="0.0" max="1.0" step="0.001" label="Center X" />
+    <slider id="centerY" default="0.5" min="0.0" max="1.0" step="0.001" label="Center Y" />
+
+    
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Ring Distortion Fade
+
+    void main(){
+      vec2 res = acScreenSize;
+      vec2 uv = acScreenNorm; // 0..1
+
+      // Time 0..1
+      float pr = autoTime ? mod(acTime, duration) / max(0.0001, duration) : clamp(progress, 0.0, 1.0);
+
+      // Convert offset from chosen center to pixel-normalized space (preserving circularity)
+      vec2 center = vec2(centerX, centerY);
+      float minDim = min(res.x, res.y);
+      vec2 offsetFromCenter = (uv - center) * res / max(1.0, minDim);
+
+      // Direction toward center; if zero length, no offset
+      float lenO = length(offsetFromCenter);
+      vec2 offsetDir = lenO &gt; 1e-6 ? normalize(-offsetFromCenter) : vec2(0.0);
+
+      // Band logic
+      float halfWidth = effectWidth * 0.5;
+      float lower = 1.0 - smoothstep(pr - halfWidth, pr, lenO);
+      float upper = smoothstep(pr, pr + halfWidth, lenO);
+      float band = 1.0 - (upper + lower);
+
+      float strength = 1.0 - pr; // fades out over time
+      float fadeStrength = smoothstep(0.0, fadeInTimeFactor, pr); // fades in initially
+      float distortion = band * strength * fadeStrength;
+
+      // Apply offset in texels, clamp sampling inside valid area
+      vec2 texelSize = 1.0 / getTexSize(inputImg.size);
+      vec2 uvOff = uv + texelSize * (offsetDir * maxTexelOffset * distortion);
+      vec2 halfTex = texelSize * 0.5;
+      uvOff = clamp(uvOff, halfTex, 1.0 - halfTex);
+
+      vec4 col = texture2DCv(inputImg.texture, uvOff);
+      gl_FragColor = col;
+    }
+  </shader>
+</effect>

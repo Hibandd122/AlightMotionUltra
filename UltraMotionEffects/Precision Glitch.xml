@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.precision_glitch" name="Precision Glitch" desc="Time-stepped glitch triggered by a random flicker threshold: horizontal tear bands with X offset, optional colored bands with scanline darkening, and a random block grid that fills cells with either static noise or datamosh-style displaced image. Timing, tear size, grid density and probabilities are adjustable." category="procedural" tags="glitch,datamosh,tearing,scanlines" thumb="thumb/Distort and Warp/Precision Glitch.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="timeSpeed" default="1.0" min="0.0" max="5.0" step="0.01" label="Time Speed" />
+    <slider id="glitchRate" default="7.0" min="0.0" max="30.0" step="0.1" label="Glitch Steps / s" />
+    <slider id="flickerThreshold" default="0.6" min="0.0" max="1.0" step="0.01" label="Flicker Threshold" />
+    <slider id="seed" default="0.0" min="0.0" max="99999.0" step="1.0" label="Seed" />
+
+    
+    <slider id="tearHeightMin" default="0.05" min="0.0" max="1.0" step="0.001" label="Min Height" />
+    <slider id="tearHeightRand" default="0.4" min="0.0" max="1.0" step="0.001" label="Height Random" />
+    <slider id="tearOffsetMax" default="0.4" min="0.0" max="1.0" step="0.001" label="Max X Offset" />
+    <slider id="tearScanFreq" default="3.0" min="0.0" max="40.0" step="0.1" label="Scanline Freq" />
+    <slider id="tearScanAmp" default="0.04" min="0.0" max="1.0" step="0.001" label="Scanline Amp" />
+    <slider id="bandMix" default="0.7" min="0.0" max="1.0" step="0.01" label="Band Mix" />
+
+    
+    <slider id="blockGridMin" default="10.0" min="1.0" max="200.0" step="1.0" label="Grid X Min" />
+    <slider id="blockGridRand" default="20.0" min="0.0" max="200.0" step="1.0" label="Grid X Rand" />
+    <slider id="blockGridY" default="20.0" min="1.0" max="200.0" step="1.0" label="Grid Y" />
+    <slider id="blockAffectThr" default="0.95" min="0.0" max="1.0" step="0.01" label="Block Affect Threshold" />
+    <slider id="staticProbThr" default="0.7" min="0.0" max="1.0" step="0.01" label="Static vs Datamosh Split" />
+
+    
+    <switch id="enableColorBands" default="true" label="Enable Colored Bands" />
+    <slider id="bandProbThr" default="0.6" min="0.0" max="1.0" step="0.01" label="Band Trigger" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Precision Glitch (Shadertoy-style) -&gt; Alight Motion port
+
+    float random(vec2 st) {
+      return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+    }
+    vec2 random2(vec2 st) {
+      return vec2( random(st), random(st + vec2(1.0, 1.0)) );
+    }
+
+    void main(){
+      vec2 fragCoord = acScreenNorm * acScreenSize;
+      vec2 uv = acScreenNorm;
+      vec4 originalColor = texture2DCv(inputImg.texture, uv);
+
+      // Timing
+      float t = floor((acTime * timeSpeed + seed*0.001) * glitchRate);
+      float glitchTrigger = random(vec2(t, 0.0));
+
+      if (glitchTrigger &gt; flickerThreshold) {
+        // 1. Large horizontal tearing
+        float tearY = random(vec2(t, 2.0));
+        float tearHeight = tearHeightMin + random(vec2(t, 3.0)) * tearHeightRand;
+        float tearOffset = (random(vec2(t, 4.0)) - 0.5) * (tearOffsetMax*2.0);
+
+        if (uv.y &gt; tearY &amp;&amp; uv.y &lt; tearY + max(tearHeight, 0.0)) {
+          float isColorBand = random(vec2(t, 5.0));
+          if (enableColorBands &amp;&amp; isColorBand &gt; bandProbThr) {
+            vec2 duv = uv; duv.x = fract(duv.x + tearOffset);
+            vec4 displacedColor = texture2DCv(inputImg.texture, duv);
+
+            vec3 bandColor = vec3(
+              random(vec2(t, 6.0)),
+              random(vec2(t, 7.0)),
+              random(vec2(t, 8.0))
+            );
+            displacedColor.rgb = mix(displacedColor.rgb, bandColor, clamp(bandMix,0.0,1.0));
+
+            // 5. Scan lines
+            float scanLine = sin(fragCoord.y * tearScanFreq) * tearScanAmp;
+            displacedColor.rgb = clamp(displacedColor.rgb - scanLine, 0.0, 1.0);
+            originalColor = displacedColor;
+          } else {
+            vec2 duv = uv; duv.x = fract(duv.x + tearOffset);
+            originalColor = texture2DCv(inputImg.texture, duv);
+          }
+        }
+
+        // 3 &amp; 4. Datamosh &amp; Static blocks
+        float gridX = blockGridMin + random(vec2(t, 9.0)) * blockGridRand;
+        vec2 blockGrid = floor(uv * vec2(max(1.0, gridX), max(1.0, blockGridY)));
+        float blockTrigger = random(blockGrid + t);
+        if (blockTrigger &gt; blockAffectThr) {
+          float blockType = random(blockGrid + 10.0 + t);
+          if (blockType &gt; staticProbThr) {
+            // Static block
+            vec2 sc = fract(uv * 10.0);
+            originalColor.rgb = clamp(vec3(
+              random(sc),
+              random(sc.yx),
+              random(uv)
+            ), 0.0, 1.0);
+          } else {
+            // Datamosh block
+            vec2 ro = (random2(blockGrid + 23.0) - 0.5) * 2.0;
+            originalColor = texture2DCv(inputImg.texture, fract(uv + ro));
+          }
+        }
+      }
+
+      gl_FragColor = originalColor;
+    }
+  </shader>
+
+</effect>

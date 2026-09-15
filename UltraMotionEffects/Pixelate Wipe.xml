@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_wipepixelate" name="Pixelate Wipe" desc="Directional wipe transition whose edge dissolves into randomized pixel blocks: each grid block flips at a scattered threshold across the edge width. Controls include wipe direction, angle, block frequency/width/chunkiness, seed, background fill, and a matte preview." category="warp" tags="wipe,pixelate,transition,dissolve,sapphire,blocks" thumb="thumb/Transition/Pixelate Wipe.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <menu id="transitionDir" style="dropdown" default="0" label="Transition Dir">
+            <menu value="0" label="Wipe Off to Bg" />
+            <menu value="1" label="Wipe On from Bg" />
+        </menu>
+        <menu id="background" style="dropdown" default="0" label="Background">
+            <menu value="0" label="None (Transparent)" />
+            <menu value="1" label="Black" />
+        </menu>
+
+        <slider id="wipePercent" default="0.0" min="0.0" max="1.0" label="Wipe Percent" type="percent" />
+        <slider id="edgeWidth" default="0.25" min="0.0" max="1.0" label="Edge Width" type="percent" />
+        <slider id="angle" default="90.0" min="0.0" max="360.0" step="1.0" label="Angle" />
+
+        
+        <slider id="pixelFrequency" default="20.0" min="1.0" max="200.0" step="1.0" label="Pixel Frequency" />
+        <slider id="pixelRelWidth" default="1.0" min="0.1" max="5.0" step="0.05" label="Pixel Rel Width" />
+        <slider id="chunky" default="0.0" min="0.0" max="1.0" label="Chunky" type="percent" />
+        <slider id="seed" default="0.230" min="0.0" max="1.0" step="0.001" label="Seed" />
+
+        <slider id="showWipe" default="0.0" min="0.0" max="1.0" label="Show Wipe" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // S_WipePixelate - wipe with pixel-block dissolve edge
+
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+
+            // --- Build wipe direction from angle ---
+            float ang = radians(angle);
+            vec2 dir = vec2(cos(ang), sin(ang));
+
+            // --- Pixel block grid ---
+            // Frequency = number of blocks across; Chunky enlarges blocks.
+            float freq = pixelFrequency / (1.0 + chunky * 4.0);
+            vec2 cells = vec2(freq / max(pixelRelWidth, 0.001), freq);
+            vec2 block = floor(uv * cells);
+            vec2 blockCenter = (block + 0.5) / cells;
+
+            // Per-block random value (seeded)
+            float rnd = hash(block + vec2(seed * 1000.0));
+
+            // --- Wipe coordinate measured at the block center ---
+            float coord = dot(blockCenter - 0.5, dir) + 0.5;
+
+            // Edge band: each block flips at a slightly different point,
+            // scattered by its random value across edgeWidth -&gt; pixel dissolve.
+            float ew = max(edgeWidth, 0.0001);
+            float threshold = coord + (rnd - 0.5) * ew;
+
+            // wipePercent 0 -&gt; fully present, 1 -&gt; fully wiped
+            float wiped = step(threshold, wipePercent); // 1 = block removed
+
+            // Direction handling
+            float reveal;
+            if (transitionDir == 0) {       // Wipe Off to Bg
+                reveal = 1.0 - wiped;       // 1 = show source
+            } else {                        // Wipe On from Bg
+                reveal = wiped;             // source appears as wipe grows
+            }
+
+            // --- Show Wipe matte preview ---
+            if (showWipe &gt; 0.5) {
+                gl_FragColor = vec4(vec3(reveal), 1.0);
+                return;
+            }
+
+            // --- Composite source over chosen background ---
+            vec4 src = texture2DCv(inputImg.texture, uv);
+
+            vec4 bg;
+            if (background == 1) {
+                bg = vec4(0.0, 0.0, 0.0, 1.0);   // Black
+            } else {
+                bg = vec4(0.0, 0.0, 0.0, 0.0);   // None / transparent
+            }
+
+            // Premultiplied-safe blend of source vs background by reveal mask
+            vec4 outCol = mix(bg, src, reveal);
+
+            gl_FragColor = outCol;
+        }
+    </shader>
+</effect>

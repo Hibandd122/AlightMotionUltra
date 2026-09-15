@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.waterwaves" name="Water Waves" desc="Generates procedural water caustics and warps the layer content to look underwater." category="procedural" tags="water,waves,caustics,warp,distort,shadertoy" thumb="thumb/Distort and Warp/Water Waves.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        <slider id="progress" label="Evolution" default="0.0" min="-100.0" max="100.0" step="0.1" />
+        <slider id="warp" label="Warp Strength" default="0.05" min="0.0" max="1.0" step="0.001" />
+        <slider id="frequency" label="Frequency" default="1.0" min="0.1" max="5.0" step="0.05" />
+        <slider id="detail" label="Detail" default="5.0" min="1.0" max="12.0" step="1.0" />
+        <slider id="brightness" label="Brightness" default="1.0" min="0.0" max="5.0" step="0.05" />
+        <point id="stretch" label="Stretch" default="500,500" />
+        <slider id="blend" label="Highlights Blend" default="0.5" min="0.0" max="1.0" type="percent" />
+        
+        <color id="bgColor" label="Background Color" default="#030303" />
+        <color id="wavesColor" label="Waves Color" default="#ffffff" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        precision highp float;
+
+        #define TAU 6.28318530718
+        #define MAX_ITER 12
+
+        float waterHighlight(vec2 p, float time, float foaminess, float detail) {
+            vec2 i = vec2(p);
+            float c = 0.0;
+            float foaminess_factor = mix(1.0, 6.0, foaminess);
+            float inten = .005 * foaminess_factor;
+
+            int iterations = int(clamp(detail, 1.0, float(MAX_ITER)));
+
+            for (int n = 0; n &lt; MAX_ITER; n++) {
+                if (n &gt;= iterations) break;
+                float f_n = float(n + 1);
+                float t = time * (0.0 - (3.5 / f_n));
+                i = p + vec2(cos(t - i.x) + sin(t + i.y), sin(t - i.y) + cos(t + i.x));
+                c += 1.0 / length(vec2(p.x / (sin(i.x + t)), p.y / (cos(i.y + t))));
+            }
+            c = 0.2 + c / (inten * float(iterations));
+            c = 1.17 - pow(abs(c), 1.4);
+            c = pow(abs(c), 8.0);
+            return c / sqrt(foaminess_factor);
+        }
+
+        void main() {
+            // Use acLayerNorm to make it follow the layer
+            vec2 uv = acLayerNorm.xy;
+            
+            // Bounds check to prevent effect from spilling out of the layer area
+            float boundsMask = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+            
+            float aspect = acLayerSize.x / acLayerSize.y;
+            vec2 uv_square = vec2(uv.x * aspect, uv.y);
+            
+            // Center is relative to the layer (0.5, 0.5)
+            float dist_center = pow(1.0 * length(uv - 0.5), 0.5);
+            float foaminess = smoothstep(0.4, 8.0, dist_center);
+            float clearness = 0.9 + 0.5 * smoothstep(0.5, 0.1, dist_center);
+            
+            // Time driven by acTime + manual progress
+            float time = (acTime * 0.02) + (progress * 0.1) + 23.0;
+            
+            // Apply stretch factor (500,500 is neutral)
+            vec2 stretchFactor = stretch / 500.0;
+            vec2 p_uv = (uv_square / max(stretchFactor, 0.01)) * TAU * frequency;
+            vec2 p = mod(p_uv, TAU) - 250.0;
+            
+            // Calculate caustic value for highlight and warp
+            float c = waterHighlight(p, time, foaminess, detail);
+            
+            // Calculate gradient for warping (simple finite difference)
+            float eps = 0.05;
+            float c_x = waterHighlight(p + vec2(eps, 0.0), time, foaminess, detail);
+            float c_y = waterHighlight(p + vec2(0.0, eps), time, foaminess, detail);
+            
+            // Displacement vector based on wave slope
+            vec2 displacement = vec2(c - c_x, c - c_y) * warp;
+            displacement.x /= aspect; // Correct for layer aspect ratio
+            
+            // Sample and distort input layer
+            vec2 distortedUV = uv + displacement;
+            
+            // Clamping check for edges within the layer space
+            vec4 base = texture2DCv(inputImg.texture, distortedUV);
+            if (distortedUV.x &gt; 1.0 || distortedUV.x &lt; 0.0 || distortedUV.y &gt; 1.0 || distortedUV.y &lt; 0.0) {
+                base = vec4(0.0);
+            }
+
+            // Mix caustic highlights on top
+            vec3 highlightColor = mix(bgColor.rgb, wavesColor.rgb, clamp(c, 0.0, 1.0));
+            // Apply clearness/masking
+            highlightColor = mix(bgColor.rgb, highlightColor, clearness);
+            
+            // Final composite: (Warped Image) + (Layered Caustics)
+            vec3 finalColor = mix(base.rgb, highlightColor * brightness, blend);
+            
+            // Ensure the effect only appears on the text/layer pixels and within layer bounds
+            float finalAlpha = base.a * boundsMask;
+            gl_FragColor = vec4(finalColor, finalAlpha);
+        }
+    </shader>
+
+    <passes>
+        <pass />
+    </passes>
+
+</effect>

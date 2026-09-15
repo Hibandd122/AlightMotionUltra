@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.z.effects.zliquidwipe" name="Liquid Wipe" desc="Wipes the layer to transparency along a directional, radial, or organic noise front with a liquid-like fBm-distorted edge. Includes edge softness, roughness/scale of the liquid border, an edge shine highlight, and lens distortion near the wipe front." tags="wipe,transition,liquid,mask,raster" category="warp" thumb="thumb/Transition/Liquid Wipe.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="progress" default="0.00" min="0.0" max="1.0" step="0.001" label="Progress" />
+        <slider id="wipeMode" default="0.00" min="0.0" max="5.0" step="1.0" label="Mode 0=Angle 1=Left 2=Down 3=Up 4=Center 5=Organic" />
+        <slider id="angle" default="0.00" min="0.0" max="360.0" step="0.5" label="Angle (Mode 0)" />
+        <slider id="edgeSoftness" default="0.025" min="0.002" max="0.15" label="Edge Softness" />
+        <slider id="blobAmount" default="0.28" min="0.0" max="0.80" label="Liquid Roughness" />
+        <slider id="blobScale" default="3.50" min="0.5" max="12.0" label="Liquid Scale" />
+        <slider id="shineAmount" default="0.80" min="0.0" max="1.0" label="Shine Amount" />
+        <slider id="shineWidth" default="0.035" min="0.003" max="0.15" label="Shine Width" />
+        <slider id="lensStrength" default="0.04" min="0.0" max="0.15" label="Lens Distortion" />
+        <color id="shineColor" default="#FFFFFFFF" label="Shine Color" alpha="false" />
+        <switch id="invert" default="false" label="Invert" />
+    </params>
+
+    
+
+    <shader type="fragment" group="0">
+
+        highp float hash(vec2 p) {
+            p = fract(p * vec2(127.1, 311.7));
+            p += dot(p, p + 19.19);
+            return fract(p.x * p.y);
+        }
+
+        highp float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+                mix(hash(i + vec2(0.0,0.0)), hash(i + vec2(1.0,0.0)), u.x),
+                mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), u.x),
+                u.y
+            );
+        }
+
+        highp float fbm(vec2 p) {
+            highp float v = 0.0;
+            highp float a = 0.5;
+            mat2 rot = mat2(0.8660, 0.5, -0.5, 0.8660);
+            for (int i = 0; i &lt; 6; i++) {
+                v += a * noise(p);
+                p  = rot * p * 2.1;
+                a *= 0.48;
+            }
+            return v;
+        }
+
+        void main() {
+
+            vec2 uv = acLayerNorm;
+            int mode = int(floor(wipeMode + 0.5));
+            highp float p_mapped = clamp(invert ? (1.0 - progress) : progress, 0.0, 1.0);
+
+            // progress=0 -&gt; صورة كاملة
+            if (p_mapped &lt;= 0.0) {
+                gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm);
+                return;
+            }
+            // progress=1 -&gt; شفاف كامل
+            if (p_mapped &gt;= 1.0) {
+                gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                return;
+            }
+
+            // ---- Axis per mode ----
+            highp float axis;
+            if (mode == 0) {
+                highp float rad = angle * 3.14159265 / 180.0;
+                axis = dot(uv - vec2(0.5), vec2(cos(rad), sin(rad))) * 0.7071 + 0.5;
+            } else if (mode == 1) {
+                axis = 1.0 - uv.x;
+            } else if (mode == 2) {
+                axis = uv.y;
+            } else if (mode == 3) {
+                axis = 1.0 - uv.y;
+            } else if (mode == 4) {
+                axis = 1.0 - clamp(length(uv - vec2(0.5)) * 2.0, 0.0, 1.0);
+            } else {
+                vec2 sc = uv * blobScale * 0.9;
+                highp float n1 = fbm(sc + vec2(1.7, 3.4));
+                highp float n2 = fbm(sc + vec2(n1 * 1.8, 5.1) + p_mapped * 0.3);
+                axis = fbm(sc + vec2(n2 * 1.5, n1 * 1.6) + p_mapped * 0.2);
+            }
+            axis = clamp(axis, 0.0, 1.0);
+
+            // ---- Blob displacement ----
+            vec2 q  = uv * blobScale;
+            highp float q1 = fbm(q);
+            highp float q2 = fbm(q + vec2(5.2, 1.3));
+            vec2 r  = uv * blobScale + vec2(q1, q2) * 2.2;
+            highp float r1 = fbm(r + vec2(1.7, 9.2));
+            highp float r2 = fbm(r + vec2(8.3, 2.8));
+            highp float blob = fbm(uv * blobScale + vec2(r1, r2) * 2.0);
+            blob = pow(clamp(blob, 0.0, 1.0), 0.45);
+
+            highp float wipeVal = clamp(axis + (blob - 0.5) * blobAmount, 0.0, 1.0);
+
+            highp float thresh = p_mapped;
+            highp float d = wipeVal - thresh;
+
+            // mask: 1=مرئي، 0=شفاف تماماً
+            float mask = smoothstep(-edgeSoftness, edgeSoftness, d);
+
+            // ---- Lens distortion ----
+            highp float lensZone = 1.0 - smoothstep(0.0, shineWidth * 5.0, abs(d));
+            highp float rad2 = angle * 3.14159265 / 180.0;
+            vec2 lensDir  = normalize(vec2(cos(rad2), sin(rad2)) + vec2(0.001));
+            vec2 lensedUV = clamp(
+                acScreenNorm + lensDir * lensZone * lensStrength * sign(d),
+                vec2(0.001), vec2(0.999)
+            );
+
+            vec4 texNormal = texture2DCv(inputImg.texture, acScreenNorm);
+            vec4 texLensed = texture2DCv(inputImg.texture, lensedUV);
+            vec4 texColor  = mix(texNormal, texLensed,
+                                 lensZone * min(lensStrength * 6.0, 1.0));
+
+            // ---- Shine ----
+            float shine1 = smoothstep(0.0, shineWidth, d)
+                         * (1.0 - smoothstep(shineWidth, shineWidth * 2.2, d));
+            float shine2 = smoothstep(-shineWidth * 0.3, shineWidth * 1.5, d)
+                         * (1.0 - smoothstep(shineWidth * 1.5, shineWidth * 4.0, d)) * 0.2;
+            float shineFinal = clamp(shine1 + shine2, 0.0, 1.0) * shineAmount;
+
+            // ---- Compose ----
+            // المفتاح: نضرب الـ texture كاملاً بالـ mask
+            // مثل الكود المرجعي: texture * p0 * p1
+            // هذا يخلي rgb و alpha كلهم يصيرون 0 في المناطق الممسوحة
+            vec4 outColor = texColor * mask;
+
+            // shine فوق الحافة المرئية فقط
+            outColor.rgb += shineColor.rgb * shineFinal * mask;
+            outColor.a    = max(outColor.a, shineFinal * mask * 0.9);
+
+            gl_FragColor = outColor;
+        }
+
+    </shader>
+
+</effect>

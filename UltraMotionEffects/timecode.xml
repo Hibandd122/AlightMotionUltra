@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.timecode" name="@am:string/effect_timecode_name" desc="@am:string/effect_timecode_desc" affinity="text!" type="text" category="text" tags="text,auto,utility,propAdjust" thumb="thumb/timecode.webp">
+
+    
+        
+            
+            
+            
+            
+        
+    
+
+    <params>
+        <switch id="rel" default="false" label="@am:string/effect_param_rel" />
+        <switch id="frames" default="true" label="@am:string/effect_param_frames" />
+    </params>
+
+
+    
+
+</effect>

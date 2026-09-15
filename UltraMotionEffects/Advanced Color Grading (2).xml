@@ -1,0 +1,404 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.colorista4" name="Advanced Color Grading" desc="Single-pass color grading suite: exposure/contrast/temperature basics, hue-disc lift/gamma/gain/offset wheels applied in YUV zones, 7-point luminance curves, 3-zone split toning, printer lights, highlight/shadow rolloff, film density/fade/bleach/cross-process looks, HSL secondary correction, and a skin-tone protection mask." category="colorlight" tags="color,grade,wheels,lift,gamma,gain,curves,hdr,film" thumb="thumb/Color/Advanced Color Grading (2).webp">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="exposure" label="Exposure" default="0.0" min="-5.0" max="5.0" step="0.01" type="float" />
+        <slider id="contrast" label="Contrast" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="pivot" label="Contrast Pivot" default="0.18" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="saturation" label="Saturation" default="1.0" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="vibrance" label="Vibrance" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="temperature" label="Temperature" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="tint" label="Tint" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="lift" label="@am:string/effect_param_lift" bias="true" />
+        <slider id="liftRange" label="Shadow Range" default="0.5" min="0.1" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="gamma" label="@am:string/effect_param_gamma" bias="true" />
+        <slider id="gammaRange" label="Midtone Width" default="0.5" min="0.1" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="gain" label="@am:string/effect_param_gain" bias="true" />
+        <slider id="gainRange" label="Highlight Range" default="0.5" min="0.1" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="offset" label="@am:string/effect_param_offset" bias="true" />
+
+        
+        <slider id="curveBlacks" label="Blacks" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="curveShadows" label="Shadows" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="curveLowMids" label="Low Mids" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="curveMidtones" label="Midtones" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="curveHighMids" label="High Mids" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="curveHighlights" label="Highlights" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="curveWhites" label="Whites" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <color id="splitShadow" label="Shadow Tint" default="#808080" alpha="false" />
+        <slider id="splitShadowStr" label="Shadow Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <color id="splitMidtone" label="Midtone Tint" default="#808080" alpha="false" />
+        <slider id="splitMidtoneStr" label="Midtone Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <color id="splitHighlight" label="Highlight Tint" default="#808080" alpha="false" />
+        <slider id="splitHighlightStr" label="Highlight Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="splitBalance" label="Balance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="printerR" label="Red" default="25.0" min="0.0" max="50.0" step="0.5" type="float" />
+        <slider id="printerG" label="Green" default="25.0" min="0.0" max="50.0" step="0.5" type="float" />
+        <slider id="printerB" label="Blue" default="25.0" min="0.0" max="50.0" step="0.5" type="float" />
+
+        
+        <slider id="hdrHlRolloff" label="Highlight Rolloff" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="hdrShRolloff" label="Shadow Rolloff" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="hdrWhitePoint" label="White Point" default="1.0" min="0.5" max="2.0" step="0.01" type="float" />
+        <slider id="hdrBlackPoint" label="Black Point" default="0.0" min="0.0" max="0.2" step="0.005" type="float" />
+
+        
+        <slider id="filmDensity" label="Density" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="filmFade" label="Fade" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="filmBleach" label="Bleach Bypass" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="filmCrossProcess" label="Cross Process" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="hlRecovery" label="Highlight Recovery" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="shRecovery" label="Shadow Recovery" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+
+        
+        <switch id="secActive" default="false" label="Enable Secondary" />
+        <color id="secTarget" label="Target Color" default="#FF0000" alpha="false" />
+        <slider id="secRange" label="Range" default="30.0" min="5.0" max="180.0" step="1.0" type="float" />
+        <slider id="secSoftness" label="Softness" default="15.0" min="1.0" max="90.0" step="1.0" type="float" />
+        <slider id="secHueShift" label="Hue Shift" default="0.0" min="-180.0" max="180.0" step="1.0" type="float" />
+        <slider id="secSaturation" label="Saturation" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="secLuminance" label="Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="skinProtect" label="Skin Protection" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="skinHue" label="Skin Hue" default="0.08" min="0.0" max="1.0" step="0.005" type="float" />
+        <slider id="skinRange" label="Skin Range" default="0.06" min="0.01" max="0.2" step="0.005" type="float" />
+
+        
+        <color id="matchTarget" label="Target" default="#808080" alpha="false" />
+        <slider id="matchStr" label="Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <switch id="preserveLum" default="false" label="@am:string/effect_param_preserveluminance" />
+        <slider id="globalMix" label="Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    <shader type="fragment" precision="high">
+    #define EPS 0.00001
+
+    vec3 hsv2rgb(vec3 c) {
+        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    }
+
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+
+    float hueToRgb(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0/6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+        return p;
+    }
+
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(hueToRgb(p,q,c.x+1.0/3.0), hueToRgb(p,q,c.x), hueToRgb(p,q,c.x-1.0/3.0));
+    }
+
+    float getSkinMask(vec3 rgb) {
+        if (skinProtect &lt; EPS) return 0.0;
+        vec3 hsl = rgb2hsl(rgb);
+        float hueDist = abs(hsl.x - skinHue);
+        hueDist = min(hueDist, 1.0 - hueDist);
+        float mask = smoothstep(skinRange, skinRange * 0.3, hueDist);
+        mask *= smoothstep(0.15, 0.35, hsl.y);
+        mask *= smoothstep(0.1, 0.3, hsl.z) * (1.0 - smoothstep(0.8, 0.95, hsl.z));
+        return mask * skinProtect;
+    }
+
+    void main() {
+        highp mat3 rgb2yuv = mat3(
+             0.299,     0.587,    0.114,
+            -0.14713,  -0.28886,  0.436,
+             0.615,    -0.51499, -0.10001
+        );
+        highp mat3 yuv2rgb = mat3(
+            1.0,  0.0,      1.13983,
+            1.0, -0.39465, -0.58060,
+            1.0,  2.03211,  0.0
+        );
+
+        vec2 uv = acScreenNorm;
+        vec4 texColor = texture2DCv(inputImg.texture, uv);
+        highp vec3 rgb = texColor.rgb;
+        highp vec3 baseRGB = rgb;
+        lowp float a = texColor.a;
+        float origLum = lum(rgb);
+        float skinMask = getSkinMask(rgb);
+        vec3 preSkin = rgb;
+
+        // ═══ TEMPERATURE + TINT ═══
+        if (abs(temperature) &gt; 0.5) {
+            float t = temperature / 100.0 * 0.08;
+            rgb.r += t; rgb.b -= t; rgb.g += t * 0.15;
+        }
+        if (abs(tint) &gt; 0.5) {
+            float t = tint / 100.0 * 0.08;
+            rgb.g += t; rgb.r -= t * 0.3; rgb.b -= t * 0.3;
+        }
+
+        // ═══ EXPOSURE ═══
+        if (abs(exposure) &gt; EPS) {
+            rgb *= pow(2.0, exposure);
+        }
+
+        // ═══ CONTRAST — S-curve around pivot ═══
+        if (abs(contrast) &gt; 0.5) {
+            float c = contrast / 100.0;
+            rgb = (rgb - pivot) * (1.0 + c) + pivot;
+            if (c &gt; 0.0) {
+                rgb = rgb + c * 0.3 * (rgb - 0.5) * (1.0 - abs(rgb - 0.5) * 2.0);
+            }
+        }
+
+        // ═══ COLOR WHEELS — Real hue-disc Lift/Gamma/Gain/Offset ═══
+        highp vec3 yuv = rgb * rgb2yuv;
+        float origY = yuv.x;
+        float y = yuv.x;
+
+        // Zone weights with adjustable ranges
+        float shadowWeight = pow(max(1.0 - y / max(liftRange, 0.001), 0.0), 2.0);
+        float highlightWeight = pow(max((y - (1.0 - gainRange)) / max(gainRange, 0.001), 0.0), 2.0);
+        float gammaWeight = pow(abs((y - 0.5) * 2.0), 2.0) * gammaRange;
+
+        // Build color vectors from wheels
+        highp vec3 liftYUV = (hsv2rgb(vec3(lift.x / 360.0, 1.0, 0.5)) * rgb2yuv) * lift.y;
+        highp vec3 gammaYUV = (hsv2rgb(vec3(gamma.x / 360.0, 1.0, 0.5)) * rgb2yuv) * gamma.y;
+        highp vec3 gainYUV = (hsv2rgb(vec3(gain.x / 360.0, 1.0, 0.5)) * rgb2yuv) * gain.y;
+        highp vec3 offsetYUV = (hsv2rgb(vec3(offset.x / 360.0, 1.0, 0.5)) * rgb2yuv) * offset.y;
+
+        // Apply chroma per zone
+        yuv.yz += liftYUV.yz * shadowWeight * a;
+        yuv.yz += gammaYUV.yz * gammaWeight * a;
+        yuv.yz += gainYUV.yz * highlightWeight * a;
+        yuv.yz += offsetYUV.yz * a;
+
+        // Apply luminance bias per zone
+        yuv.x += lift.z * shadowWeight * a;
+        yuv.x += gamma.z * gammaWeight * a;
+        yuv.x += gain.z * highlightWeight * a;
+        yuv.x += offset.z * a;
+
+        // Back to RGB
+        rgb = yuv * yuv2rgb;
+
+        // ═══ 7-POINT CURVES ═══
+        float l = lum(rgb);
+        float oL = max(l, EPS);
+        float adj = 0.0;
+
+        adj += curveBlacks / 100.0 * 0.3 * smoothstep(0.1, 0.0, l);
+        adj += curveShadows / 100.0 * 0.3 * smoothstep(0.0, 0.1, l) * smoothstep(0.3, 0.15, l);
+        adj += curveLowMids / 100.0 * 0.3 * smoothstep(0.1, 0.25, l) * smoothstep(0.5, 0.35, l);
+        adj += curveMidtones / 100.0 * 0.3 * smoothstep(0.25, 0.4, l) * smoothstep(0.75, 0.6, l);
+        adj += curveHighMids / 100.0 * 0.3 * smoothstep(0.5, 0.65, l) * smoothstep(0.85, 0.75, l);
+        adj += curveHighlights / 100.0 * 0.3 * smoothstep(0.7, 0.85, l) * smoothstep(1.0, 0.9, l);
+        adj += curveWhites / 100.0 * 0.3 * smoothstep(0.88, 1.0, l);
+
+        rgb *= max(l + adj, 0.0) / oL;
+
+        // ═══ SPLIT TONE ═══
+        float splitL = lum(rgb);
+        float balOff = splitBalance / 100.0 * 0.3;
+
+        if (splitShadowStr &gt; 0.5) {
+            float shMask = 1.0 - smoothstep(0.0, 0.33 + balOff, splitL);
+            vec3 shTint = (splitShadow.rgb - 0.5) * 2.0;
+            float tL = lum(rgb);
+            rgb += shTint * splitShadowStr / 100.0 * shMask * 0.2;
+            float nL = lum(rgb);
+            if (nL &gt; EPS) rgb *= mix(1.0, tL / nL, 0.7);
+        }
+        if (splitMidtoneStr &gt; 0.5) {
+            float midMask = smoothstep(0.0, 0.33, splitL) * smoothstep(1.0, 0.67, splitL);
+            vec3 midTint = (splitMidtone.rgb - 0.5) * 2.0;
+            float tL = lum(rgb);
+            rgb += midTint * splitMidtoneStr / 100.0 * midMask * 0.2;
+            float nL = lum(rgb);
+            if (nL &gt; EPS) rgb *= mix(1.0, tL / nL, 0.7);
+        }
+        if (splitHighlightStr &gt; 0.5) {
+            float hlMask = smoothstep(0.67 - balOff, 1.0, splitL);
+            vec3 hlTint = (splitHighlight.rgb - 0.5) * 2.0;
+            float tL = lum(rgb);
+            rgb += hlTint * splitHighlightStr / 100.0 * hlMask * 0.2;
+            float nL = lum(rgb);
+            if (nL &gt; EPS) rgb *= mix(1.0, tL / nL, 0.7);
+        }
+
+        // ═══ PRINTER LIGHTS ═══
+        float pBase = 25.0;
+        if (abs(printerR - pBase) &gt; 0.5 || abs(printerG - pBase) &gt; 0.5 || abs(printerB - pBase) &gt; 0.5) {
+            rgb.r *= pow(2.0, (printerR - pBase) / 25.0 * 0.5);
+            rgb.g *= pow(2.0, (printerG - pBase) / 25.0 * 0.5);
+            rgb.b *= pow(2.0, (printerB - pBase) / 25.0 * 0.5);
+        }
+
+        // ═══ HDR ═══
+        if (hdrHlRolloff &gt; 0.5) {
+            float hr = hdrHlRolloff / 100.0;
+            vec3 shouldered = 1.0 - pow(max(1.0 - rgb, 0.0), vec3(1.0 + hr * 3.0));
+            rgb = mix(rgb, shouldered, hr);
+        }
+        if (hdrShRolloff &gt; 0.5) {
+            float sr = hdrShRolloff / 100.0;
+            rgb = pow(max(rgb, 0.0), vec3(1.0 + sr * 0.5));
+        }
+        if (abs(hdrWhitePoint - 1.0) &gt; EPS) {
+            rgb = min(rgb, hdrWhitePoint);
+        }
+        if (hdrBlackPoint &gt; EPS) {
+            rgb = max(rgb - hdrBlackPoint, 0.0) / max(1.0 - hdrBlackPoint, EPS);
+        }
+
+        // ═══ RECOVERY ═══
+        if (hlRecovery &gt; 0.5) {
+            float hr = hlRecovery / 100.0;
+            float maxC = max(rgb.r, max(rgb.g, rgb.b));
+            if (maxC &gt; 1.0) rgb = mix(rgb, rgb / max(maxC, EPS), hr);
+        }
+        if (shRecovery &gt; 0.5) {
+            float sr = shRecovery / 100.0;
+            float sM = 1.0 - smoothstep(0.0, 0.2, lum(rgb));
+            rgb += sr * 0.15 * sM;
+        }
+
+        // ═══ FILM ═══
+        if (abs(filmDensity) &gt; 0.5) {
+            rgb = pow(max(rgb, 0.0), vec3(1.0 + filmDensity / 100.0));
+        }
+        if (filmBleach &gt; 0.5) {
+            float ba = filmBleach / 100.0;
+            float bl = lum(rgb);
+            vec3 ds = vec3(bl);
+            vec3 r;
+            r.r = (bl &lt; 0.5) ? 2.0*rgb.r*ds.r : 1.0-2.0*(1.0-rgb.r)*(1.0-ds.r);
+            r.g = (bl &lt; 0.5) ? 2.0*rgb.g*ds.g : 1.0-2.0*(1.0-rgb.g)*(1.0-ds.g);
+            r.b = (bl &lt; 0.5) ? 2.0*rgb.b*ds.b : 1.0-2.0*(1.0-rgb.b)*(1.0-ds.b);
+            rgb = mix(rgb, r, ba);
+        }
+        if (filmCrossProcess &gt; 0.5) {
+            float ca = filmCrossProcess / 100.0;
+            vec3 cp;
+            cp.r = pow(max(rgb.r, 0.0), 0.8 + ca * 0.3);
+            cp.g = pow(max(rgb.g, 0.0), 1.0 - ca * 0.15);
+            cp.b = pow(max(rgb.b, 0.0), 1.2 - ca * 0.1);
+            cp.r += ca * 0.04; cp.b -= ca * 0.02;
+            rgb = mix(rgb, cp, ca);
+        }
+        if (filmFade &gt; 0.5) {
+            float f = filmFade / 100.0;
+            rgb = rgb * (1.0 - f * 0.15) + f * 0.1;
+            float fl = lum(rgb);
+            rgb = mix(rgb, vec3(fl), f * 0.2);
+        }
+
+        // ═══ SECONDARY ═══
+        if (secActive) {
+            vec3 tgtHSL = rgb2hsl(secTarget.rgb);
+            vec3 curHSL = rgb2hsl(max(rgb, 0.0));
+            float hueDist = abs(curHSL.x - tgtHSL.x);
+            hueDist = min(hueDist, 1.0 - hueDist);
+            float hueRange = secRange / 360.0;
+            float hueSoft = secSoftness / 360.0;
+            float secMask = 1.0 - smoothstep(hueRange - hueSoft, hueRange + hueSoft, hueDist);
+            if (secMask &gt; EPS) {
+                vec3 secHSL = curHSL;
+                secHSL.x = fract(secHSL.x + secHueShift / 360.0);
+                secHSL.y = clamp(secHSL.y + secSaturation / 100.0, 0.0, 1.0);
+                secHSL.z = clamp(secHSL.z + secLuminance / 100.0 * 0.3, 0.0, 1.0);
+                rgb = mix(rgb, hsl2rgb(secHSL), secMask);
+            }
+        }
+
+        // ═══ COLOR MATCH ═══
+        if (matchStr &gt; EPS) {
+            float avgLum = lum(rgb);
+            vec3 matched = rgb * (matchTarget.rgb / max(vec3(0.5), EPS));
+            float mLum = lum(matched);
+            if (mLum &gt; EPS) matched *= avgLum / mLum;
+            rgb = mix(rgb, matched, matchStr);
+        }
+
+        // ═══ SATURATION ═══
+        if (abs(saturation - 1.0) &gt; 0.001) {
+            float ll = lum(rgb);
+            rgb = mix(vec3(ll), rgb, saturation);
+        }
+
+        // ═══ VIBRANCE ═══
+        if (abs(vibrance) &gt; 0.001) {
+            float ll = lum(rgb);
+            float sat = length(rgb - vec3(ll));
+            float w = 1.0 - clamp(sat * 3.0, 0.0, 1.0);
+            rgb = mix(vec3(ll), rgb, 1.0 + vibrance * w);
+        }
+
+        // ═══ PRESERVE LUMINANCE ═══
+        if (preserveLum) {
+            float newLum = lum(rgb);
+            if (newLum &gt; EPS) rgb *= origLum / newLum;
+        }
+
+        // ═══ SKIN PROTECTION ═══
+        if (skinMask &gt; EPS) {
+            vec3 skinG = preSkin;
+            if (abs(exposure) &gt; EPS) skinG *= pow(2.0, exposure);
+            if (abs(temperature) &gt; 0.5) {
+                float t = temperature / 100.0 * 0.08;
+                skinG.r += t; skinG.b -= t;
+            }
+            rgb = mix(rgb, skinG, skinMask);
+        }
+
+        // ═══ GLOBAL MIX ═══
+        rgb = mix(baseRGB, rgb, globalMix);
+        rgb = clamp(rgb, 0.0, 1.0);
+
+        gl_FragColor = vec4(rgb, a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

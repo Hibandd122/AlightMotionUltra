@@ -1,0 +1,240 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.perfect_slice" name="Perfect Slice" desc="Slices the image along randomized cut lines, draws animated glowing slash lines with an optional impact flash, then explodes the shards outward with accelerating physics and per-shard scale/dimming, leaving transparent gaps. Driven by a single Progress parameter with slice count, radius, speed, glow and seed controls." category="warp" tags="slice,cut,explode,sword,shatter,void" thumb="thumb/Distort and Warp/Perfect Slice.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    
+    
+    <slider id="progress" default="0.0" min="0.0" max="1.0" step="0.001" label="Progress" />
+    
+    
+    <slider id="sliceCount" default="12" min="3" max="30" step="1" label="Slice Count" />
+    <slider id="sliceRadius" default="0.7" min="0.1" max="2.0" step="0.01" label="Slice Radius" />
+    
+    
+    <slider id="explosionSpeed" default="0.8" min="0.0" max="3.0" step="0.01" label="Explosion Speed" />
+    <slider id="glowIntensity" default="2.0" min="0.0" max="5.0" step="0.1" label="Glow Intensity" />
+    <color id="glowColor" default="#ffffff" label="Glow Color" />
+    <switch id="flashEnabled" default="true" label="Impact Flash" />
+    
+    
+    <slider id="seed" default="123.45" min="0" max="10000" step="0.01" label="Seed" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    
+    #define PI 3.14159265359
+    
+    // --- Helper Functions ---
+    float hash(float n) { 
+        return fract(sin(n) * 43758.5453123); 
+    }
+    
+    // Rotation Matrix
+    mat2 rot(float a) {
+        float s = sin(a), c = cos(a);
+        return mat2(c, -s, s, c);
+    }
+    
+    // Struct to hold Shard Data
+    struct ShardInfo {
+        float id;       // Unique ID for the shard
+        vec2 moveDir;   // Direction this shard will fly
+        float distToCut;// Distance to the nearest cut line (for glow)
+    };
+    
+    // CORE FUNCTION: Defines the geometry of the cuts
+    // This is used for both drawing the lines AND calculating physics.
+    ShardInfo getShardInfo(vec2 p, float numCuts, float cutRadius) {
+        float id = 0.0;
+        vec2 moveAcc = vec2(0.0);
+        float minDist = 100.0;
+        
+        int NUM_CUTS = int(numCuts);
+        
+        for(int i = 0; i &lt; 30; i++) {
+            if(i &gt;= NUM_CUTS) break;
+            
+            float fi = float(i);
+            
+            // Randomize Cut Geometry based on fixed seed
+            float h1 = hash(fi + seed);
+            float h2 = hash(fi + seed * 5.0 + 99.0);
+            
+            float angle = h1 * PI * 2.0;
+            vec2 n = vec2(cos(angle), sin(angle));
+            float off = (h2 - 0.5) * cutRadius; // Radius control
+            
+            // Distance from point p to the line
+            float d = dot(p, n) - off;
+            
+            // Track closest cut for visual glow
+            minDist = min(minDist, abs(d));
+            
+            // Determine side (Physics)
+            float side = sign(d);
+            
+            // Accumulate ID (Binary composition)
+            // If we are on positive side, add value. 
+            if(side &gt; 0.0) {
+                id += pow(1.5, fi); // Use 1.5 to create unique float ID
+            }
+            
+            // Accumulate Movement Direction
+            // The shard moves away from the cut plane
+            moveAcc += n * side;
+        }
+        
+        // Randomize movement slightly per ID so they don't slide uniformly
+        vec2 randomDir = vec2(hash(id) - 0.5, hash(id + 1.0) - 0.5);
+        moveAcc += randomDir * 1.5;
+        
+        return ShardInfo(id, normalize(moveAcc), minDist);
+    }
+    
+    // Function to visualize the swipe animation of the sword
+    float drawSwipe(vec2 p, vec2 n, float off, float t, float hashSeed) {
+        vec2 tangent = vec2(-n.y, n.x);
+        float posAlongLine = dot(p, tangent);
+        float dir = step(0.5, hash(hashSeed)) * 2.0 - 1.0; 
+        float swipe = (t * 12.0 - 6.0) * dir;
+        return smoothstep(-0.2, 0.2, (swipe - posAlongLine) * dir);
+    }
+    
+    void main() {
+        // --- 1. Setup ---
+        vec2 texSize = getTexSize(inputImg.size);
+        vec2 uv = acScreenNorm;
+        
+        // Aspect-corrected space for physics
+        vec2 p = (acScreenNorm - 0.5) * vec2(texSize.x / texSize.y, 1.0);
+        
+        // Time control based on progress
+        float t = progress * 4.0; // 0 to 4 seconds range
+        float slashEnd = 1.2;
+        float explodeStart = 1.4;
+        
+        // Early exit - show original image
+        if (progress &lt;= 0.001) {
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+            return;
+        }
+        
+        // Explosion Physics
+        float force = 0.0;
+        if(t &gt; explodeStart) {
+            float et = t - explodeStart;
+            // Acceleration: t^2 for violent explosion
+            force = et * et * explosionSpeed + et * 0.2; 
+        }
+        
+        int NUM_CUTS = int(sliceCount);
+        
+        // --- 2. Calculate Destination Pixel Info ---
+        // Who is occupying the current pixel on screen?
+        ShardInfo destInfo = getShardInfo(p, sliceCount, sliceRadius);
+        
+        // --- 3. Inverse Mapping (Trace Back) ---
+        // If the shard moved by (dir * force), then the texture pixel 
+        // we want to see is at (p - dir * force).
+        
+        // Apply Z-depth zoom effect (scaling)
+        // Randomize scale per shard
+        float zScale = 1.0;
+        if(force &gt; 0.0) {
+             zScale = 1.0 + (hash(destInfo.id) - 0.5) * force;
+             zScale = max(0.1, zScale); // Safety
+        }
+        
+        vec2 offset = destInfo.moveDir * force;
+        
+        // Calculate the coordinate where this pixel CAME FROM
+        vec2 srcP = (p - offset) / zScale;
+        
+        // --- 4. Verify Integrity (The Void Check) ---
+        // Critical Step: Check if the source pixel actually belongs to the same shard.
+        // If we trace back and land in a different shard's territory, it means
+        // there is a gap (void) here.
+        
+        ShardInfo srcInfo = getShardInfo(srcP, sliceCount, sliceRadius);
+        
+        // Tolerance for float comparison
+        bool isSameShard = abs(destInfo.id - srcInfo.id) &lt; 0.1;
+        
+        // --- 5. Render Texture ---
+        vec3 col = vec3(0.0);
+        float alpha = 0.0;
+        
+        // Only draw image if:
+        // a. We are on the same shard (no gap)
+        // b. We are within the texture bounds
+        if (isSameShard) {
+            // Convert srcP (centered aspect coords) back to UV (0-1)
+            vec2 srcUV = srcP / vec2(texSize.x / texSize.y, 1.0) + 0.5;
+            
+            if(srcUV.x &gt;= 0.0 &amp;&amp; srcUV.x &lt;= 1.0 &amp;&amp; srcUV.y &gt;= 0.0 &amp;&amp; srcUV.y &lt;= 1.0) {
+                vec4 texCol = texture2DCv(inputImg.texture, srcUV);
+                col = texCol.rgb;
+                alpha = texCol.a;
+                if(force &gt; 0.0) {
+                    float dim = 1.0 / (1.0 + force * 0.5);
+                    float glint = sin(force * 5.0 + hash(destInfo.id)*10.0) * 0.5 + 0.5;
+                    col *= dim * (0.8 + 0.4*glint);
+                }
+            }
+        }
+        
+        // --- 6. Draw Glowing Cut Lines ---
+        // We draw these ON TOP of everything, but only before/during the start of explosion
+        if (t &lt; explodeStart + 0.5) {
+            float accumulatedGlow = 0.0;
+            
+            // Re-run loop just for the visual lines so we can animate them sequentially
+            for(int i = 0; i &lt; 30; i++) {
+                if(i &gt;= NUM_CUTS) break;
+                
+                float fi = float(i);
+                // Re-calc specific cut geometry
+                float h1 = hash(fi + seed);
+                float h2 = hash(fi + seed * 5.0 + 99.0);
+                float angle = h1 * PI * 2.0;
+                vec2 n = vec2(cos(angle), sin(angle));
+                float off = (h2 - 0.5) * sliceRadius;
+                
+                float d = abs(dot(p, n) - off);
+                
+                // Timing
+                float myStart = (fi / float(NUM_CUTS)) * slashEnd;
+                if(t &gt; myStart) {
+                    float locT = t - myStart;
+                    
+                    // Line width
+                    float line = 0.0015 / (d + 0.0001);
+                    
+                    // Swipe mask
+                    float swipe = drawSwipe(p, n, off, locT, h1);
+                    
+                    // Fade out
+                    float fade = exp(-locT * 4.0);
+                    
+                    accumulatedGlow += line * swipe * fade * 2.0;
+                }
+            }
+            
+            col += glowColor.rgb * accumulatedGlow * glowIntensity;
+            alpha = max(alpha, accumulatedGlow * glowIntensity);
+        }
+        
+        // --- 7. Impact Flash ---
+        // White flash when explosion triggers
+        float flash = smoothstep(explodeStart, explodeStart + 0.05, t) * 
+                      (1.0 - smoothstep(explodeStart + 0.05, explodeStart + 0.4, t));
+        if (flashEnabled) {
+            col += vec3(1.0) * flash;
+            alpha = max(alpha, flash);
+        }
+
+        gl_FragColor = vec4(col, alpha);
+    }
+  </shader>
+</effect>

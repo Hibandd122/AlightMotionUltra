@@ -1,0 +1,347 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ult_sharpen" name="Multi-Scale Sharpen" desc="Multi-band detail sharpening: extracts Tiny, Small, Medium, and Large frequency bands via difference-of-blurs and boosts each independently. A Sobel-based edge threshold suppresses halos on strong edges, luma and chroma are sharpened separately in YUV, per-channel RGB gains are available, and a luma or alpha matte can restrict the result. Best quality uses Gaussian kernels; Fast uses box blurs." category="blur" tags="sharpen,detail,edge,luma,chroma,unsharp,clarity,crisp" thumb="thumb/Blur and Sharpen/Multi-Scale Sharpen (2).webp" overdraw="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    
+    <menu id="quality" default="0" style="dropdown" label="Quality">
+      <menu label="Best (artifact-reduced)" value="0" />
+      <menu label="Fast (classic)" value="1" />
+    </menu>
+
+    
+    
+    <slider id="sharpenAmp" label="Sharpen Amp" default="1.0" min="-5.0" max="10.0" step="0.05" ticks="0,0.5,1,2,3,5" />
+    <slider id="sharpenWidth" label="Sharpen Width (px)" default="0.112" min="0.0" max="5.0" step="0.005" ticks="0.05,0.1,0.2,0.5,1,2" />
+    <slider id="edgeThresh" label="Edge Threshold" default="0.15" min="0.0" max="1.0" step="0.005" ticks="0,0.05,0.1,0.15,0.3,0.5,1" />
+
+    
+    
+    <slider id="smallDetailSize" label="Small Detail Size (px)" default="0.01" min="0.001" max="0.2" step="0.001" ticks="0.005,0.01,0.02,0.05,0.1,0.2" />
+    <slider id="scaleTinyDetails" label="Scale Tiny Details" default="3.0" min="0.0" max="10.0" step="0.05" ticks="0,0.5,1,2,3,5,10" />
+    <slider id="scaleSmallDetails" label="Scale Small Details" default="1.5" min="0.0" max="10.0" step="0.05" ticks="0,0.5,1,1.5,2,3,5" />
+    <slider id="scaleMediumDetails" label="Scale Medium Details" default="1.0" min="0.0" max="10.0" step="0.05" ticks="0,0.5,1,2,3,5" />
+    <slider id="scaleLargeDetails" label="Scale Large Details" default="2.0" min="0.0" max="10.0" step="0.05" ticks="0,0.5,1,2,3,5" />
+
+    
+    
+    <slider id="sharpenLuma" label="Sharpen Luma" default="1.0" min="0.0" max="5.0" step="0.05" ticks="0,0.5,1,2,3" />
+    <slider id="sharpenChroma" label="Sharpen Chroma" default="1.0" min="0.0" max="5.0" step="0.05" ticks="0,0.5,1,2,3" />
+
+    
+    
+    <slider id="sharpenRed" label="Sharpen Red" default="1.0" min="-2.0" max="5.0" step="0.05" ticks="0,0.5,1,2" />
+    <slider id="sharpenGreen" label="Sharpen Green" default="1.0" min="-2.0" max="5.0" step="0.05" ticks="0,0.5,1,2" />
+    <slider id="sharpenBlue" label="Sharpen Blue" default="1.0" min="-2.0" max="5.0" step="0.05" ticks="0,0.5,1,2" />
+
+    
+    
+    
+    <menu id="maskUse" default="0" style="dropdown" label="Mask Use">
+      <menu label="None (full image)" value="0" />
+      <menu label="Luma" value="1" />
+      <menu label="Alpha" value="2" />
+    </menu>
+    <slider id="blurMask" label="Blur Mask" default="0.05" min="0.0" max="0.5" step="0.005" ticks="0,0.02,0.05,0.1,0.2" />
+    <switch id="invertMask" label="Invert Mask" default="false" />
+
+    
+    
+    <slider id="alpha" label="Alpha" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+  </params>
+
+  <shader type="fragment">
+
+    // ═══════════════════════════════════════════════════════════════
+    //  S_Sharpen — Sapphire port for Alight Motion  (GLSL ES 1.00)
+    //
+    //  ALGORITHM
+    //  ─────────
+    //  Sapphire S_Sharpen works by extracting multiple frequency
+    //  bands from the image (like a Laplacian pyramid) and boosting
+    //  each band independently, then adding them back.
+    //
+    //  We replicate the four "detail scales":
+    //    Tiny   ≈ 0.5 × smallDetailSize
+    //    Small  ≈ 1.0 × smallDetailSize
+    //    Medium ≈ 2.0 × smallDetailSize
+    //    Large  ≈ 4.0 × smallDetailSize
+    //
+    //  Each scale = (blur at current radius) − (blur at 2× radius)
+    //  This is a band-pass at each frequency band.
+    //
+    //  Edge threshold: if the local gradient magnitude is above
+    //  edgeThresh, sharpening is reduced to prevent halos.
+    //
+    //  Quality modes:
+    //    Best: 9-tap Gaussian blur per band → fewer ringing artefacts
+    //    Fast: 5-tap box blur per band → classic USM look
+    //
+    //  Luma/Chroma: convert to YUV, apply luma &amp; chroma scaling
+    //  Per-channel: final RGB scale multipliers
+    //  Matte: optional luminance or alpha mask
+    //
+    //  FUNCTION ORDER (GLSL ES 1.00 — all before first use):
+    //   1. Color space helpers
+    //   2. Texture sampling helpers
+    //   3. Gaussian / box blur (single pass, horizontal + vertical combined)
+    //   4. Band-pass extraction
+    //   5. Edge gradient magnitude
+    //   6. main()
+    // ═══════════════════════════════════════════════════════════════
+
+    // ── 1. Color space ────────────────────────────────────────────
+    // RGB → YUV (BT.709)
+    vec3 rgb2yuv(vec3 c) {
+        float y =  0.2126*c.r + 0.7152*c.g + 0.0722*c.b;
+        float u = -0.1146*c.r - 0.3854*c.g + 0.5000*c.b;
+        float v =  0.5000*c.r - 0.4542*c.g - 0.0458*c.b;
+        return vec3(y, u, v);
+    }
+    // YUV → RGB (BT.709)
+    vec3 yuv2rgb(vec3 yuv) {
+        float r = yuv.x                + 1.5748*yuv.z;
+        float g = yuv.x - 0.1873*yuv.y - 0.4681*yuv.z;
+        float b = yuv.x + 1.8556*yuv.y;
+        return clamp(vec3(r, g, b), 0.0, 1.0);
+    }
+
+    // ── 2. Sampling helpers ───────────────────────────────────────
+    // Pixel size in UV space
+    vec2 pixSize() {
+        return vec2(1.0) / acLayerSize;
+    }
+
+    vec4 samp(vec2 uv) {
+        return texture2DCv(inputImg.texture, clamp(uv, 0.0, 1.0));
+    }
+
+    // ── 3. Blur functions ─────────────────────────────────────────
+    //
+    //  Both blur functions take a radius in UV space and return
+    //  the blurred color at uv.
+    //
+    //  "Best" mode: 9-tap Gaussian weights (σ ≈ radius/2)
+    //  "Fast" mode: 5-tap uniform box
+    //
+    //  We do a separable 2D blur by combining H and V offsets in
+    //  a single pass using a 3×3 (fast) or 5×5 (best) kernel.
+    //  This is an approximation but very close to separable.
+
+    // Gaussian 9-tap (3×3 grid) — Best quality
+    vec4 blurGaussian(vec2 uv, vec2 radius) {
+        vec4 col = vec4(0.0);
+        // Gaussian weights for offsets -1, 0, +1 at sigma=0.5
+        // w = [0.27901, 0.44198, 0.27901]  (normalized)
+        float w0 = 0.44198, w1 = 0.27901;
+        vec2  r  = radius;
+
+        // 3×3 separable Gaussian
+        col += samp(uv + vec2(-r.x, -r.y)) * w1*w1;
+        col += samp(uv + vec2( 0.0, -r.y)) * w0*w1;
+        col += samp(uv + vec2( r.x, -r.y)) * w1*w1;
+        col += samp(uv + vec2(-r.x,  0.0)) * w1*w0;
+        col += samp(uv + vec2( 0.0,  0.0)) * w0*w0;
+        col += samp(uv + vec2( r.x,  0.0)) * w1*w0;
+        col += samp(uv + vec2(-r.x,  r.y)) * w1*w1;
+        col += samp(uv + vec2( 0.0,  r.y)) * w0*w1;
+        col += samp(uv + vec2( r.x,  r.y)) * w1*w1;
+        return col;
+    }
+
+    // Gaussian 25-tap (5x5 grid) — Best quality, larger radius
+    // Fully unrolled — no array indexing (GLSL ES 1.00 safe)
+    vec4 blurGaussian5(vec2 uv, vec2 r) {
+        vec4 col = vec4(0.0);
+        col += samp(uv+vec2(-2.*r.x,-2.*r.y))*0.00390625;
+        col += samp(uv+vec2(-1.*r.x,-2.*r.y))*0.015625;
+        col += samp(uv+vec2(    0.0,-2.*r.y))*0.0234375;
+        col += samp(uv+vec2( 1.*r.x,-2.*r.y))*0.015625;
+        col += samp(uv+vec2( 2.*r.x,-2.*r.y))*0.00390625;
+        col += samp(uv+vec2(-2.*r.x,-1.*r.y))*0.015625;
+        col += samp(uv+vec2(-1.*r.x,-1.*r.y))*0.0625;
+        col += samp(uv+vec2(    0.0,-1.*r.y))*0.09375;
+        col += samp(uv+vec2( 1.*r.x,-1.*r.y))*0.0625;
+        col += samp(uv+vec2( 2.*r.x,-1.*r.y))*0.015625;
+        col += samp(uv+vec2(-2.*r.x,    0.0))*0.0234375;
+        col += samp(uv+vec2(-1.*r.x,    0.0))*0.09375;
+        col += samp(uv+vec2(    0.0,    0.0))*0.140625;
+        col += samp(uv+vec2( 1.*r.x,    0.0))*0.09375;
+        col += samp(uv+vec2( 2.*r.x,    0.0))*0.0234375;
+        col += samp(uv+vec2(-2.*r.x, 1.*r.y))*0.015625;
+        col += samp(uv+vec2(-1.*r.x, 1.*r.y))*0.0625;
+        col += samp(uv+vec2(    0.0, 1.*r.y))*0.09375;
+        col += samp(uv+vec2( 1.*r.x, 1.*r.y))*0.0625;
+        col += samp(uv+vec2( 2.*r.x, 1.*r.y))*0.015625;
+        col += samp(uv+vec2(-2.*r.x, 2.*r.y))*0.00390625;
+        col += samp(uv+vec2(-1.*r.x, 2.*r.y))*0.015625;
+        col += samp(uv+vec2(    0.0, 2.*r.y))*0.0234375;
+        col += samp(uv+vec2( 1.*r.x, 2.*r.y))*0.015625;
+        col += samp(uv+vec2( 2.*r.x, 2.*r.y))*0.00390625;
+        return col;
+    }
+
+    // Box blur 5-tap — Fast mode
+    vec4 blurBox(vec2 uv, vec2 radius) {
+        vec4 col = vec4(0.0);
+        float w  = 1.0 / 9.0;
+        col += samp(uv + vec2(-radius.x, -radius.y)) * w;
+        col += samp(uv + vec2(      0.0, -radius.y)) * w;
+        col += samp(uv + vec2( radius.x, -radius.y)) * w;
+        col += samp(uv + vec2(-radius.x,       0.0)) * w;
+        col += samp(uv + vec2(      0.0,       0.0)) * w;
+        col += samp(uv + vec2( radius.x,       0.0)) * w;
+        col += samp(uv + vec2(-radius.x,  radius.y)) * w;
+        col += samp(uv + vec2(      0.0,  radius.y)) * w;
+        col += samp(uv + vec2( radius.x,  radius.y)) * w;
+        return col;
+    }
+
+    // Dispatch blur by quality
+    vec4 doBlur(vec2 uv, vec2 radius) {
+        if (quality == 0) {
+            // Best: use 5x5 Gaussian for larger radii, 3x3 for small
+            float mag = length(radius * acLayerSize);
+            if (mag &gt; 2.0) {
+                return blurGaussian5(uv, radius);
+            } else {
+                return blurGaussian(uv, radius);
+            }
+        } else {
+            return blurBox(uv, radius);
+        }
+    }
+
+    // ── 4. Band-pass at a given scale ────────────────────────────
+    //
+    //  band(scale) = blur(scale) - blur(scale * 2)
+    //  This isolates frequency content at ~scale pixel width.
+    //
+    vec4 bandPass(vec2 uv, vec2 pxSz, float scaleUV) {
+        vec2 r1 = pxSz * scaleUV;
+        vec2 r2 = pxSz * scaleUV * 2.0;
+        vec4 b1 = doBlur(uv, r1);
+        vec4 b2 = doBlur(uv, r2);
+        return b1 - b2;
+    }
+
+    // ── 5. Edge gradient magnitude ────────────────────────────────
+    //
+    //  Sobel 3×3 gradient magnitude (luminance channel).
+    //  Used for edge threshold: suppress sharpening on strong edges
+    //  to avoid halos (same concept as S_Sharpen Edge Threshold).
+    //
+    float edgeGrad(vec2 uv, vec2 pxSz) {
+        float tl = dot(samp(uv + vec2(-pxSz.x, -pxSz.y)).rgb, vec3(0.299,0.587,0.114));
+        float tc = dot(samp(uv + vec2(     0.0, -pxSz.y)).rgb, vec3(0.299,0.587,0.114));
+        float tr = dot(samp(uv + vec2( pxSz.x, -pxSz.y)).rgb, vec3(0.299,0.587,0.114));
+        float ml = dot(samp(uv + vec2(-pxSz.x,      0.0)).rgb, vec3(0.299,0.587,0.114));
+        float mr = dot(samp(uv + vec2( pxSz.x,      0.0)).rgb, vec3(0.299,0.587,0.114));
+        float bl = dot(samp(uv + vec2(-pxSz.x,  pxSz.y)).rgb, vec3(0.299,0.587,0.114));
+        float bc = dot(samp(uv + vec2(     0.0,  pxSz.y)).rgb, vec3(0.299,0.587,0.114));
+        float br = dot(samp(uv + vec2( pxSz.x,  pxSz.y)).rgb, vec3(0.299,0.587,0.114));
+        float gx = -tl - 2.0*ml - bl + tr + 2.0*mr + br;
+        float gy = -tl - 2.0*tc - tr + bl + 2.0*bc + br;
+        return length(vec2(gx, gy));
+    }
+
+    // ── 6. main ───────────────────────────────────────────────────
+    void main() {
+        vec2 uv    = acScreenNorm;
+        vec2 pxSz  = pixSize();
+
+        // Base pixel
+        vec4 srcPx = samp(uv);
+        vec3 srcRGB = srcPx.rgb;
+
+        // ── Detail scale radii ────────────────────────────────────
+        // smallDetailSize is in UV fraction of the image width
+        // Tiny   ≈ 0.5 ×  small
+        // Small  ≈ 1.0 ×  small
+        // Medium ≈ 2.0 ×  small
+        // Large  ≈ 4.0 ×  small
+        float base = max(smallDetailSize, 0.0001) + sharpenWidth * 0.05;
+
+        float scTiny   = base * 0.5;
+        float scSmall  = base;
+        float scMedium = base * 2.0;
+        float scLarge  = base * 4.0;
+
+        // ── Extract band-pass signals ─────────────────────────────
+        vec3 bandTiny   = bandPass(uv, pxSz, scTiny).rgb;
+        vec3 bandSmall  = bandPass(uv, pxSz, scSmall).rgb;
+        vec3 bandMedium = bandPass(uv, pxSz, scMedium).rgb;
+        vec3 bandLarge  = bandPass(uv, pxSz, scLarge).rgb;
+
+        // ── Edge threshold gate ───────────────────────────────────
+        // Edges stronger than edgeThresh suppress sharpening
+        // to avoid dark halos (matches Sapphire behavior)
+        float grad    = edgeGrad(uv, pxSz);
+        float edgeMask = 1.0 - smoothstep(edgeThresh * 0.5, edgeThresh, grad);
+
+        // ── Combined sharpening signal (before luma/chroma split) ─
+        vec3 sharp = (bandTiny   * scaleTinyDetails
+                    + bandSmall  * scaleSmallDetails
+                    + bandMedium * scaleMediumDetails
+                    + bandLarge  * scaleLargeDetails)
+                   * sharpenAmp * edgeMask;
+
+        // ── Luma / Chroma separation ──────────────────────────────
+        // Apply luma and chroma sharpening separately in YUV space
+        vec3 srcYUV   = rgb2yuv(srcRGB);
+        vec3 sharpYUV = rgb2yuv(sharp);
+
+        vec3 outYUV;
+        outYUV.x = srcYUV.x + sharpYUV.x * sharpenLuma;   // Y channel
+        outYUV.y = srcYUV.y + sharpYUV.y * sharpenChroma;  // U channel
+        outYUV.z = srcYUV.z + sharpYUV.z * sharpenChroma;  // V channel
+
+        vec3 outRGB = yuv2rgb(outYUV);
+
+        // ── Per-channel RGB scale ──────────────────────────────────
+        // Each channel's sharpening can be boosted/reduced individually
+        vec3 sharpRGB = outRGB - srcRGB;  // net sharpening delta
+        sharpRGB *= vec3(sharpenRed, sharpenGreen, sharpenBlue);
+        outRGB = clamp(srcRGB + sharpRGB, 0.0, 1.0);
+
+        // ── Matte / mask ──────────────────────────────────────────
+        float maskVal = 1.0;
+        if (maskUse == 1) {
+            // Luma mask: use luminance of source as mask
+            maskVal = dot(srcRGB, vec3(0.299, 0.587, 0.114));
+            // Optional blur of mask (box approximation)
+            if (blurMask &gt; 0.001) {
+                float bm = blurMask;
+                float ml = dot(samp(uv + vec2(-bm,   0.)).rgb, vec3(0.299,0.587,0.114));
+                float mr = dot(samp(uv + vec2( bm,   0.)).rgb, vec3(0.299,0.587,0.114));
+                float mu = dot(samp(uv + vec2(  0., -bm)).rgb, vec3(0.299,0.587,0.114));
+                float md = dot(samp(uv + vec2(  0.,  bm)).rgb, vec3(0.299,0.587,0.114));
+                maskVal = (maskVal + ml + mr + mu + md) * 0.2;
+            }
+        } else if (maskUse == 2) {
+            // Alpha mask
+            maskVal = srcPx.a;
+            if (blurMask &gt; 0.001) {
+                float bm = blurMask;
+                float al = samp(uv + vec2(-bm,   0.)).a;
+                float ar = samp(uv + vec2( bm,   0.)).a;
+                float au = samp(uv + vec2(  0., -bm)).a;
+                float ad = samp(uv + vec2(  0.,  bm)).a;
+                maskVal = (maskVal + al + ar + au + ad) * 0.2;
+            }
+        }
+
+        if (invertMask) maskVal = 1.0 - maskVal;
+        maskVal = clamp(maskVal, 0.0, 1.0);
+
+        // Blend sharpened with original using mask
+        vec3 finalRGB = mix(srcRGB, outRGB, maskVal);
+
+        gl_FragColor = vec4(finalRGB, srcPx.a) * alpha;
+    }
+
+  </shader>
+
+</effect>

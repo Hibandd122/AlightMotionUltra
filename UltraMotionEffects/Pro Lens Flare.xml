@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.pro_lens_flare" name="Pro Lens Flare" desc="Procedural lens flare with core glow, anamorphic streak, starburst rays, and chromatic lens ghosts, selectable via four flare-type presets with individual strength controls. Applies ACES-style tone mapping and gamma to the whole frame." category="colorlight" tags="procedural,lens,flare,light,cinematic" thumb="thumb/Procedural/Pro Lens Flare.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="posX" default="0.26" min="0.0" max="1.0" step="0.01" label="Light X" />
+        <slider id="posY" default="0.79" min="0.0" max="1.0" step="0.01" label="Light Y" />
+        <slider id="intensity" default="1.55" min="0.0" max="5.0" step="0.01" label="Intensity" />
+        <slider id="flareHue" default="0.60" min="0.0" max="1.0" step="0.01" label="Color Hue" />
+
+        
+        <slider id="flareType" default="3.00" min="0.0" max="3.0" step="1.0" label="Flare Type" />
+        <slider id="glowSize" default="1.81" min="0.1" max="5.0" step="0.01" label="Glow Size" />
+        <slider id="ghostStr" default="0.72" min="0.0" max="2.0" step="0.01" label="Ghost Strength" />
+        <slider id="streakStr" default="0.78" min="0.0" max="2.0" step="0.01" label="Streak Strength" />
+        <slider id="starburstStr" default="0.00" min="0.0" max="2.0" step="0.01" label="Starburst Strength" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        
+        // Utility: Rotate Hue of a color
+        vec3 hueShift(vec3 col, float shift) {
+            vec3 P = vec3(0.55735) * dot(vec3(0.55735), col);
+            vec3 U = col - P;
+            vec3 V = cross(vec3(0.55735), U);
+            col = U * cos(shift * 6.2832) + V * sin(shift * 6.2832) + P;
+            return max(vec3(0.0), col);
+        }
+
+        // Utility: Noise for pseudo-randomness
+        float hash(float n) { return fract(sin(n) * 43758.5453123); }
+
+        // Procedural Lens Flare
+        vec3 lensFlare(vec2 uv, vec2 pos) {
+            vec2 main = uv - pos;
+            float dist = length(main);
+            float ang = atan(main.y, main.x);
+            
+            vec3 f = vec3(0.0);
+            
+            // Base Palette
+            vec3 colCore = hueShift(vec3(1.0, 0.9, 0.8), flareHue);
+            vec3 colStreak = hueShift(vec3(0.8, 0.5, 0.2), flareHue);
+            vec3 colGhost = hueShift(vec3(0.9, 0.8, 1.0), flareHue);
+            
+            // Determine Active Features based on Type
+            int type = int(floor(flareType + 0.5));
+            
+            float activeStreak = 0.0;
+            float activeStar = 0.0;
+            float activeGhosts = 0.0;
+            
+            if (type == 0) {
+                // Type 0: Clean Glow
+                activeStreak = 0.0;
+                activeStar = 0.0;
+                activeGhosts = 0.0;
+            } else if (type == 1) {
+                // Type 1: Anamorphic
+                activeStreak = 1.0;
+                activeStar = 0.0;
+                activeGhosts = 0.2;
+            } else if (type == 2) {
+                // Type 2: Starburst
+                activeStreak = 0.0;
+                activeStar = 1.0;
+                activeGhosts = 0.1;
+            } else {
+                // Type 3: Sci-Fi / Complex
+                activeStreak = 0.3;
+                activeStar = 0.2;
+                activeGhosts = 1.0;
+            }
+            
+            // Combine with manual sliders
+            float sStr = streakStr * activeStreak;
+            float stStr = starburstStr * activeStar;
+            float gStr = ghostStr * activeGhosts;
+
+            // 1. SOFT CORE GLOW
+            float core = 1.0 / (dist * (20.0 / glowSize) + 0.5);
+            core = pow(core, 2.0);
+            f += colCore * core * 2.0;
+            
+            // 2. STARBURST
+            if (stStr &gt; 0.01) {
+                float rays = abs(cos(ang * 3.0)) * 0.5 + abs(cos(ang * 12.0)) * 0.2;
+                rays += smoothstep(0.0, 1.0, abs(sin(ang * 100.0))) * 0.1;
+                rays *= 0.2 / (dist + 0.1);
+                f += colCore * rays * stStr;
+            }
+
+            // 3. ANAMORPHIC STREAK
+            if (sStr &gt; 0.01) {
+                float vDist = abs(main.y);
+                float streak = exp(-vDist * 40.0);
+                streak *= smoothstep(1.5, 0.1, abs(main.x));
+                f += colStreak * streak * sStr;
+            }
+
+            // 4. LENS GHOSTS
+            if (gStr &gt; 0.01) {
+                vec2 ghostVec = -pos * 0.5;
+                for (float i = 0.0; i &lt; 5.0; i++) {
+                    float t = fract(i * 0.35 + 0.3);
+                    vec2 gPos = pos + ghostVec * (t * 4.0);
+                    float size = 0.05 + 0.15 * hash(i * 12.3);
+                    float chr = 0.02 * dist;
+                    
+                    vec3 ghostCol = vec3(0.0);
+                    float d = length(uv - gPos);
+                    
+                    ghostCol.r = smoothstep(size + chr, size - 0.01 + chr, d);
+                    ghostCol.g = smoothstep(size,       size - 0.01,       d);
+                    ghostCol.b = smoothstep(size - chr, size - 0.01 - chr, d);
+                    
+                    float hollow = smoothstep(0.0, size * 0.8, d);
+                    ghostCol *= 0.5 + 0.5 * hollow;
+                    
+                    float alpha = 0.1 * gStr * (1.0 - t * 0.5);
+                    f += ghostCol * alpha * colGhost;
+                }
+            }
+
+            return f * intensity;
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            vec2 aspectVec = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            
+            // Center UVs
+            vec2 cUV = (uv - 0.5) * aspectVec;
+            
+            // Light position
+            vec2 lightPos = (vec2(posX, 1.0 - posY) - 0.5) * aspectVec;
+
+            // Background
+            vec3 col = texture2DCv(inputImg.texture, uv).rgb;
+            
+            // Add Flare
+            vec3 flare = lensFlare(cUV, lightPos);
+            col += flare;
+
+            // Tone Mapping (ACES-like)
+            col = col * 0.8;
+            const float a = 2.51;
+            const float b = 0.03;
+            const float c = 2.43;
+            const float d = 0.59;
+            const float e = 0.14;
+            col = clamp((col*(a*col+b))/(col*(c*col+d)+e), 0.0, 1.0);
+            
+            // Gamma
+            col = pow(col, vec3(1.0/2.2));
+
+            gl_FragColor = vec4(col, 1.0);
+        }
+
+    </shader>
+
+</effect>

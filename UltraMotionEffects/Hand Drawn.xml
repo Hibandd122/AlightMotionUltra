@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.hand_drawn" name="Hand Drawn" desc="Hand-drawn animation look: warps UVs with value noise quantized to a low effect framerate to simulate line boil, and multiplies in dark outlines from a luminance gradient edge detect. Controls: warp intensity, outline strength, effect FPS." category="drawingedge" tags="stylize,sketch,handdrawn,warp,outline" thumb="thumb/Stylize/Hand Drawn.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="warpAmount" default="0.01" min="0.0" max="0.03" step="0.001" label="Warp Intensity" />
+        <slider id="outlineStr" default="5.60" min="0.0" max="10.0" step="0.1" label="Outline Strength" />
+        <slider id="fps" default="3.90" min="1.0" max="30.0" step="0.1" label="Effect FPS" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Simple hash function for noise
+        float hash(vec2 p) {
+            p = fract(p * vec2(123.34, 456.21));
+            p += dot(p, p + 45.32);
+            return fract(p.x * p.y);
+        }
+
+        // 2D Value Noise
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            float a = hash(i);
+            float b = hash(i + vec2(1.0, 0.0));
+            float c = hash(i + vec2(0.0, 1.0));
+            float d = hash(i + vec2(1.0, 1.0));
+            return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        }
+
+        void main() {
+            // Normalized pixel coordinates (from 0 to 1)
+            vec2 uv = acScreenNorm;
+
+            // --- 1. Hand Drawn Warp Effect ---
+            // Quantize time to simulate lower framerate
+            float timeSnap = floor(acTime * fps);
+            
+            // Create random offsets for X and Y using the quantized time
+            vec2 noiseOffset = vec2(
+                noise(uv * 15.0 + timeSnap),
+                noise(uv * 15.0 + timeSnap + 100.0)
+            );
+            
+            // Distort the UVs
+            vec2 warpedUV = uv + (noiseOffset - 0.5) * warpAmount;
+
+            // --- 2. Outline Detection ---
+            vec2 pixel = 1.0 / acScreenSize;
+            
+            // Sample the base color at warped coordinates
+            vec4 texColorFull = texture2DCv(inputImg.texture, warpedUV);
+            vec3 texColor = texColorFull.rgb;
+            
+            // Sample neighbors to detect edges
+            vec3 n = texture2DCv(inputImg.texture, warpedUV + vec2(0.0, pixel.y)).rgb;
+            vec3 e = texture2DCv(inputImg.texture, warpedUV + vec2(pixel.x, 0.0)).rgb;
+            vec3 s = texture2DCv(inputImg.texture, warpedUV - vec2(0.0, pixel.y)).rgb;
+            vec3 w = texture2DCv(inputImg.texture, warpedUV - vec2(pixel.x, 0.0)).rgb;
+            
+            // Convert to luminance for edge checking
+            vec3 luma = vec3(0.299, 0.587, 0.114);
+            float lumC = dot(texColor, luma);
+            float lumN = dot(n, luma);
+            float lumS = dot(s, luma);
+            float lumE = dot(e, luma);
+            float lumW = dot(w, luma);
+            
+            // Calculate edge intensity (gradient magnitude)
+            float edge = abs(lumN - lumS) + abs(lumE - lumW);
+            float outline = 1.0 - clamp(edge * outlineStr, 0.0, 1.0);
+
+            // --- 3. Final Composite ---
+            // Apply the black outline (multiply)
+            vec3 finalColor = texColor * outline;
+
+            // Output to screen
+            gl_FragColor = vec4(finalColor, texColorFull.a);
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect thumb="thumb/Blur and Sharpen/Rays Generate.webp" id="com.alightcreative.effects.rays_generate" name="Rays Generate" desc="Generates radial light-ray streaks by accumulating up to 256 pre-blurred samples along each of up to 16 evenly spaced directions, with exponential decay, spread, jitter, and softness controls. Very expensive at high count and length." category="blur" tags="rays,streaks" internal="true">
+  <params>
+    <texture id="inputImg" srcType="comp" />
+    <slider id="angle" default="35.0" min="-3600" max="3600" step="0.5" type="angle" label="Angle" />
+    <slider id="count" default="12.0" min="1.0" max="16.0" step="1.0" label="Count" />
+    <slider id="length" default="500.0" min="10.0" max="1000.0" step="1.0" label="Length (px)" />
+    <slider id="decay" default="0.008" min="0.000" max="0.100" step="0.001" label="Decay" />
+    <slider id="spread" default="0.75" min="0.0" max="1.0" step="0.01" label="Spread" />
+    <slider id="jitter" default="0.10" min="0.0" max="2.0" step="0.01" label="Jitter" />
+    <slider id="soft" default="3.0" min="0.0" max="20.0" step="0.5" label="Soft (px)" />
+  </params>
+  <shader type="fragment" precision="high">
+    vec4 s(vec2 uv){ return texture2DCv(inputImg.texture, uv); }
+    float rnd(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec2 px = 1.0/acScreenSize;
+      float baseAng = radians(angle);
+      int ic = int(count+0.5);
+      float seg = 3.14159265359 * 2.0 / max(1.0, float(ic));
+
+      // --- march setup (ray-invariant: hoisted out of both loops) ---
+      // The original walked positions 0 .. steps-1 in 1-unit increments. We walk
+      // the same extent in at most 96 taps: stride is set so the LAST tap still
+      // lands exactly on steps-1 (ray length unchanged) and the exponential
+      // weight curve is sampled at those same positions (falloff shape unchanged).
+      float len = length;
+      int steps = int(min(256.0, len));
+      int nStep = steps &lt; 96 ? steps : 96;
+      float fS = float(steps);
+      float fN = float(nStep);
+      float stride = (nStep &gt; 1) ? ((fS - 1.0) / (fN - 1.0)) : 1.0;
+      float q = exp(-decay*stride);
+
+      // Energy match: closed-form geometric sums of the old and new weight sets,
+      // so total accumulated brightness is identical, not merely proportional.
+      float gain;
+      if (decay &lt; 1.0e-5) {
+        gain = fS / max(1.0, fN);
+      } else {
+        float sumOld = (1.0 - exp(-decay*fS))          / max(1.0e-8, 1.0 - exp(-decay));
+        float sumNew = (1.0 - exp(-decay*stride*fN))   / max(1.0e-8, 1.0 - q);
+        gain = sumOld / max(1.0e-8, sumNew);
+      }
+
+      // The old inner "blur" ran a FIXED 1px 3x3 tent regardless of soft: 9 fetches
+      // whose weights sum to 16 but which divided by 14. One fetch times 8/7
+      // reproduces its gain exactly; only the sub-pixel softening is dropped.
+      float wScale = gain * (soft &gt; 0.0 ? (8.0/7.0) : 1.0);
+      // Upper bound on all remaining taps of a ray (source assumed &lt;= 1):
+      // w * wScale / (1-q). Break once that can no longer reach 1/255.
+      float tailK = wScale / max(1.0e-6, 1.0 - q);
+
+      vec4 acc = vec4(0.0);
+      for(int k=0;k&lt;16;k++){
+        if(k&gt;=ic) break;
+        float a = baseAng + seg*float(k);
+        vec2 dir = vec2(cos(a), sin(a));
+        float w = 1.0;
+        for(int i=0;i&lt;96;i++){
+          if(i&gt;=nStep) break;
+          if(w*tailK &lt; 0.001) break;
+          float fi = float(i)*stride;
+          float j = 0.0;
+          if(jitter &gt; 0.0) j = (rnd(uv.xy+fi) - 0.5) * jitter;
+          vec2 offs = (-dir * fi * spread + dir * j) * px;
+          acc += s(uv + offs) * (w*wScale);
+          w *= q;
+        }
+      }
+      vec4 rays = acc;
+      gl_FragColor = vec4(rays.rgb, clamp(rays.a,0.0,1.0));
+    }
+  </shader>
+</effect>

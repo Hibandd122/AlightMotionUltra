@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect thumb="thumb/Matte and Mask/Rays Edge Detect.webp" id="com.alightcreative.effects.rays_edge_detect" name="Rays Edge Detect" desc="Internal mask pass: Sobel edge detection on luminance or alpha, gated by a brightness threshold and expanded with a simple 4-direction feather, output as a grayscale matte." category="warp" tags="edge,mask" internal="true">
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="edgeThreshold" default="0.15" min="0.00" max="1.00" step="0.01" label="Edge Threshold" />
+    <slider id="brightThreshold" default="0.70" min="0.00" max="1.00" step="0.01" label="Bright Threshold" />
+    <slider id="feather" default="2.0" min="0.0" max="20.0" step="0.5" label="Feather (px)" />
+    <switch id="useLuma" default="true" label="Use Luminance" />
+  </params>
+  <shader type="fragment" precision="high">
+    const vec3 W = vec3(0.2126,0.7152,0.0722);
+    vec4 s(vec2 uv){ return texture2DCv(inputImg.texture, uv); }
+    float lum(vec3 c){ return dot(c,W); }
+    void main(){
+      vec2 uv = acLayerNorm;
+      vec2 px = 1.0/acLayerSize;
+      vec4 c = s(uv);
+      float a = c.a;
+      float v = useLuma ? lum(c.rgb) : a;
+      // Sobel gradient
+      float tl = useLuma?lum(s(uv+vec2(-px.x,-px.y)).rgb):s(uv+vec2(-px.x,-px.y)).a;
+      float tc = useLuma?lum(s(uv+vec2(0.0,-px.y)).rgb):s(uv+vec2(0.0,-px.y)).a;
+      float tr = useLuma?lum(s(uv+vec2(px.x,-px.y)).rgb):s(uv+vec2(px.x,-px.y)).a;
+      float ml = useLuma?lum(s(uv+vec2(-px.x,0.0)).rgb):s(uv+vec2(-px.x,0.0)).a;
+      float mr = useLuma?lum(s(uv+vec2(px.x,0.0)).rgb):s(uv+vec2(px.x,0.0)).a;
+      float bl = useLuma?lum(s(uv+vec2(-px.x,px.y)).rgb):s(uv+vec2(-px.x,px.y)).a;
+      float bc = useLuma?lum(s(uv+vec2(0.0,px.y)).rgb):s(uv+vec2(0.0,px.y)).a;
+      float br = useLuma?lum(s(uv+vec2(px.x,px.y)).rgb):s(uv+vec2(px.x,px.y)).a;
+      float gx = (tr + 2.0*mr + br) - (tl + 2.0*ml + bl);
+      float gy = (bl + 2.0*bc + br) - (tl + 2.0*tc + tr);
+      float g = length(vec2(gx,gy));
+      float e = smoothstep(edgeThreshold, 1.0, g);
+      float b = smoothstep(brightThreshold-0.02, brightThreshold+0.02, v);
+      float m = e*b;
+      // Simple feather by neighbor max
+      float f = feather;
+      vec2 k = f*px;
+      float m1 = m;
+      m1 = max(m1, (useLuma?lum(s(uv+vec2(k.x,0.0)).rgb):s(uv+vec2(k.x,0.0)).a) * m);
+      m1 = max(m1, (useLuma?lum(s(uv+vec2(-k.x,0.0)).rgb):s(uv+vec2(-k.x,0.0)).a) * m);
+      m1 = max(m1, (useLuma?lum(s(uv+vec2(0.0,k.y)).rgb):s(uv+vec2(0.0,k.y)).a) * m);
+      m1 = max(m1, (useLuma?lum(s(uv+vec2(0.0,-k.y)).rgb):s(uv+vec2(0.0,-k.y)).a) * m);
+      m1 *= a;
+      gl_FragColor = vec4(vec3(m1), m1);
+    }
+  </shader>
+</effect>

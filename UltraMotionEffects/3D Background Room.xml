@@ -1,0 +1,326 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.shadertoy_bg3d" name="3D Background Room" desc="Raytraces a 3D scene from the composition behind the layer: an equirectangular skybox, an optional textured box room and floor plane, and the layer itself placed as a 3D plane, with dual-camera position/rotation/FOV controls and edge feathering." category="3d" tags="3d,background,shadertoy,skybox,camera" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/3D/3D Background Room.webp" deprecated="false">
+
+  <params>
+    
+    <texture id="inputImg" srcType="content" />
+    
+    <texture id="comp" srcType="comp" />
+
+    
+    <slider id="time" default="0.0" min="0.0" max="600.0" step="0.01" label="Time Offset" />
+
+    
+    <slider id="camX" default="0.0" min="-1000.0" max="1000.0" step="1.0" label="Cam X" ticks="-500,-250,0,250,500,1000" />
+    <slider id="camY" default="100.0" min="-1000.0" max="1000.0" step="1.0" label="Cam Y" ticks="0,50,100,200,400,800" />
+    <slider id="camZ" default="-100.0" min="-1000.0" max="1000.0" step="1.0" label="Cam Z" ticks="-500,-250,0,250,500,1000" />
+    <point id="camRotate" label="Camera Rotation" default="0.0,0.0" />
+    <slider id="yawDeg" default="0.0" min="-360.0" max="360.0" step="0.5" label="Yaw (deg)" ticks="0,45,90,135,180" />
+    <slider id="pitchDeg" default="0.0" min="-89.9" max="89.9" step="0.5" label="Pitch (deg)" ticks="-60,-30,0,30,60" />
+    <slider id="fovDeg" default="60.0" min="20.0" max="120.0" step="1.0" label="Camera FOV (deg)" ticks="30,45,60,75,90,120" />
+    <switch id="autoRotate" default="false" label="Auto Rotate 360" />
+    <slider id="rotateSpeed" default="30.0" min="-360.0" max="360.0" step="1.0" label="Rotate Speed (deg/s)" ticks="15,30,60,90,120" />
+    
+    <slider id="cam2X" default="0.0" min="-1000.0" max="1000.0" step="1.0" label="Cam 2 X" ticks="-500,-250,0,250,500,1000" />
+    <slider id="cam2Y" default="0.0" min="-1000.0" max="1000.0" step="1.0" label="Cam 2 Y" ticks="0,50,100,200,400,800" />
+    <slider id="cam2Z" default="0.0" min="-1000.0" max="1000.0" step="1.0" label="Cam 2 Z" ticks="-500,-250,0,250,500,1000" />
+    <point id="cam2Rotate" label="Camera 2 Rotation" default="0.0,0.0" />
+    <slider id="yaw2Deg" default="0.0" min="-360.0" max="360.0" step="0.5" label="Yaw 2 (deg)" ticks="0,45,90,135,180" />
+    <slider id="pitch2Deg" default="0.0" min="-89.9" max="89.9" step="0.5" label="Pitch 2 (deg)" ticks="-60,-30,0,30,60" />
+    <slider id="fov2Deg" default="0.0" min="-60.0" max="60.0" step="1.0" label="Camera 2 FOV Offset (deg)" ticks="-30,-15,0,15,30,60" />
+    <switch id="autoRotate2" default="false" label="Auto Rotate 360 (Cam 2)" />
+    <slider id="rotateSpeed2" default="30.0" min="-360.0" max="360.0" step="1.0" label="Rotate Speed 2 (deg/s)" ticks="15,30,60,90,120" />
+
+    
+    <point id="skyRotate" label="Skybox Rotation" default="0.0,0.0" />
+    <switch id="linkCamSky" default="true" label="Link Camera To Skybox Rotation" />
+
+    
+    <switch id="bgFeatherEnabled" default="false" label="Feather Edges" />
+    <slider id="bgFeather" default="0.08" min="0.0" max="0.5" step="0.005" label="Feather Amount" ticks="0,0.02,0.05,0.08,0.12,0.2,0.3,0.5" />
+    <slider id="bgFeatherPower" default="1.0" min="0.2" max="4.0" step="0.1" label="Feather Power" ticks="0.5,1.0,2.0,3.0,4.0" />
+
+    
+    <switch id="roomEnabled" default="true" label="Enable Box Room" />
+    <slider id="roomWidth" default="20.0" min="1.0" max="200.0" step="0.5" label="Room Width" ticks="1,5,10,20,50,100,200" />
+    <slider id="roomHeight" default="12.0" min="1.0" max="200.0" step="0.5" label="Room Height" ticks="1,5,10,20,50,100,200" />
+    <slider id="roomDepth" default="20.0" min="1.0" max="200.0" step="0.5" label="Room Depth" ticks="1,5,10,20,50,100,200" />
+    <slider id="roomScale" default="1.0" min="0.1" max="10.0" step="0.1" label="Room Scale" ticks="0.1,0.5,1,2,5,10" />
+
+    
+    <switch id="floorEnabled" default="true" label="Enable Floor Plane" />
+    <slider id="floorPosY" default="-600.0" min="-2000.0" max="2000.0" step="5.0" label="Floor Y" ticks="-1000,-500,0,500,1000,2000" />
+    <slider id="floorYaw" default="90.0" min="-180.0" max="180.0" step="1.0" label="Floor Yaw (deg)" ticks="-90,0,90,180" />
+    <slider id="floorPitch" default="0.0" min="-180.0" max="180.0" step="1.0" label="Floor Pitch (deg)" ticks="-90,0,90,180" />
+    <slider id="floorRoll" default="90.0" min="-180.0" max="180.0" step="1.0" label="Floor Roll (deg)" ticks="-90,0,90,180" />
+    <slider id="floorScaleX" default="50.0" min="0.1" max="400.0" step="0.5" label="Floor Scale X" ticks="0.5,1,2,5,10,20,50,100,200,400" />
+    <slider id="floorScaleY" default="150.0" min="0.1" max="400.0" step="0.5" label="Floor Scale Y" ticks="0.5,1,2,5,10,20,50,100,200,400" />
+    <slider id="floorOpacity" default="1.00" min="0.0" max="1.0" step="0.01" label="Floor Opacity" type="percent" />
+
+    
+    <menu id="placeLayer" style="dropdown" default="1" label="Place Layer">
+      <menu label="Off" value="0" />
+      <menu label="On" value="1" />
+    </menu>
+    <menu id="planeSource" style="dropdown" default="0" label="Plane Content">
+      <menu label="Layer" value="0" />
+      <menu label="Composition (behind)" value="1" />
+    </menu>
+    <slider id="objPosX" default="0.0" min="-2000.0" max="2000.0" step="5.0" label="Obj Pos X" ticks="-1000,-500,0,500,1000,2000" />
+    <slider id="objPosY" default="0.0" min="-2000.0" max="2000.0" step="5.0" label="Obj Pos Y" ticks="-1000,-500,0,500,1000,2000" />
+    <slider id="objPosZ" default="600.0" min="-2000.0" max="2000.0" step="5.0" label="Obj Pos Z" ticks="0,300,600,900,1200,1500" />
+    <slider id="objYaw" default="0.0" min="-180.0" max="180.0" step="1.0" label="Obj Yaw (deg)" ticks="-90,0,90,180" />
+    <slider id="objPitch" default="0.0" min="-180.0" max="180.0" step="1.0" label="Obj Pitch (deg)" ticks="-90,0,90,180" />
+    <slider id="objRoll" default="0.0" min="-180.0" max="180.0" step="1.0" label="Obj Roll (deg)" ticks="-90,0,90,180" />
+    <slider id="objWidth" default="1.0" min="0.01" max="10.0" step="0.05" label="Obj Width" ticks="0.25,0.5,1,2,4,8" />
+    <slider id="objHeight" default="1.0" min="0.01" max="10.0" step="0.05" label="Obj Height" ticks="0.25,0.5,1,2,4,8" />
+    <slider id="objScale" default="1.00" min="0.05" max="10.0" step="0.05" label="Obj Scale" ticks="0.25,0.5,1,2,4,8" />
+    <slider id="objOpacity" default="1.00" min="0.0" max="1.0" step="0.01" label="Obj Opacity" type="percent" />
+    <switch id="objDepthTest" default="true" label="Depth Test Against Room" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Utility: get layer size, fallback to 1920x1080 when empty
+    vec2 getResolution() {
+      vec2 s = getTexSize(inputImg.size);
+      if (s.x &lt;= 0.0 || s.y &lt;= 0.0) s = vec2(1920.0, 1080.0);
+      return s;
+    }
+
+    const float PI = 3.14159265358979323846;
+    float radiansf(float d){ return d * (PI / 180.0); }
+
+    // Rotation helpers
+    mat3 rotX(float a){ float c=cos(a), s=sin(a); return mat3(1,0,0, 0,c,-s, 0,s,c); }
+    mat3 rotY(float a){ float c=cos(a), s=sin(a); return mat3(c,0,s, 0,1,0, -s,0,c); }
+    mat3 rotZ(float a){ float c=cos(a), s=sin(a); return mat3(c,-s,0, s,c,0, 0,0,1); }
+
+    // Equirect mapping from direction
+    vec2 dirToEquirectUV(vec3 d) {
+      d = normalize(d);
+      float u = atan(d.x, d.z) / (2.0*PI) + 0.5;
+      float v = asin(clamp(d.y,-1.0,1.0)) / PI + 0.5;
+      return vec2(u,v);
+    }
+
+    // Ray-plane intersection for oriented rectangle plane
+    struct Hit {
+      float t;
+      vec2 uv;
+      bool hit;
+    };
+
+    Hit intersectPlane(vec3 ro, vec3 rd, vec3 center, mat3 R, vec2 halfSize) {
+      vec3 n = R * vec3(0.0, 0.0, 1.0); // Plane faces +Z in local space
+      float denom = dot(rd, n);
+      Hit h; h.t = -1.0; h.uv = vec2(0.0); h.hit = false;
+      if (abs(denom) &lt; 1e-6) return h;
+
+      float t = dot(center - ro, n) / denom;
+      if (t &lt;= 0.0) return h;
+
+      vec3 p = ro + rd * t;
+      // GLSL ES 1.00 has no transpose(mat3). For orthonormal R, R^T * v equals dot with columns.
+      vec3 v = p - center;
+      vec3 lp = vec3(dot(v, R[0]), dot(v, R[1]), dot(v, R[2])); // to local plane space
+      // local plane spans X,Y with Z=0
+      if (abs(lp.x) &lt;= halfSize.x &amp;&amp; abs(lp.y) &lt;= halfSize.y) {
+        vec2 uv = (lp.xy / (halfSize*2.0)) + 0.5;
+        h.t = t;
+        h.uv = uv;
+        h.hit = true;
+      }
+      return h;
+    }
+
+    // Ray-box intersection for axis-aligned room centered at origin
+    struct BoxHit {
+      float t;
+      vec3 p;
+      int  face; // 0:+X, 1:-X, 2:+Y, 3:-Y, 4:+Z, 5:-Z
+      bool hit;
+    };
+
+    bool within(vec3 p, vec3 c, vec3 hw, int axis){
+      if(axis==0 || axis==1) return abs(p.y - c.y) &lt;= hw.y &amp;&amp; abs(p.z - c.z) &lt;= hw.z;
+      if(axis==2 || axis==3) return abs(p.x - c.x) &lt;= hw.x &amp;&amp; abs(p.z - c.z) &lt;= hw.z;
+      return abs(p.x - c.x) &lt;= hw.x &amp;&amp; abs(p.y - c.y) &lt;= hw.y;
+    }
+
+    BoxHit intersectRoom(vec3 ro, vec3 rd, vec3 c, vec3 hw){
+      BoxHit h; h.t = 1e20; h.p = vec3(0.0); h.face = -1; h.hit = false;
+      // +X and -X planes
+      if (abs(rd.x) &gt; 1e-6) {
+        float tpos = (c.x + hw.x - ro.x) / rd.x;
+        if (tpos &gt; 0.0) {
+          vec3 ppos = ro + rd*tpos;
+          if (within(ppos,c,hw,0) &amp;&amp; tpos &lt; h.t) { h.t = tpos; h.p = ppos; h.face = 0; h.hit = true; }
+        }
+        float tneg = (c.x - hw.x - ro.x) / rd.x;
+        if (tneg &gt; 0.0) {
+          vec3 pneg = ro + rd*tneg;
+          if (within(pneg,c,hw,1) &amp;&amp; tneg &lt; h.t) { h.t = tneg; h.p = pneg; h.face = 1; h.hit = true; }
+        }
+      }
+      // +Y and -Y planes
+      if (abs(rd.y) &gt; 1e-6) {
+        float tpos = (c.y + hw.y - ro.y) / rd.y;
+        if (tpos &gt; 0.0) {
+          vec3 ppos = ro + rd*tpos;
+          if (within(ppos,c,hw,2) &amp;&amp; tpos &lt; h.t) { h.t = tpos; h.p = ppos; h.face = 2; h.hit = true; }
+        }
+        float tneg = (c.y - hw.y - ro.y) / rd.y;
+        if (tneg &gt; 0.0) {
+          vec3 pneg = ro + rd*tneg;
+          if (within(pneg,c,hw,3) &amp;&amp; tneg &lt; h.t) { h.t = tneg; h.p = pneg; h.face = 3; h.hit = true; }
+        }
+      }
+      // +Z and -Z planes
+      if (abs(rd.z) &gt; 1e-6) {
+        float tpos = (c.z + hw.z - ro.z) / rd.z;
+        if (tpos &gt; 0.0) {
+          vec3 ppos = ro + rd*tpos;
+          if (within(ppos,c,hw,4) &amp;&amp; tpos &lt; h.t) { h.t = tpos; h.p = ppos; h.face = 4; h.hit = true; }
+        }
+        float tneg = (c.z - hw.z - ro.z) / rd.z;
+        if (tneg &gt; 0.0) {
+          vec3 pneg = ro + rd*tneg;
+          if (within(pneg,c,hw,5) &amp;&amp; tneg &lt; h.t) { h.t = tneg; h.p = pneg; h.face = 5; h.hit = true; }
+        }
+      }
+      return h;
+    }
+
+    // Sample plane content: either current layer (mapped via acLayerToScreen) or composition behind
+    vec4 samplePlane(vec2 uv01){
+      if (planeSource == 1) {
+        // Sample composition behind this layer directly in [0,1] UV space
+        return texture2DCv(comp.texture, uv01);
+      }
+      // Default: sample current layer with screen mapping
+      vec4 scr = vec4(uv01, 0.0, 1.0) * acLayerToScreen;
+      return texture2DCv(inputImg.texture, scr.xy);
+    }
+
+    void main() {
+      // Shadertoy bindings
+      float iTime = acTime + time;
+
+      // Screen ray setup with aspect correction (use screen coords, not layer coords)
+      vec2 iResolution = getResolution();
+      vec2 uv = acScreenNorm * 2.0 - 1.0;
+      uv.x *= iResolution.x / iResolution.y;
+
+      vec3 camPos = vec3(camX, camY, camZ) / 100.0;
+      camPos += vec3(cam2X, cam2Y, cam2Z) / 100.0;
+      vec3 camEuler1 = camRotate * 0.017453292519943295;
+      vec3 camEuler2 = cam2Rotate * 0.017453292519943295;
+      float yawAll = radiansf(yawDeg) + radiansf(yaw2Deg) + camEuler1.y + camEuler2.y
+                     + (autoRotate ? radiansf(rotateSpeed) * acTime : 0.0)
+                     + (autoRotate2 ? radiansf(rotateSpeed2) * acTime : 0.0);
+      float pitchAll = radiansf(pitchDeg) + radiansf(pitch2Deg) + camEuler1.x + camEuler2.x;
+      float rollAll = camEuler1.z + camEuler2.z;
+      vec3 forward = vec3(0.0, 0.0, 1.0);
+      vec3 right = vec3(1.0, 0.0, 0.0);
+      vec3 up = vec3(0.0, 1.0, 0.0);
+      float tanHalfFov = tan(radiansf(fovDeg + fov2Deg) * 0.5);
+      vec3 rd = normalize(forward + (uv.x * tanHalfFov) * right + (uv.y * tanHalfFov) * up);
+      mat3 sceneRInv = rotY(-yawAll) * rotX(-pitchAll) * rotZ(-rollAll);
+      vec3 camPosScene = sceneRInv * camPos;
+      vec3 rdScene = sceneRInv * rd;
+
+      vec3 skyEuler = skyRotate * 0.017453292519943295;
+      if (linkCamSky) skyEuler.xy += vec2(pitchAll, yawAll);
+      mat3 skyR = rotZ(skyEuler.z) * rotX(skyEuler.x) * rotY(skyEuler.y);
+      vec3 skyDir = normalize(skyR * rdScene);
+      vec2 suv = dirToEquirectUV(skyDir);
+      vec4 sky = texture2DCv(comp.texture, suv);
+
+      // Room intersection and texturing
+      vec4 outColor = sky;
+      // Declare room hit for optional depth test with plane
+      BoxHit rh; rh.t = 1e20; rh.p = vec3(0.0); rh.face = -1; rh.hit = false;
+      if (roomEnabled) {
+        vec3 roomCenter = vec3(0.0);
+        vec3 hw = vec3(roomWidth, roomHeight, roomDepth) * 0.5 * roomScale;
+        rh = intersectRoom(camPosScene, rdScene, roomCenter, hw);
+        if (rh.hit) {
+          vec2 texCoord;
+          if (rh.face == 0) { // +X : use Z,Y
+            texCoord = vec2( (rh.p.z - roomCenter.z)/(hw.z*2.0)+0.5, (rh.p.y - roomCenter.y)/(hw.y*2.0)+0.5 );
+          } else if (rh.face == 1) { // -X
+            texCoord = vec2( 1.0 - ((rh.p.z - roomCenter.z)/(hw.z*2.0)+0.5), (rh.p.y - roomCenter.y)/(hw.y*2.0)+0.5 );
+          } else if (rh.face == 2) { // +Y : use X,Z
+            texCoord = vec2( (rh.p.x - roomCenter.x)/(hw.x*2.0)+0.5, (rh.p.z - roomCenter.z)/(hw.z*2.0)+0.5 );
+          } else if (rh.face == 3) { // -Y
+            texCoord = vec2( 1.0 - ((rh.p.x - roomCenter.x)/(hw.x*2.0)+0.5), 1.0 - ((rh.p.z - roomCenter.z)/(hw.z*2.0)+0.5) );
+          } else if (rh.face == 4) { // +Z : use X,Y
+            texCoord = vec2( 1.0 - ((rh.p.x - roomCenter.x)/(hw.x*2.0)+0.5), (rh.p.y - roomCenter.y)/(hw.y*2.0)+0.5 );
+          } else { // -Z
+            texCoord = vec2( (rh.p.x - roomCenter.x)/(hw.x*2.0)+0.5, (rh.p.y - roomCenter.y)/(hw.y*2.0)+0.5 );
+          }
+          vec4 wall = texture2DCv(comp.texture, texCoord);
+          outColor = wall;
+        }
+      }
+
+      // Floor plane: oriented rectangle that samples the composition
+      if (floorEnabled) {
+        vec3 floorCenter = vec3(0.0, floorPosY/100.0, 0.0);
+        float sx = floorScaleX * 0.5; // half-extents in scene units
+        float sy = floorScaleY * 0.5;
+        mat3 RF = rotZ(radiansf(floorRoll)) * rotX(radiansf(floorPitch)) * rotY(radiansf(floorYaw));
+        Hit fh = intersectPlane(camPosScene, rdScene, floorCenter, RF, vec2(sx, sy));
+        if (fh.hit) {
+          bool occluded = (roomEnabled &amp;&amp; rh.hit &amp;&amp; (fh.t &gt; rh.t + 1e-4));
+          if (!occluded) {
+            vec4 floorPix = texture2DCv(comp.texture, fh.uv);
+            outColor = mix(outColor, floorPix, floorOpacity);
+          }
+        }
+      }
+
+      // Optional: place layer as 3D plane in scene
+      
+      
+      if (placeLayer == 1) {
+        vec3 objCenter = vec3(objPosX, objPosY, objPosZ) / 100.0;
+        float sx = objWidth * objScale;
+        float sy = objHeight * objScale;
+        float objYawRad = radiansf(objYaw);
+        float objPitchRad = radiansf(objPitch);
+        float objRollRad = radiansf(objRoll);
+        mat3 R = rotZ(objRollRad) * rotX(objPitchRad) * rotY(objYawRad);
+        Hit h = intersectPlane(camPosScene, rdScene, objCenter, R, vec2(sx, sy));
+        if (h.hit) {
+          // Optional depth test against room: skip blending if plane is behind wall
+          bool occluded = (objDepthTest &amp;&amp; roomEnabled &amp;&amp; rh.hit &amp;&amp; (h.t &gt; rh.t + 1e-4));
+          if (!occluded) {
+            vec4 planePix = samplePlane(h.uv);
+            float a = objOpacity * planePix.a;
+            outColor = mix(outColor, vec4(planePix.rgb, 1.0), a);
+          }
+        }
+      }
+
+      // Shadertoy port hook:
+      // If your Shadertoy draws its own background or needs raymarching,
+      // we can inject it here and then composite the layer plane above or below.
+      // Example (to be replaced once you share the code):
+      // vec4 shadertoyColor = vec4(0.0);
+      // outColor = mix(outColor, shadertoyColor, 1.0);
+
+      // Background feathering: smoothly blend edges to screen-sampled comp
+      if (bgFeatherEnabled) {
+        vec2 uv01 = acScreenNorm; // 0..1 screen UV
+        float edge = min(min(uv01.x, 1.0 - uv01.x), min(uv01.y, 1.0 - uv01.y));
+        float mask = pow(smoothstep(0.0, bgFeather, edge), bgFeatherPower);
+        vec4 compPix = texture2DCv(comp.texture, uv01);
+        outColor = mix(compPix, outColor, mask);
+      }
+
+      gl_FragColor = outColor;
+    }
+  </shader>
+
+</effect>

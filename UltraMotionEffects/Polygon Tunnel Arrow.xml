@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.polygon_tunnel_arrow" name="Polygon Tunnel Arrow" desc="Procedurally generated tunnel: maps the screen into a twisting square/round tunnel and tiles it with rectangle and triangle shapes drawn as a repeating grid. Controls cover animation speed, twist, grid scale and warp, shape sizes, and gamma." category="procedural" tags="tunnel, polygon, grid" thumb="thumb/Procedural/Polygon Tunnel Arrow.webp">
+
+    <params>
+        
+        <slider id="SPEED" label="Time Speed" default="0.5" min="0.0" max="5.0" step="0.001" type="float" />
+
+        
+        <slider id="TWIST_K" label="Twist Amount" default="0.07" min="0.0" max="1.0" step="0.001" type="float" />
+        <slider id="TWIST_FREQ" label="Twist Freq" default="1.0" min="0.0" max="8.0" step="0.01" type="float" />
+        <slider id="PHASE" label="Round/Rect Phase" default="2.0" min="0.0" max="10.0" step="0.01" type="float" />
+
+        
+        <slider id="GRID_SCALE" label="Grid Scale" default="7.0" min="1.0" max="20.0" step="0.1" type="float" />
+        <slider id="GRID_PHASE" label="Grid Phase Amp" default="5.0" min="0.0" max="10.0" step="0.01" type="float" />
+        <slider id="PREWARP_AMP" label="Pre-warp Amp" default="0.25" min="0.0" max="1.0" step="0.001" type="float" />
+        <slider id="PREWARP_FREQ" label="Pre-warp Freq" default="2.0" min="0.0" max="10.0" step="0.01" type="float" />
+
+        
+        <slider id="ROT" label="Draw Rotation (rad)" default="1.570796" min="-6.283" max="6.283" step="0.0001" type="float" />
+        <slider id="RECT_SIZE" label="Rect Size" default="0.12" min="0.01" max="0.5" step="0.001" type="float" />
+        <slider id="TRI_SIZE" label="Tri Size" default="0.12" min="0.01" max="0.5" step="0.001" type="float" />
+        <slider id="RECT_OFF_Y" label="Rect Offset Y" default="-0.08" min="-0.5" max="0.5" step="0.001" type="float" />
+        <point id="TRI_OFFSET" label="Tri Offset" default="-0.047,0.15" />
+
+        
+        <slider id="COLOR_GAIN" label="Color Gain" default="1.5" min="0.0" max="5.0" step="0.01" type="float" />
+        <slider id="OUTER_BIAS" label="Outer Bias" default="0.15" min="0.0" max="1.0" step="0.001" type="float" />
+        <slider id="GAMMA" label="Gamma" default="1.0" min="0.2" max="2.2" step="0.01" type="float" />
+    </params>
+
+    <shader type="fragment" precision="high">
+// Polygon Tunnel Arrow - AM single pass
+#define PI 3.141592653589793
+#define TAU 6.283185307179586
+
+float polygon(vec2 p, float vertices, float size){
+    float a = atan(p.x, p.y) + 0.2;
+    float b = TAU / max(vertices, 1.0);
+    return cos(floor(0.5 + a / b) * b - a) * length(p) - size;
+}
+
+mat2 rot2(float r){ return mat2(cos(r), sin(r), -sin(r), cos(r)); }
+
+void main(){
+    float time = acTime * SPEED;
+    vec2 R = acScreenSize;
+    vec2 frag = acScreenNorm * R;
+
+    // Normalized coordinates (-1..1 vertically)
+    vec2 p = (-R + 2.0 * frag) / max(R.y, 1.0);
+    vec2 uvOrig = p;
+
+    // Twist
+    float rotZ = 1.0 - TWIST_K * sin(TWIST_FREQ * sin(length(p * 1.5)));
+    p *= rot2(rotZ);
+
+    // Tunnel mapping (iq technique)
+    float a = atan(p.y, p.x);
+    float rSquare = pow(pow(p.x*p.x, 4.0) + pow(p.y*p.y, 4.0), 1.0/8.0);
+    float rRound = length(p);
+    float r = mix(rSquare, rRound, 0.5 + 0.5 * sin(time * PHASE));
+    vec2 uv = vec2(0.3 / max(r, 1e-4) + time, a / PI);
+
+    // Grid warps
+    uv += vec2(0.0, PREWARP_AMP * sin(time + uv.x * PREWARP_FREQ));
+    vec2 uvDraw = fract(uv * GRID_SCALE + GRID_PHASE * sin(time)) - 0.5;
+
+    // Rotate drawing coords
+    uvDraw *= rot2(ROT);
+
+    float antialias = 8.0 / max(R.y, 1.0);
+    float col = 0.0;
+
+    // Rect (as polygon with 4 verts)
+    vec2 rectPos = uvDraw + vec2(0.0, RECT_OFF_Y);
+    col = max(col, smoothstep(antialias, 0.0, polygon(rectPos, 4.0, RECT_SIZE)));
+
+    // Triangle
+    vec2 triPos = uvDraw + TRI_OFFSET;
+    col = max(col, smoothstep(antialias, 0.0, polygon(triPos, 3.0, TRI_SIZE)));
+
+    // Shading
+    col = col * r * COLOR_GAIN;
+    col += OUTER_BIAS * length(uvOrig);
+
+    vec3 outc = vec3(col);
+    outc = pow(max(outc, 0.0), vec3(GAMMA));
+    gl_FragColor = vec4(outc, 1.0);
+}
+    </shader>
+</effect>

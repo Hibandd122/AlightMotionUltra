@@ -1,0 +1,312 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.sposshake" name="S_Pos Shake" desc="Position shake using banded Catmull-Rom noise plus sine waves per axis, with 8 shake modes (handheld, earthquake, whip, bounce, jitter, drift, punch), frequency-band weights, decay/ramp envelope, directional bias, spring oscillation, global angle, and black/tile/reflect edge handling." category="warp" tags="shake,position,move,camera,impact,handheld,earthquake,whip,bounce" thumb="thumb/Move and Transform/S_Pos Shake.webp" overdraw="true" max-overdraw="1.0">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="amplitude" label="Amplitude" default="15.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="frequency" label="Frequency" default="8.0" min="0.1" max="40.0" step="0.1" type="float" />
+        <slider id="seed" label="Seed" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="smoothness" label="Smoothness" default="0.4" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="globalAngle" label="Global Angle" default="0.0" min="-360.0" max="360.0" step="1.0" type="float" />
+
+        
+        <menu id="shakeMode" style="dropdown" default="1" label="Shake Mode">
+            <menu label="Normal" value="1" />
+            <menu label="Handheld" value="2" />
+            <menu label="Earthquake" value="3" />
+            <menu label="Whip" value="4" />
+            <menu label="Bounce" value="5" />
+            <menu label="Jitter" value="6" />
+            <menu label="Drift" value="7" />
+            <menu label="Punch" value="8" />
+        </menu>
+        <slider id="modeIntensity" label="Mode Intensity" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+
+        
+        <slider id="xRandAmp" label="X Random Amp" default="0.5" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="xRandFreq" label="X Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="xWaveAmp" label="X Wave Amp" default="0.0" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="xWaveFreq" label="X Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="xPhase" label="X Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        <slider id="xBias" label="X Directional Bias" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="yRandAmp" label="Y Random Amp" default="0.3" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="yRandFreq" label="Y Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="yWaveAmp" label="Y Wave Amp" default="0.0" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="yWaveFreq" label="Y Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="yPhase" label="Y Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        <slider id="yBias" label="Y Directional Bias" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="decayAmount" label="Decay Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="decaySpeed" label="Decay Speed" default="2.0" min="0.5" max="10.0" step="0.1" type="float" />
+        <slider id="rampAmount" label="Ramp Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="rampSpeed" label="Ramp Speed" default="2.0" min="0.5" max="10.0" step="0.1" type="float" />
+
+        
+        <slider id="lowFreqAmp" label="Low Freq Amp" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="midFreqAmp" label="Mid Freq Amp" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="highFreqAmp" label="High Freq Amp" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+
+        
+        <slider id="springTension" label="Spring Tension" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="springDamping" label="Spring Damping" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="springMass" label="Spring Mass" default="0.5" min="0.1" max="2.0" step="0.05" type="float" />
+
+        
+        <menu id="edgeMode" style="dropdown" default="3" label="Edge Mode">
+            <menu label="Black" value="1" />
+            <menu label="Tile" value="2" />
+            <menu label="Reflect" value="3" />
+        </menu>
+
+        
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float hash(float n) {
+        return fract(sin(n) * 43758.5453123);
+    }
+    float catmullRom(float t, float s) {
+        float i = floor(t);
+        float f = fract(t);
+        float a = hash(i - 1.0 + s);
+        float b = hash(i + s);
+        float c = hash(i + 1.0 + s);
+        float d = hash(i + 2.0 + s);
+        float f2 = f * f;
+        float f3 = f2 * f;
+        return (-0.5*a + 1.5*b - 1.5*c + 0.5*d) * f3
+             + (a - 2.5*b + 2.0*c - 0.5*d) * f2
+             + (-0.5*a + 0.5*c) * f
+             + b;
+    }
+    float bandedNoise(float t, float s, float sm) {
+        float low = catmullRom(t * 0.7, s) * 2.0 - 1.0;
+        float mid = catmullRom(t * 2.1, s + 50.0) * 2.0 - 1.0;
+        float hi1 = catmullRom(t * 5.3, s + 100.0) * 2.0 - 1.0;
+        float hi2 = catmullRom(t * 11.7, s + 150.0) * 2.0 - 1.0;
+        float hiBlend = mix(hi1, hi2, 0.5) * mix(0.3, 0.15, sm);
+        return low * lowFreqAmp
+             + mid * midFreqAmp * mix(0.5, 0.3, sm)
+             + hiBlend * highFreqAmp;
+    }
+    float getRand(float time, float freq, float ph, float seedOff) {
+        float t = (time + ph) * freq;
+        float s = seed + seedOff;
+        return bandedNoise(t, s, smoothness);
+    }
+    float getWave(float time, float freq, float ph) {
+        return sin((time + ph) * freq * 2.0 * PI);
+    }
+    float getEnvelope(float time) {
+        float env = 1.0;
+        if (decayAmount &gt; EPS) {
+            env *= mix(1.0, exp(-time * decaySpeed), decayAmount);
+        }
+        if (rampAmount &gt; EPS) {
+            env *= mix(1.0, 1.0 - exp(-time * rampSpeed), rampAmount);
+        }
+        return clamp(env, 0.0, 1.0);
+    }
+    float applySpring(float value, float time, float seedOff) {
+        if (springTension &lt; EPS) return value;
+        float omega = mix(5.0, 20.0, springTension);
+        float zeta = mix(0.1, 0.9, springDamping);
+        float mass = max(springMass, 0.1);
+        float dampedFreq = omega * sqrt(max(1.0 - zeta * zeta, EPS));
+        float springOsc = exp(-zeta * omega * time / mass) * sin(dampedFreq * time);
+        return value + value * springOsc * springTension * 0.5;
+    }
+    vec2 applyMode(vec2 offset, float time) {
+        float md = float(shakeMode);
+        float mi = modeIntensity;
+
+        // Normal — no modification
+        if (md &lt; 1.5) {
+            return offset;
+        }
+
+        // Handheld — organic drift + micro jitter + breathing
+        if (md &lt; 2.5) {
+            float driftX = catmullRom(time * 0.3, seed + 700.0) * 2.0 - 1.0;
+            float driftY = catmullRom(time * 0.25, seed + 710.0) * 2.0 - 1.0;
+            float microX = catmullRom(time * 8.0, seed + 720.0) * 2.0 - 1.0;
+            float microY = catmullRom(time * 7.5, seed + 730.0) * 2.0 - 1.0;
+            float breathX = sin(time * 0.8 * PI) * 0.08;
+            float breathY = cos(time * 0.6 * PI) * 0.06;
+            offset.x = offset.x * 0.5 + (driftX * 0.3 + microX * 0.08 + breathX) * mi * amplitude * 0.01;
+            offset.y = offset.y * 0.5 + (driftY * 0.3 + microY * 0.08 + breathY) * mi * amplitude * 0.01;
+            return offset;
+        }
+
+        // Earthquake — heavy low freq rumble + sharp spikes
+        if (md &lt; 3.5) {
+            float rumbleX = catmullRom(time * 1.5, seed + 800.0) * 2.0 - 1.0;
+            float rumbleY = catmullRom(time * 1.3, seed + 810.0) * 2.0 - 1.0;
+            float spikeX = catmullRom(time * 12.0, seed + 820.0) * 2.0 - 1.0;
+            float spikeY = catmullRom(time * 11.0, seed + 830.0) * 2.0 - 1.0;
+            spikeX = spikeX * spikeX * sign(spikeX);
+            spikeY = spikeY * spikeY * sign(spikeY);
+            offset.x = offset.x * (1.0 + mi * 0.5) + (rumbleX * 0.4 + spikeX * 0.15) * mi * amplitude * 0.01;
+            offset.y = offset.y * (1.0 + mi * 0.5) + (rumbleY * 0.4 + spikeY * 0.15) * mi * amplitude * 0.01;
+            return offset;
+        }
+
+        // Whip — fast directional snap
+        if (md &lt; 4.5) {
+            float whipBase = sin(time * frequency * PI * 2.0);
+            float whipSnap = pow(abs(whipBase), 3.0) * sign(whipBase);
+            float whipNoiseX = catmullRom(time * 6.0, seed + 900.0) * 2.0 - 1.0;
+            float whipNoiseY = catmullRom(time * 5.5, seed + 910.0) * 2.0 - 1.0;
+            float angle = globalAngle * PI / 180.0;
+            float whipX = whipSnap * cos(angle) + whipNoiseX * 0.2;
+            float whipY = whipSnap * sin(angle) + whipNoiseY * 0.2;
+            offset.x = whipX * mi * amplitude * 0.015;
+            offset.y = whipY * mi * amplitude * 0.015;
+            return offset;
+        }
+
+        // Bounce — spring-like oscillation
+        if (md &lt; 5.5) {
+            float bounceT = time * frequency * 1.5;
+            float bounceX = abs(sin(bounceT * PI)) * exp(-bounceT * 0.3);
+            float bounceY = abs(sin(bounceT * PI * 0.8 + 0.5)) * exp(-bounceT * 0.35);
+            float dirX = (mod(floor(bounceT), 2.0) == 0.0) ? 1.0 : -1.0;
+            float dirY = (mod(floor(bounceT * 0.8), 2.0) == 0.0) ? 1.0 : -1.0;
+            float bnX = catmullRom(time * 4.0, seed + 1000.0) * 2.0 - 1.0;
+            float bnY = catmullRom(time * 3.5, seed + 1010.0) * 2.0 - 1.0;
+            offset.x = (bounceX * dirX * mi + bnX * 0.1 * mi) * amplitude * 0.01;
+            offset.y = (bounceY * dirY * mi + bnY * 0.1 * mi) * amplitude * 0.01;
+            return offset;
+        }
+
+        // Jitter — fast random micro-snaps
+        if (md &lt; 6.5) {
+            float jitX = hash(floor(time * frequency * 3.0) + seed + 1100.0) * 2.0 - 1.0;
+            float jitY = hash(floor(time * frequency * 2.8) + seed + 1110.0) * 2.0 - 1.0;
+            float smooth1 = catmullRom(time * 15.0, seed + 1120.0) * 2.0 - 1.0;
+            float smooth2 = catmullRom(time * 14.0, seed + 1130.0) * 2.0 - 1.0;
+            offset.x = mix(jitX, smooth1, smoothness) * mi * amplitude * 0.01;
+            offset.y = mix(jitY, smooth2, smoothness) * mi * amplitude * 0.01;
+            return offset;
+        }
+
+        // Drift — very slow organic wander
+        if (md &lt; 7.5) {
+            float d1 = catmullRom(time * 0.15, seed + 1200.0) * 2.0 - 1.0;
+            float d2 = catmullRom(time * 0.12, seed + 1210.0) * 2.0 - 1.0;
+            float d3 = catmullRom(time * 0.4, seed + 1220.0) * 2.0 - 1.0;
+            float d4 = catmullRom(time * 0.35, seed + 1230.0) * 2.0 - 1.0;
+            offset.x = (d1 * 0.7 + d3 * 0.3) * mi * amplitude * 0.01;
+            offset.y = (d2 * 0.7 + d4 * 0.3) * mi * amplitude * 0.01;
+            return offset;
+        }
+
+        // Punch — single hit that decays
+        if (md &lt; 8.5) {
+            float punchDecay = exp(-time * 5.0 * mi);
+            float punchX = sin(time * frequency * PI * 4.0) * punchDecay;
+            float punchY = cos(time * frequency * PI * 3.0 + 0.5) * punchDecay;
+            float noiseX = catmullRom(time * 10.0, seed + 1300.0) * 2.0 - 1.0;
+            float noiseY = catmullRom(time * 9.0, seed + 1310.0) * 2.0 - 1.0;
+            offset.x = (punchX + noiseX * 0.15 * punchDecay) * mi * amplitude * 0.012;
+            offset.y = (punchY + noiseY * 0.15 * punchDecay) * mi * amplitude * 0.012;
+            return offset;
+        }
+
+        return offset;
+    }
+    vec2 applyEdge(vec2 uv, float mode) {
+        if (mode &lt; 1.5) {
+            return uv;
+        } else if (mode &lt; 2.5) {
+            return fract(uv);
+        } else {
+            vec2 r = uv;
+            r.x = (mod(floor(r.x), 2.0) == 0.0) ? fract(r.x) : 1.0 - fract(r.x);
+            r.y = (mod(floor(r.y), 2.0) == 0.0) ? fract(r.y) : 1.0 - fract(r.y);
+            return r;
+        }
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float t = acTime;
+        float em = float(edgeMode);
+        float env = getEnvelope(t);
+
+        // Calculate X offset
+        float xOff = 0.0;
+        if (xRandAmp &gt; EPS) {
+            xOff += getRand(t, frequency * xRandFreq, xPhase, 0.0) * xRandAmp;
+        }
+        if (xWaveAmp &gt; EPS) {
+            xOff += getWave(t, xWaveFreq, xPhase) * xWaveAmp;
+        }
+        xOff *= amplitude * 0.01;
+        xOff += xBias * amplitude * 0.005;
+
+        // Calculate Y offset
+        float yOff = 0.0;
+        if (yRandAmp &gt; EPS) {
+            yOff += getRand(t, frequency * yRandFreq, yPhase, 100.0) * yRandAmp;
+        }
+        if (yWaveAmp &gt; EPS) {
+            yOff += getWave(t, yWaveFreq, yPhase) * yWaveAmp;
+        }
+        yOff *= amplitude * 0.01;
+        yOff += yBias * amplitude * 0.005;
+
+        // Apply shake mode
+        vec2 offset = applyMode(vec2(xOff, yOff), t);
+
+        // Apply spring physics
+        offset.x = applySpring(offset.x, t, 0.0);
+        offset.y = applySpring(offset.y, t, 50.0);
+
+        // Apply envelope
+        offset *= env;
+
+        // Apply global angle rotation
+        float angRad = globalAngle * PI / 180.0;
+        float cosA = cos(angRad);
+        float sinA = sin(angRad);
+        float rX = offset.x * cosA - offset.y * sinA;
+        float rY = offset.x * sinA + offset.y * cosA;
+        offset = vec2(rX, rY);
+
+        // Apply offset to UV
+        vec2 shakenUV = uv + offset;
+
+        // Edge handling
+        float outBounds = 1.0;
+        if (em &lt; 1.5) {
+            outBounds = (shakenUV.x &lt; 0.0 || shakenUV.x &gt; 1.0 || shakenUV.y &lt; 0.0 || shakenUV.y &gt; 1.0) ? 0.0 : 1.0;
+        }
+        shakenUV = applyEdge(shakenUV, em);
+        shakenUV = clamp(shakenUV, 0.0, 1.0);
+
+        // Sample
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec4 shaken = texture2DCv(inputImg.texture, shakenUV);
+        vec3 fin = shaken.rgb * outBounds;
+        float finA = shaken.a * outBounds;
+
+        // Mix
+        fin = mix(original.rgb, fin, globalMix);
+        finA = mix(original.a, finA, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+
+        gl_FragColor = vec4(fin, finA);
+    }
+    </shader>
+    
+</effect>

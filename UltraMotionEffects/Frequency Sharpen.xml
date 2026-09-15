@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_sharpen" name="Frequency Sharpen" desc="Multi-frequency sharpening: separates the image into tiny/small/medium/large detail bands using four 5x5 Gaussian blurs, scales each band independently, and adds them back. Includes coring (edge threshold) to suppress strong-edge halos, separate luma/chroma weights, and per-channel RGB mix." category="blur" tags="blur,sharpen,details,frequency,laplacian" thumb="thumb/Blur and Sharpen/Frequency Sharpen.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="sharpenAmp" default="1.0" min="0.0" max="4.0" label="Sharpen Amount" />
+        <slider id="sharpenWidth" default="0.12" min="0.0" max="0.5" step="0.001" label="Base Width" />
+        <slider id="edgeThreshold" default="0.15" min="0.0" max="1.0" step="0.01" label="Edge Threshold (Coring)" />
+
+        
+        <slider id="scaleTiny" default="4.0" min="0.0" max="10.0" label="Tiny Details" />
+        <slider id="scaleSmall" default="1.5" min="0.0" max="5.0" label="Small Details" />
+        <slider id="scaleMedium" default="1.0" min="0.0" max="5.0" label="Medium Details" />
+        <slider id="scaleLarge" default="2.0" min="0.0" max="5.0" label="Large Details" />
+
+        
+        <slider id="sharpenLuma" default="1.0" min="0.0" max="1.0" label="Sharpen Luma" type="percent" />
+        <slider id="sharpenChroma" default="0.5" min="0.0" max="1.0" label="Sharpen Chroma" type="percent" />
+        <slider id="sharpenR" default="1.0" min="0.0" max="1.0" label="Red Mix" type="percent" />
+        <slider id="sharpenG" default="1.0" min="0.0" max="1.0" label="Green Mix" type="percent" />
+        <slider id="sharpenB" default="1.0" min="0.0" max="1.0" label="Blue Mix" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // S_Sharpen - Multi-Frequency Detail Restoration
+        
+        const float SmallDetailSize = 0.1;
+
+        float getLuma(vec3 rgb) {
+            return dot(rgb, vec3(0.299, 0.587, 0.114));
+        }
+
+        // Gaussian 5x5 approximation
+        vec3 blur(vec2 uv, float radius) {
+            vec2 res = acScreenSize;
+            vec3 col = vec3(0.0);
+            float total = 0.0;
+            
+            for(float x = -2.0; x &lt;= 2.0; x++) {
+                for(float y = -2.0; y &lt;= 2.0; y++) {
+                    float weight = exp(-(x*x + y*y) / (2.0 * radius * radius + 0.0001));
+                    col += texture2DCv(inputImg.texture, uv + vec2(x, y) / res * radius).rgb * weight;
+                    total += weight;
+                }
+            }
+            return col / total;
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec3 source = src.rgb;
+            
+            // Define frequency radii
+            float baseR = sharpenWidth * 100.0;
+            float rTiny   = SmallDetailSize * 0.5 * baseR;
+            float rSmall  = SmallDetailSize * 1.0 * baseR;
+            float rMedium = SmallDetailSize * 2.0 * baseR;
+            float rLarge  = SmallDetailSize * 4.0 * baseR;
+            
+            // Frequency Separation
+            vec3 blurT = blur(uv, rTiny);
+            vec3 blurS = blur(uv, rSmall);
+            vec3 blurM = blur(uv, rMedium);
+            vec3 blurL = blur(uv, rLarge);
+            
+            vec3 tinyFreq   = source - blurT;
+            vec3 smallFreq  = blurT - blurS;
+            vec3 mediumFreq = blurS - blurM;
+            vec3 largeFreq  = blurM - blurL;
+            
+            // Combine detail layers
+            vec3 details = (tinyFreq   * scaleTiny) +
+                           (smallFreq  * scaleSmall) +
+                           (mediumFreq * scaleMedium) +
+                           (largeFreq  * scaleLarge);
+            
+            details *= sharpenAmp;
+            
+            // Coring / Edge Thresholding
+            float diffLuma = getLuma(abs(details));
+            float edgeMask = smoothstep(edgeThreshold + 0.1, edgeThreshold, diffLuma);
+            details *= edgeMask;
+            
+            // Luma/Chroma Separation
+            float sourceLuma = getLuma(source);
+            vec3 sourceChroma = source - sourceLuma;
+            
+            float detailLuma = getLuma(details);
+            vec3 detailChroma = details - detailLuma;
+            
+            // Assemble results
+            vec3 resLuma   = vec3(sourceLuma + (detailLuma * sharpenLuma));
+            vec3 resChroma = sourceChroma + (detailChroma * sharpenChroma);
+            
+            vec3 finalRGB = resLuma + resChroma;
+            
+            // Individual RGB logic
+            finalRGB.r = mix(source.r, finalRGB.r, sharpenR);
+            finalRGB.g = mix(source.g, finalRGB.g, sharpenG);
+            finalRGB.b = mix(source.b, finalRGB.b, sharpenB);
+
+            gl_FragColor = vec4(finalRGB, src.a);
+        }
+    </shader>
+</effect>

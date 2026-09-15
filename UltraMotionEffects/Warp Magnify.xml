@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_warp_magnify" name="Warp Magnify" desc="Magnifies a region through an elliptical lens in the style of Sapphire S_WarpMagnify: adjustable center, magnify amount, per-axis relative magnification, lens radius, rotatable ellipse shape, soft edge falloff with shape curve, and tile/reflect wrap modes." category="warp" tags="warp,magnify,lens,distortion,sapphire" thumb="thumb/Distort and Warp/Warp Magnify.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <point id="center" default="0.5,0.5" label="Center" />
+        <slider id="magnifyAmount" default="2.0" min="0.0" max="10.0" step="0.01" label="Magnify Amount" />
+        <point id="magnifyRel" default="1.0,1.0" label="Magnify Rel X/Y" />
+        
+        
+        <slider id="lensRadius" default="0.3" min="0.0" max="2.0" step="0.01" label="Lens Radius" />
+        <slider id="lensEdgeWidth" default="0.5" min="0.0" max="2.0" step="0.01" label="Lens Edge Width" />
+        <slider id="lensRelWidth" default="1.2" min="0.1" max="10.0" step="0.01" label="Lens Rel Width" />
+        <slider id="lensRelHeight" default="0.8" min="0.1" max="10.0" step="0.01" label="Lens Rel Height" />
+        <slider id="lensRotate" default="25.0" min="-360.0" max="360.0" step="0.1" label="Lens Rotate" />
+        <slider id="lensEdgeShape" default="1.0" min="0.0" max="1.0" step="0.01" label="Lens Edge Shape" />
+        
+        
+        <slider id="wrapMode" default="2" min="0" max="2" step="1" snap="1" label="Wrap Mode (0:No, 1:Tile, 2:Reflect)" />
+        <switch id="followLayer" default="true" label="Follow Layer" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // S_WarpMagnify implementation for Alight Motion
+        
+        #define PI 3.14159265359
+
+        vec2 rotate(vec2 v, float angle) {
+            float s = sin(angle);
+            float c = cos(angle);
+            return vec2(v.x * c - v.y * s, v.x * s + v.y * c);
+        }
+
+        vec2 applyWrap(vec2 uv, int mode) {
+            if (mode == 1) return fract(uv); // Tile
+            if (mode == 2) return abs(mod(uv - 1.0, 2.0) - 1.0); // Reflect
+            return uv; // No wrap
+        }
+
+        void main() {
+            vec2 luv = acLayerNorm.xy;
+            vec2 suv = acScreenNorm.xy;
+            
+            vec2 uv;
+            vec2 aspect;
+            if(followLayer) {
+                uv = luv;
+                aspect = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            } else {
+                uv = suv;
+                aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+            }
+            
+            // 1. Calculate relative position from center
+            vec2 p = uv - center;
+            p.x *= aspect.x; // Correct for aspect ratio
+            
+            // 2. Apply Lens Rotation
+            float rad = lensRotate * (PI / 180.0);
+            p = rotate(p, rad);
+            
+            // 3. Apply Ellipse Scaling
+            p.x /= max(0.01, lensRelWidth);
+            p.y /= max(0.01, lensRelHeight);
+            
+            // 4. Calculate Distance and Magnification
+            float d = length(p);
+            float edgeSize = lensRadius * lensEdgeWidth;
+            
+            float magFactor = 1.0;
+            
+            if (d &lt; lensRadius) {
+                magFactor = magnifyAmount;
+            } 
+            else if (d &lt; lensRadius + edgeSize) {
+                float t = (d - lensRadius) / edgeSize;
+                float curve = mix(t, smoothstep(0.0, 1.0, t), lensEdgeShape);
+                magFactor = mix(magnifyAmount, 1.0, curve);
+            }
+            
+            // 5. Warp the UVs
+            vec2 warpedP = p;
+            warpedP /= (magFactor * magnifyRel);
+            
+            // 6. Inverse Transform
+            warpedP.x *= lensRelWidth;
+            warpedP.y *= lensRelHeight;
+            warpedP = rotate(warpedP, -rad);
+            warpedP.x /= aspect.x;
+            
+            vec2 finalUV = center + warpedP;
+            
+            // 7. Apply Wrap and Sample
+            finalUV = applyWrap(finalUV, int(wrapMode));
+            
+            vec4 color = texture2DCv(inputImg.texture, finalUV);
+            
+            // 8. Edge Darkening
+            if (d &gt; lensRadius &amp;&amp; d &lt; lensRadius + edgeSize) {
+                color.rgb *= mix(0.95, 1.0, (d - lensRadius) / edgeSize);
+            }
+            
+            vec4 base = texture2DCv(inputImg.texture, suv);
+            gl_FragColor = mix(base, color, blend);
+        }
+    </shader>
+
+</effect>

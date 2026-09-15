@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.dream_bloom" name="Dream Bloom" desc="Threshold-based bloom: bright areas are extracted, blurred with a downsampled separable Gaussian, then screen-composited with per-channel chromatic dispersion offsets, RGB multipliers, tint, halo, and intensity controls." category="colorlight" tags="glow,bloom,dreamy,dispersion,color" thumb="thumb/Color/Dream Bloom.webp" overdraw="true" max-overdraw="1.0" maxOverdraw="0.15" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="downImg" srcType="buffer" downsample="2" />
+        <texture id="hblur" srcType="buffer" downsample="2" />
+        <texture id="vblur" srcType="buffer" downsample="2" />
+        
+        <slider id="strength" default="0.35" min="0.0" max="3.0" step="0.005" label="Blur Strength" />
+        <slider id="threshold" default="0.65" min="0.0" max="1.0" step="0.001" label="Luminance Threshold" />
+        <slider id="intensity" default="1.2" min="0.0" max="5.0" step="0.01" label="Glow Intensity" />
+        <color id="tint" default="#FFFFFF" label="Base Tint" alpha="false" />
+        
+        
+        <slider id="colorR" default="1.00" min="0.0" max="2.0" step="0.01" label="Red" type="percent" />
+        <slider id="colorG" default="1.00" min="0.0" max="2.0" step="0.01" label="Green" type="percent" />
+        <slider id="colorB" default="1.00" min="0.0" max="2.0" step="0.01" label="Blue" type="percent" />
+        
+        
+        <slider id="dispersion" default="0.003" min="0.0" max="0.02" step="0.0001" label="Dispersion Amount" />
+        <slider id="dispersionAngle" default="0.0" min="-3.14159" max="3.14159" step="0.01" label="Dispersion Angle (rad)" />
+        <slider id="halo" default="0.15" min="0.0" max="2.0" step="0.01" label="Halo" />
+        <slider id="blend" default="0.35" min="0.0" max="1.0" label="Blend" type="percent" />
+        <slider id="alpha" default="0.9" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+    </params>
+
+    <passes>
+        <pass target="downImg" />
+        <pass target="hblur" />
+        <pass target="vblur" />
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+
+        vec4 composite(vec4 a, vec4 b) {
+            return a * (1. - b.a) + b;
+        }
+
+        vec4 blurInternal(vec2 texOffset, vec2 st, float numBlurPixelsPerSide)
+        {
+            if(strength &lt;= 0.0)
+                return vec4(0,0,0,0);
+            const float PI = 3.14159265;
+            float adjSigma = numBlurPixelsPerSide / 2.14596602;
+
+            highp vec3 incrementalGaussian;
+            incrementalGaussian.x = 1.0 / (sqrt(2.0 * PI) * adjSigma);
+            incrementalGaussian.y = exp(-0.5 / (adjSigma * adjSigma));
+            incrementalGaussian.z = incrementalGaussian.y * incrementalGaussian.y;
+
+            vec4 avgValue = vec4(0.0);
+            highp float coefficientSum = 0.0;
+
+            avgValue += ((acPass==1 ? texture2DCv(downImg.texture,st) : texture2DCv(hblur.texture,st)).rgba * incrementalGaussian.x);
+            coefficientSum += incrementalGaussian.x;
+
+            for (float i = 1.0; i &lt;= numBlurPixelsPerSide; i += 2.0) {
+                float offset0 = i;
+                float offset1 = i + 1.0;
+                incrementalGaussian.xy *= incrementalGaussian.yz;
+                coefficientSum += (2.0 * incrementalGaussian.x);
+                float weight0 = incrementalGaussian.x;
+                incrementalGaussian.xy *= incrementalGaussian.yz;
+                coefficientSum += (2.0 * incrementalGaussian.x);
+                float weight1 = incrementalGaussian.x;
+                float weightL = weight0 + weight1;
+                float offsetL = (offset0*weight0 + offset1*weight1) / weightL;
+                vec2 stL = clamp(st - offsetL * texOffset, vec2(0.0), vec2(1.0));
+                vec2 stR = clamp(st + offsetL * texOffset, vec2(0.0), vec2(1.0));
+                avgValue += ((acPass==1 ? texture2DCv(downImg.texture,stL) : texture2DCv(hblur.texture,stL)) * weightL);
+                avgValue += ((acPass==1 ? texture2DCv(downImg.texture,stR) : texture2DCv(hblur.texture,stR)) * weightL);
+            }
+            return avgValue / coefficientSum;
+        }
+
+        void main() {
+            if (acPass == 0) {
+                // Bright-pass
+                vec4 c = texture2DCv(inputImg.texture, acScreenNorm.st);
+                float lum = dot(c.rgb, luminanceWeighting);
+                vec3 tintRGB = tint.rgb; // base tint
+                vec3 colored = mix(c.rgb, tintRGB * c.a, blend);
+                gl_FragColor = (lum &gt; threshold) ? vec4(colored, c.a) : vec4(0.0);
+            } else if (acPass == 1) {
+                float kernelSize = strength * 0.285 * length(acPreviewSize);
+                vec2 texOffset = vec2(1.0/downImg.size.x, 0.0);
+                gl_FragColor = blurInternal(texOffset, acScreenNorm.st, kernelSize);
+            } else if (acPass == 2) {
+                float kernelSize = strength * 0.285 * length(acPreviewSize);
+                vec2 texOffset = vec2(0.0, 1.0/hblur.size.y);
+                gl_FragColor = blurInternal(texOffset, acScreenNorm.st, kernelSize);
+            } else {
+                // Final composite with chromatic dispersion and halo
+                vec4 base = texture2DCv(inputImg.texture, acScreenNorm.st);
+                vec4 blurTex = texture2DCv(vblur.texture, acScreenNorm.st);
+                float blurAlpha = blurTex.a;
+
+                // Dispersion direction
+                vec2 dir = vec2(cos(dispersionAngle), sin(dispersionAngle));
+                vec2 offR = dir * dispersion * 0.5;
+                vec2 offG = -dir * dispersion * 0.25;
+                vec2 offB = dir * dispersion;
+
+                // Sample per-channel at different offsets
+                float r = texture2DCv(vblur.texture, clamp(acScreenNorm.st + offR, vec2(0.0), vec2(1.0))).r;
+                float g = texture2DCv(vblur.texture, clamp(acScreenNorm.st + offG, vec2(0.0), vec2(1.0))).g;
+                float b = texture2DCv(vblur.texture, clamp(acScreenNorm.st + offB, vec2(0.0), vec2(1.0))).b;
+
+                vec3 glowRGB = vec3(r * colorR, g * colorG, b * colorB);
+                glowRGB *= intensity;
+
+                // Halo based on blur alpha squeeze
+                float hsq = 0.15;
+                float h = (1. - smoothstep(0.0, hsq, abs(blurAlpha - hsq))) * halo;
+                vec3 haloRGB = mix(glowRGB/hsq * halo, tint.rgb * halo, blend) * h;
+                glowRGB += haloRGB;
+
+                // Screen composite
+                vec3 baseRGB = base.rgb / max(base.a, 0.0001);
+                vec3 outRGB = 1.0 - (1.0 - baseRGB) * (1.0 - glowRGB);
+                vec4 outColor = vec4(outRGB, 1.0) * min(base.a, blurAlpha) * alpha;
+                gl_FragColor = composite(base, outColor);
+            }
+        }
+    </shader>
+</effect>

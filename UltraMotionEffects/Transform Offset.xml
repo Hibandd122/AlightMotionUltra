@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.transform2" name="Transform Offset" desc="Script-based effect that offsets the layer's existing transform: shifts position X/Y, adds rotation, and scales uniformly via Z Dist. Each channel has an invert switch, making it easy to mirror or reverse copied keyframe motion." tags="transform" category="warp" thumb="thumb/Move and Transform/Transform Offset.webp">
+
+    <params>
+    <slider id="posz" default="1" min="0.001" max="30" step="0.005" ticks="2,1.75,1.5,1.25,1,0.75,0.5,0.25,0" label="Z Dist" />
+    <slider id="posx" default="0" min="-8192" max="8192" step="0.5" ticks="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" label="Shift X" />
+    <slider id="posy" default="0" min="-8192" max="8192" step="0.5" ticks="-1024,-512,-300,-200,-100,0,100,200,300,512,1024" label="Shift Y" />
+    <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <switch id="zinv" default="false" label="Invert Z" />
+        <switch id="xinv" default="false" label="Invert X" />
+        <switch id="yinv" default="false" label="Invert Y" />
+        <switch id="ainv" default="false" label="Invert Angle" />
+    </params>
+
+    
+</effect>

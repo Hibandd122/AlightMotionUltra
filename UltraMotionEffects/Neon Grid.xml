@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.grid-lines" name="Neon Grid" desc="Overlays a colored line grid on the layer, with controls for cell count, line width, color and opacity." category="procedural" thumb="thumb/Procedural/Neon Grid.webp" tags="procedural,grid,neon,hud,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FFFF2BD6" label="Grid Color" alpha="false" />
+        <slider id="size" default="16.0" min="2.0" max="60.0" label="Cells" />
+        <slider id="width" default="0.05" min="0.005" max="0.3" label="Line Width" />
+        <slider id="amount" default="0.9" min="0.0" max="1.0" label="Amount" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a&gt;0.0? src.rgb/src.a : src.rgb;
+            vec2 g = fract(acScreenNorm*size);
+            float gx = min(g.x, 1.0-g.x);
+            float gy = min(g.y, 1.0-g.y);
+            float line = 1.0 - smoothstep(0.0, width, min(gx,gy));
+            vec3 outc = mix(c, color.rgb, line*amount);
+            gl_FragColor = vec4(outc,1.0)*src.a;
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.halftone_lightdots" name="Halftone Dots" desc="Classic print-style halftone: converts the image to a rotated dot grid where dot size is driven by source luminance (darker areas produce larger dots). Controls include frequency, angle, dot width and sharpness, black/white dot mode, custom dot and background colors, and an optional source smoothing to reduce flicker." category="drawingedge" tags="halftone,dots,screen,print,stylize" thumb="thumb/Stylize/Halftone Dots (2).webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <menu id="dotsMode" default="0" style="dropdown" label="Dots">
+      <menu label="Black" value="0" />
+      <menu label="White" value="1" />
+    </menu>
+    <slider id="dotsFrequency" default="45.0" min="0.5" max="200.0" step="0.1" label="Dots Frequency" />
+    <slider id="dotsAngle" default="33.0" min="-180.0" max="180.0" step="0.1" label="Dots Angle" />
+    <slider id="dotsRelWidth" default="1.0" min="0.1" max="5.0" step="0.01" label="Dots Rel Width" />
+    <slider id="dotsSharpness" default="4.0" min="0.0" max="20.0" step="0.1" label="Dots Sharpness" />
+    <slider id="dotsLighten" default="0.0" min="-1.0" max="1.0" step="0.01" label="Dots Lighten" />
+
+    
+    <slider id="smoothSource" default="0.0" min="0.0" max="2.0" step="0.01" label="Smooth Source" />
+
+    
+    <color id="color1" default="#FFFFFFFF" label="Color1" alpha="false" />
+    <color id="color0" default="#FF000000" label="Color0" alpha="false" />
+
+    
+    <slider id="shiftX" default="0.0" min="-500.0" max="500.0" step="0.1" label="Dots Shift X" />
+    <slider id="shiftY" default="0.0" min="-500.0" max="500.0" step="0.1" label="Dots Shift Y" />
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Classic Halftone Dots: dot size driven by source luminance
+    // Dark areas -&gt; larger dots, Light areas -&gt; smaller dots
+
+    const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+    float greyScale(vec3 c){ return dot(c, LUMA); }
+    mat2 rot(float a){ float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+    // Optional 3x3 luminance smooth to avoid flicker at high frequency
+    float smoothLum(vec2 uv){
+      if(smoothSource &lt;= 0.0) return greyScale(texture2DCv(inputImg.texture, uv).rgb);
+      vec2 texel = 1.0 / getTexSize(inputImg.size);
+      float r = clamp(smoothSource, 0.0, 2.0);
+      vec2 o = texel * r;
+      float acc = 0.0; float w = 0.0;
+      for(int j=-1;j&lt;=1;j++){
+        for(int i=-1;i&lt;=1;i++){
+          float ww = (i==0 &amp;&amp; j==0) ? 2.0 : 1.0;
+          acc += greyScale(texture2DCv(inputImg.texture, uv + vec2(i,j)*o).rgb) * ww;
+          w += ww;
+        }
+      }
+      return acc / max(w, 1.0);
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      float lum = smoothLum(uv);            // 0=black, 1=white
+
+      // Build rotated grid coordinates in pixel space, normalize by height for AR stability
+      float ang = radians(dotsAngle);
+      vec2 shiftPx = vec2(shiftX, -shiftY);
+      vec2 uvShift = uv + shiftPx / acScreenSize;
+      vec2 p = (uvShift - 0.5) * acScreenSize; // pixel space centered
+      vec2 s = rot(ang) * p;                    // rotate grid
+      vec2 st = s / max(acScreenSize.y, 1.0);   // normalize
+
+      // Frequency: how many dots per height
+      float freq = max(dotsFrequency, 0.0001);
+      vec2 grid = st * freq;
+      vec2 f = fract(grid) - 0.5;               // cell-local coords in [-0.5, 0.5]
+
+      // Allow elliptical dots via relative width
+      f.x *= dotsRelWidth;
+      float dist = length(f);
+
+      // Dot radius from luminance: darker -&gt; larger
+      // dotsLighten shifts the curve (+ makes dots lighter/smaller)
+      float rLuma = clamp(1.0 - lum + dotsLighten, 0.0, 1.0);
+      float radius = 0.5 * rLuma;               // 0..0.5 cell radius
+
+      // Edge softness: higher sharpness -&gt; crisper edges
+      float edge = 0.01 / max(dotsSharpness, 0.0001);
+      float dotMask = 1.0 - smoothstep(radius - edge, radius + edge, dist);
+
+      // Mode swap: 0 = black dots on white, 1 = white dots on black
+      if(dotsMode == 1) dotMask = 1.0 - dotMask;
+
+      vec3 c0 = color0.rgb; // dot color (black by default)
+      vec3 c1 = color1.rgb; // background color (white by default)
+      vec3 halftone = mix(c1, c0, dotMask);
+
+      float a = src.a * alpha;
+      gl_FragColor = vec4(halftone, 1.0) * a;
+    }
+  </shader>
+
+</effect>

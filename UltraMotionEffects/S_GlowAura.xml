@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_glow_aura" name="S_GlowAura" desc="Draws cycling rainbow aura bands around bright areas: a 16-tap radial luminance spread above a threshold drives a twisting, animated cosine palette that is screen-blended over the source. Controls include brightness, threshold, glow width, band frequency, twist, and phase speed." category="colorlight" tags="glow,aura,radial,spiral,lighting,sapphire,text" thumb="thumb/Light and Glow/S_GlowAura.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="brightness" default="1.2" min="0.0" max="10.0" step="0.1" label="Brightness" />
+        <slider id="threshold" default="0.3" min="0.0" max="1.0" step="0.01" label="Threshold" type="percent" />
+        <slider id="glowWidth" default="0.5" min="0.0" max="2.0" step="0.01" label="Glow Width" />
+        
+        
+        <slider id="frequency" default="12.0" min="1.0" max="50.0" step="1.0" label="Frequency" />
+        <slider id="phaseSpeed" default="2.0" min="0.0" max="10.0" step="0.1" label="Phase Speed" />
+        <slider id="twist" default="4.0" min="-20.0" max="20.0" step="0.1" label="Twist" />
+
+        
+        <switch id="followLayer" default="true" label="Follow Layer" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // S_GlowAura implementation for Alight Motion
+        
+        #define PI 3.14159265359
+
+        float getLuma(vec3 rgb) {
+            return dot(rgb, vec3(0.2126, 0.7152, 0.0722));
+        }
+
+        vec3 auraPalette(float t) {
+            // Base cycling colors
+            vec3 col = 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
+            
+            // Sharp interference bands
+            float bands = sin(t * 15.0);
+            col *= 0.8 + 0.4 * smoothstep(-0.2, 0.2, bands);
+            
+            return col;
+        }
+
+        void main() {
+            vec2 luv = acLayerNorm.xy;
+            vec2 suv = acScreenNorm.xy;
+            
+            vec2 uv;
+            vec2 aspect;
+            if(followLayer) {
+                uv = luv;
+                aspect = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            } else {
+                uv = suv;
+                aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+            }
+            
+            vec2 p = (uv - 0.5) * aspect;
+            
+            vec4 source = texture2DCv(inputImg.texture, uv);
+            
+            // 2. Generate Distance Influence
+            float dist = 0.0;
+            const int SAMPLES = 16;
+            
+            for(int i = 0; i &lt; SAMPLES; i++) {
+                float sampleAngle = float(i) * (2.0 * PI / float(SAMPLES));
+                vec2 sampleDir = vec2(cos(sampleAngle), sin(sampleAngle));
+                
+                // Sampling offset corrected by aspect to keep it circular
+                vec2 offset = sampleDir * glowWidth * 0.1;
+                offset.x /= aspect.x;
+                
+                vec2 sampleUV = uv + offset;
+                float sampleLuma = getLuma(texture2DCv(inputImg.texture, sampleUV).rgb);
+                
+                dist += smoothstep(threshold, 1.0, sampleLuma);
+            }
+            dist /= float(SAMPLES);
+
+            // 3. Twist &amp; Phase Calculation
+            float angle = atan(p.y, p.x);
+            float timePhase = acTime * phaseSpeed;
+            float auraMap = dist * frequency + (angle / PI) * twist + timePhase;
+            
+            // 4. Color Generation
+            const vec3 phaseRGB = vec3(0.2, 0.1, 0.0);
+            vec3 auraCol = vec3(
+                auraPalette(auraMap + phaseRGB.r).r,
+                auraPalette(auraMap + phaseRGB.g).g,
+                auraPalette(auraMap + phaseRGB.b).b
+            );
+            
+            // Fade aura based on distance
+            float mask = smoothstep(0.0, 0.5, dist) * (1.0 - smoothstep(0.5, 1.2, dist));
+            auraCol *= mask * brightness;
+
+            // 5. Composite (Screen Blend)
+            vec3 result = 1.0 - (1.0 - source.rgb) * (1.0 - auraCol);
+            
+            // Keep text interior bright
+            if(getLuma(source.rgb) &gt; 0.8) result = source.rgb;
+
+            vec4 finalColor = vec4(result, source.a);
+            
+            // Mixing based on blend parameter
+            gl_FragColor = mix(source, finalColor, blend);
+        }
+    </shader>
+
+</effect>

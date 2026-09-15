@@ -1,0 +1,285 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.waveloq" name="Waveloq" desc="Waveloq LED dot panel. Black background with glowing neon dots. Dot size driven by image luma. Wave function distorts dot positions/sizes creating ripple patterns. 9 presets." category="drawingedge" tags="waveloq,dot,led,neon,particle,circuit,bent,wave,hologram" thumb="thumb/Stylize/Waveloq.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <menu id="preset" style="dropdown" default="0" label="Preset">
+            <menu value="0" label="Wave Preset" />
+            <menu value="1" label="Signal Preset" />
+            <menu value="2" label="Chaos Preset" />
+            <menu value="3" label="CRT LED Preset" />
+            <menu value="4" label="Raw LED Preset" />
+            <menu value="5" label="Glitch Preset" />
+            <menu value="6" label="Jagged Preset" />
+            <menu value="7" label="Modular Preset" />
+            <menu value="8" label="Particle Preset" />
+        </menu>
+        <slider id="cutoff" default="0.15" min="0.0" max="1.0" step="0.01" label="Cutoff" />
+        <slider id="range" default="0.8" min="0.0" max="1.0" step="0.01" label="Range" />
+        <slider id="fade" default="0.3" min="0.0" max="1.0" step="0.01" label="Fade" />
+        <slider id="distortion" default="0.3" min="0.0" max="2.0" step="0.01" label="Distortion" />
+        <slider id="frequency" default="450.0" min="1.0" max="1000.0" step="1.0" label="Frequency" />
+        <slider id="phase" default="0.0" min="-180.0" max="180.0" step="0.1" label="Phase" />
+        <slider id="animSpeed" default="1.0" min="0.0" max="5.0" step="0.1" label="Anim Speed" />
+
+        
+        <slider id="thickness" default="2.0" min="0.5" max="8.0" step="0.1" label="Thickness" />
+        <slider id="pitch" default="8.0" min="2.0" max="30.0" step="0.5" label="Pitch" />
+        <slider id="density" default="5.0" min="0.5" max="20.0" step="0.1" label="Density" />
+        <slider id="decay" default="1.0" min="0.0" max="5.0" step="0.01" label="Decay" />
+        <slider id="glow" default="3.0" min="0.0" max="10.0" step="0.1" label="Glow" />
+        <menu id="orientation" style="dropdown" default="0" label="Orientation">
+            <menu value="0" label="Vertical" />
+            <menu value="1" label="Horizontal" />
+        </menu>
+
+        
+        <slider id="xShift" default="0.0" min="-10.0" max="10.0" step="0.1" label="X Shift" />
+        <slider id="yShift" default="0.0" min="-10.0" max="10.0" step="0.1" label="Y Shift" />
+        <slider id="generators" default="1.0" min="1.0" max="10.0" step="1.0" label="Generators" />
+        <slider id="compress" default="1.0" min="0.1" max="5.0" step="0.1" label="Compress" />
+
+        
+        
+        <menu id="colorMode" style="dropdown" default="0" label="Color Mode">
+            <menu value="0" label="Source Image" />
+            <menu value="1" label="Single Color" />
+            <menu value="2" label="Rainbow / Neon" />
+        </menu>
+        <slider id="colorR" default="1.0" min="0.0" max="1.0" step="0.01" label="Color R" />
+        <slider id="colorG" default="0.5" min="0.0" max="1.0" step="0.01" label="Color G" />
+        <slider id="colorB" default="0.0" min="0.0" max="1.0" step="0.01" label="Color B" />
+
+        
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Overall Blend" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        float hashV(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        float noiseV(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f*f*(3.0-2.0*f);
+            return mix(
+                mix(hashV(i),           hashV(i+vec2(1,0)), f.x),
+                mix(hashV(i+vec2(0,1)), hashV(i+vec2(1,1)), f.x),
+                f.y
+            );
+        }
+
+        // Rainbow color from position
+        vec3 rainbow(float t) {
+            t = fract(t);
+            float r = abs(t * 6.0 - 3.0) - 1.0;
+            float g = 2.0 - abs(t * 6.0 - 2.0);
+            float b = 2.0 - abs(t * 6.0 - 4.0);
+            return clamp(vec3(r, g, b), 0.0, 1.0);
+        }
+
+        // -----------------------------------------------
+        // Wave displacement — moves dots from grid position
+        // This is what creates the ripple/distortion look
+        // -----------------------------------------------
+        vec2 getWaveDisplace(vec2 dotIdx, float t) {
+            float pr   = float(preset);
+            float freq = frequency * 0.0001;
+            float ph   = phase * 3.14159 / 180.0;
+            float spd  = t * animSpeed;
+            float col  = dotIdx.x;
+            float row  = dotIdx.y;
+            float ori  = float(orientation);
+            vec2  disp = vec2(0.0);
+
+            // Primary axis for wave
+            float axis = (ori &lt; 0.5) ? col : row;
+
+            if (pr &lt; 0.5) {
+                // Wave — smooth sine displaces perpendicular axis
+                float w = sin(axis * freq * 50.0 + spd + ph) * distortion;
+                disp = (ori &lt; 0.5) ? vec2(0.0, w) : vec2(w, 0.0);
+
+            } else if (pr &lt; 1.5) {
+                // Signal — square wave
+                float w = sign(sin(axis * freq * 50.0 + spd + ph)) * distortion * 0.5;
+                disp = (ori &lt; 0.5) ? vec2(0.0, w) : vec2(w, 0.0);
+
+            } else if (pr &lt; 2.5) {
+                // Chaos — multi-freq both axes
+                float wx = sin(col * freq * 80.0 + spd + ph)        * distortion * 0.5
+                         + sin(col * freq * 130.0 + spd * 1.3)      * distortion * 0.3
+                         + noiseV(vec2(col*freq*10.0, spd*0.3))     * distortion * 0.2;
+                float wy = sin(row * freq * 70.0 + spd * 0.8 + ph)  * distortion * 0.4
+                         + sin(row * freq * 110.0 + spd * 1.1)      * distortion * 0.3;
+                disp = vec2(wx, wy);
+
+            } else if (pr &lt; 3.5) {
+                // CRT LED — radial wave from center
+                vec2 center = vec2(acPreviewSize.x / pitch, acPreviewSize.y / pitch) * 0.5;
+                float dist  = length(dotIdx - center);
+                float w     = sin(dist * freq * 100.0 - spd + ph) * distortion;
+                vec2 dir    = normalize(dotIdx - center + vec2(0.001));
+                disp = dir * w;
+
+            } else if (pr &lt; 4.5) {
+                // Raw LED — luma-driven, no displacement (handled below)
+                disp = vec2(0.0);
+
+            } else if (pr &lt; 5.5) {
+                // Glitch — random block jumps
+                float gc  = floor(col / max(density, 1.0));
+                float gt  = floor(spd * 3.0);
+                float rnd = (hashV(vec2(gc + gt, row)) * 2.0 - 1.0);
+                float fired = step(0.6, hashV(vec2(gc, gt + 1.0)));
+                disp = vec2(rnd * distortion * 2.0 * fired, 0.0);
+
+            } else if (pr &lt; 6.5) {
+                // Jagged — sawtooth
+                float w = (fract(axis * freq * 30.0 + spd) * 2.0 - 1.0) * distortion;
+                disp = (ori &lt; 0.5) ? vec2(0.0, w) : vec2(w, 0.0);
+
+            } else if (pr &lt; 7.5) {
+                // Modular — layered
+                float wx = sin(col * freq * 40.0 + spd)             * distortion * 0.4
+                         + sin(row * freq * 30.0 + spd * 0.7 + ph)  * distortion * 0.3;
+                float wy = sin(row * freq * 40.0 + spd * 0.8)       * distortion * 0.4
+                         + sin(col * freq * 25.0 + spd * 1.1 + ph)  * distortion * 0.3;
+                disp = vec2(wx, wy);
+
+            } else {
+                // Particle — random per dot burst
+                float pt  = floor(spd * 2.0);
+                float rdx = (hashV(vec2(col + pt, row + 0.1)) * 2.0 - 1.0);
+                float rdy = (hashV(vec2(col + 0.2, row + pt)) * 2.0 - 1.0);
+                float burst = step(0.5, hashV(vec2(col * 0.1, row * 0.1 + pt)));
+                disp = vec2(rdx, rdy) * distortion * burst;
+            }
+
+            // Multiple generators: add shifted copies
+            for (int g = 1; g &lt; 10; g++) {
+                if (float(g) &gt;= generators) break;
+                float gf = float(g);
+                float gOff = gf * 0.618; // golden ratio offset
+                disp += disp * sin(gOff * 3.14159 + animSpeed * acTime) * 0.2 / gf;
+            }
+
+            return disp;
+        }
+
+        void main() {
+            vec2 uv  = acScreenNorm;
+            float t  = acTime;
+            vec4 src = texture2DCv(inputImg.texture, clamp(uv, 0.0, 1.0));
+
+            // -----------------------------------------------
+            // DOT GRID SETUP
+            // -----------------------------------------------
+            float cellSize = pitch;
+            vec2 pixelPos  = uv * acPreviewSize;
+
+            // Which cell this pixel is in
+            vec2 dotIdx  = floor(pixelPos / cellSize);
+            vec2 cellUV  = fract(pixelPos / cellSize); // 0..1 within cell
+
+            // -----------------------------------------------
+            // WAVE DISPLACEMENT
+            // Shift where we SAMPLE the source image
+            // This creates the distorted dot pattern
+            // -----------------------------------------------
+            vec2 waveDisp   = getWaveDisplace(dotIdx, t);
+
+            // Add X/Y shift
+            waveDisp += vec2(xShift, yShift) * 0.01;
+
+            // Compress: scale the displacement
+            waveDisp *= compress;
+
+            // Displaced dot center in UV space
+            vec2 dotCenter  = (dotIdx + 0.5 + waveDisp) * cellSize / acPreviewSize;
+            dotCenter       = clamp(dotCenter, 0.0, 1.0);
+
+            // -----------------------------------------------
+            // SAMPLE IMAGE at displaced dot center
+            // -----------------------------------------------
+            vec3 srcCol  = texture2DCv(inputImg.texture, dotCenter).rgb;
+            float luma   = dot(srcCol, vec3(0.299, 0.587, 0.114));
+
+            // Apply cutoff — dots below this luma disappear
+            float lumaAdj = (luma - cutoff) / max(range, 0.001);
+            lumaAdj = clamp(lumaAdj, 0.0, 1.0);
+
+            // Fade: soft threshold at bottom of range
+            lumaAdj = smoothstep(fade * 0.3, fade * 0.3 + 0.2, lumaAdj);
+
+            // Decay
+            lumaAdj = pow(lumaAdj, 1.0 + decay * 0.3);
+
+            // -----------------------------------------------
+            // DOT SIZE driven by luma
+            // Bright areas = large dots
+            // Dark areas = tiny/no dots
+            // -----------------------------------------------
+            float baseRad  = thickness / cellSize * 0.45;
+            baseRad        = clamp(baseRad, 0.01, 0.48);
+            float dotRadius = baseRad * lumaAdj;
+            dotRadius       = clamp(dotRadius, 0.0, 0.48);
+
+            // -----------------------------------------------
+            // DOT SHAPE — circular
+            // -----------------------------------------------
+            vec2 fromCenter = cellUV - 0.5;
+            float dist      = length(fromCenter);
+
+            // Sharp dot with soft edge
+            float dotMask = 1.0 - smoothstep(dotRadius * 0.7, dotRadius, dist);
+
+            // -----------------------------------------------
+            // DOT COLOR
+            // -----------------------------------------------
+            float cm = float(colorMode);
+            vec3 dotColor;
+
+            if (cm &lt; 0.5) {
+                // Source image color
+                dotColor = srcCol;
+            } else if (cm &lt; 1.5) {
+                // Single color
+                dotColor = vec3(colorR, colorG, colorB);
+            } else {
+                // Rainbow neon based on position
+                float rainbowT = (dotIdx.x + dotIdx.y * 0.3) / (acPreviewSize.x / cellSize);
+                dotColor = rainbow(rainbowT + t * animSpeed * 0.1);
+            }
+
+            // -----------------------------------------------
+            // GLOW around each dot
+            // Large soft halo = neon LED look
+            // -----------------------------------------------
+            float glowRadius = dotRadius + (glow / cellSize) * 0.3;
+            glowRadius       = clamp(glowRadius, dotRadius, 0.8);
+            float glowFalloff = 1.0 - smoothstep(dotRadius, glowRadius, dist);
+            glowFalloff = glowFalloff * glowFalloff; // quadratic = more realistic
+
+            // -----------------------------------------------
+            // FINAL COMPOSITE
+            // Pure black background + colored dots + glow
+            // -----------------------------------------------
+            vec3 result = vec3(0.0); // BLACK background
+
+            // Add glow first (under dot)
+            result += dotColor * glowFalloff * lumaAdj * glow * 0.15;
+
+            // Add dot on top
+            result += dotColor * dotMask * lumaAdj;
+
+            result = clamp(result, 0.0, 1.0);
+
+            gl_FragColor = vec4(mix(src.rgb, result, blend), src.a);
+        }
+    </shader>
+</effect>

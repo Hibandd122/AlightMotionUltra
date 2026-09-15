@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vshakenew" name="Manual Shake 2" desc="Script-driven layer shake that offsets position, rotation and scale with simplex noise plus optional sine waves. Separate random/wave amplitude and frequency per axis (X, Y, zoom Z, tilt T) under master Amplitude and Frequency controls." category="warp" tags="other" thumb="thumb/Move and Transform/Manual Shake 2.webp">
+
+    <params>
+        <slider id="amp" default="1" min="0" max="5" label="Amplitude" step="0.01" snap="0,0.3,0.5,1,1.5,2,3,4,5" ticks="0,0.3,0.5,1,1.5,2,3,4,5" originValue="0" />
+        <slider id="freq" default="8" min="0" max="30" label="Frequency" step="0.1" snap="0,1,2,3,4,6,8,10,12.5,15,20" ticks="0,1,2,3,4,6,8,10,12.5,15,20" originValue="0" />
+        
+        
+
+        
+        <slider id="xrandamp" default="192" min="0" max="1000" label="X Rand Amp" step="0.5" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="xrandfreq" default="1" min="0" max="5" label="X Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="xwaveamp" default="0" min="0" max="1000" label="X Wave Amp" step="0.5" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="xwavefreq" default="0.5" min="0" max="5" label="X Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="xoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="X Offset" />
+        
+        
+        <slider id="yrandamp" default="96" min="0" max="1000" label="Y Rand Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="yrandfreq" default="1" min="0" max="5" label="Y Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="ywaveamp" default="0" min="0" max="1000" label="Y Wave Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="ywavefreq" default="0.5" min="0" max="5" label="Y Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="yoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Y Offset" />
+        
+        
+        <slider id="zrandamp" default="0" min="0" max="1000" label="Z Rand Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="zrandfreq" default="1" min="0" max="5" label="Z Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="zwaveamp" default="0" min="0" max="1000" label="Z Wave Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="zwavefreq" default="0.5" min="0" max="5" label="Z Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="zoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Z Offset" />
+        
+        
+        <slider id="trandamp" default="0" min="0" max="1000" label="T Rand Amp" step="0.1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="trandfreq" default="1" min="0" max="5" label="T Rand Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="twaveamp" default="0" min="0" max="1000" label="T Wave Amp" step="1" snap="0,25,50,75,100,125,150,175,200,225,250,275,300" ticks="0,25,50,75,100,125,150,175,200,225,250,275,300" originValue="0" />
+        <slider id="twavefreq" default="0.5" min="0" max="5" label="T Wave Freq" step="0.05" snap="0,1,2,3,4,5" ticks="0,1,2,3,4,5" originValue="0" />
+        <slider id="toffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Tilt Offset" />
+
+    </params>
+
+    
+</effect>

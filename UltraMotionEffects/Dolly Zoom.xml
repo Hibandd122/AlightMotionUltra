@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra3d.dolly-zoom" name="Dolly Zoom" desc="Radial warp that magnifies or shrinks the image away from an adjustable focus point with distance-squared falloff. Animate Warp to mimic a vertigo-style dolly zoom." category="3d" thumb="thumb/Distort and Warp/Dolly Zoom.webp" tags="3d,dolly,vertigo,zoom,perspective,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="amount" default="0.5" min="-1.0" max="1.0" label="Warp" ticks="0" />
+        <point id="center" default="0,0" label="Focus" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec2 ctr=center/1000.0+0.5;
+            vec2 d=acScreenNorm-ctr;
+            float r=length(d);
+            float s=1.0/(1.0+amount*r*r*2.0);
+            vec2 uv=ctr+d*s;
+            gl_FragColor=texture2DCv(inputImg.texture, uv);
+        }
+    </shader>
+
+</effect>

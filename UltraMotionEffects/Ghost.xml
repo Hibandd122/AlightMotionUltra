@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ghost" name="Ghost" desc="Overlays a zoomed copy of the layer that fades out over time, with Normal, Inverted B/W, Inverted Color, and Sobel Outline render types. Speed controls how fast the ghost zooms and fades." category="other" tags="ghost,zoom,fade,invert,outline" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/Distort and Warp/Ghost.webp" deprecated="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="zoomStrength" default="0.10" min="0.0" max="1.0" step="0.001" label="Zoom Strength" type="percent" />
+    <slider id="opacityStrength" default="0.50" min="0.0" max="1.0" step="0.01" label="Opacity Strength" type="percent" />
+    <slider id="speed" default="1.00" min="0.0" max="10.0" step="0.01" label="Speed" />
+    <menu id="ghostType" style="dropdown" default="0" label="Type">
+      <menu label="Normal" value="0" />
+      <menu label="Invert B/W" value="1" />
+      <menu label="Invert Color" value="2" />
+      <menu label="Outline" value="3" />
+    </menu>
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec2 getResolution(){ vec2 s=getTexSize(inputImg.size); if(s.x&lt;=0.0||s.y&lt;=0.0) s=vec2(1920.0,1080.0); return s; }
+    const float PI=3.14159265358979323846;
+    float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
+
+    vec4 sampleLayer(vec2 uv01){ return texture2DCv(inputImg.texture, uv01); }
+
+    float clamp01(float x){ return clamp(x,0.0,1.0); }
+
+    vec3 applyType(vec2 uv, vec3 src){
+      if(ghostType==0){ return src; }
+      if(ghostType==1){ float g=1.0 - luma(src); return vec3(g); }
+      if(ghostType==2){ return vec3(1.0) - src; }
+      vec2 texel=1.0/getResolution();
+      float tl=luma(sampleLayer(uv+texel*vec2(-1.0,-1.0)).rgb);
+      float tc=luma(sampleLayer(uv+texel*vec2( 0.0,-1.0)).rgb);
+      float tr=luma(sampleLayer(uv+texel*vec2( 1.0,-1.0)).rgb);
+      float ml=luma(sampleLayer(uv+texel*vec2(-1.0, 0.0)).rgb);
+      float mc=luma(sampleLayer(uv).rgb);
+      float mr=luma(sampleLayer(uv+texel*vec2( 1.0, 0.0)).rgb);
+      float bl=luma(sampleLayer(uv+texel*vec2(-1.0, 1.0)).rgb);
+      float bc=luma(sampleLayer(uv+texel*vec2( 0.0, 1.0)).rgb);
+      float br=luma(sampleLayer(uv+texel*vec2( 1.0, 1.0)).rgb);
+      float gx = -tl - 2.0*ml - bl + tr + 2.0*mr + br;
+      float gy = -tl - 2.0*tc - tr + bl + 2.0*bc + br;
+      float edge = clamp01(sqrt(gx*gx + gy*gy));
+      return mix(src, vec3(1.0), edge);
+    }
+
+    void main(){
+      vec2 uv=acScreenNorm;
+      vec4 base=sampleLayer(uv);
+      float progress = clamp01(speed * acTime);
+      float s = smoothstep(0.0, 1.0, progress);
+      float op = clamp01(opacityStrength * (1.0 - s));
+      float z = clamp01(zoomStrength * s);
+      vec2 ctr=vec2(0.5);
+      vec2 delta=uv-ctr;
+      vec2 zuv=ctr + delta * (1.0 - z);
+      vec4 zcol=sampleLayer(zuv);
+      float mask = step(0.0,zuv.x)*step(zuv.x,1.0)*step(0.0,zuv.y)*step(zuv.y,1.0);
+      vec3 proc = applyType(zuv, zcol.rgb);
+      vec4 ghost = vec4(proc, base.a);
+      vec4 outColor = mix(base, ghost, op*mask);
+      gl_FragColor = outColor;
+    }
+  </shader>
+
+</effect>

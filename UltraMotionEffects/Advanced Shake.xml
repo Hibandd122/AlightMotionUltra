@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.shake_advanced" name="Advanced Shake" desc="Script-driven shake that animates the layer transform directly (no pixel resampling): independent random and sine-wave components for X/Y position, zoom, and tilt rotation, with global amplitude, frequency, angle, seed, and reflect/clamp wrap limits." auto-transform="true" category="warp" tags="transform,auto,shake,propAdjust" thumb="thumb/Move and Transform/Advanced Shake.webp">
+
+  <params>
+    
+    <slider id="amplitude" default="0.240" min="-1000.0" max="1000.0" step="0.001" label="Amplitude" />
+    <slider id="frequency" default="7.40" min="-30.0" max="30.0" step="0.01" label="Frequency" />
+    <slider id="phase" default="1.64" min="-10.0" max="10.0" step="0.01" label="Phase" />
+    <slider id="globalAngle" default="0.0" min="-360.0" max="360.0" step="0.1" label="Global Angle" type="angle" />
+    <slider id="seed" default="0.0" min="0.0" max="10000.0" step="0.740" label="Seed" />
+
+    
+    <menu id="wrapX" default="3" style="dropdown" label="Wrap X">
+      <menu label="None" value="0" />
+      <menu label="Reflect" value="1" />
+      <menu label="Clamp" value="2" />
+    </menu>
+    <menu id="wrapY" default="3" style="dropdown" label="Wrap Y">
+      <menu label="None" value="0" />
+      <menu label="Reflect" value="1" />
+      <menu label="Clamp" value="2" />
+    </menu>
+
+    
+    <slider id="xRandAmp" default="56.8" min="-2000.0" max="2000.0" step="0.1" label="X Rand Amp" />
+    <slider id="xRandFreq" default="2.35" min="-30.0" max="30.0" step="0.01" label="X Rand Freq" />
+    <slider id="xWaveAmp" default="2.9" min="-2000.0" max="2000.0" step="0.1" label="X Wave Amp" />
+    <slider id="xWaveFreq" default="0.83" min="-30.0" max="30.0" step="0.01" label="X Wave Freq" />
+    <slider id="xPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="X Phase" />
+
+    
+    <slider id="yRandAmp" default="119.0" min="-2000.0" max="2000.0" step="0.1" label="Y Rand Amp" />
+    <slider id="yRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="Y Rand Freq" />
+    <slider id="yWaveAmp" default="0.0" min="-2000.0" max="2000.0" step="0.1" label="Y Wave Amp" />
+    <slider id="yWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="Y Wave Freq" />
+    <slider id="yPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="Y Phase" />
+
+    
+    <slider id="zRandAmp" default="0.0" min="-10.0" max="10.0" step="0.001" label="Z Rand Amp" />
+    <slider id="zRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="Z Rand Freq" />
+    <slider id="zWaveAmp" default="0.0" min="-10.0" max="10.0" step="0.001" label="Z Wave Amp" />
+    <slider id="zWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="Z Wave Freq" />
+    <slider id="zPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="Z Phase" />
+
+    
+    <slider id="tRandAmp" default="0.0" min="-360.0" max="360.0" step="0.01" label="Tilt Rand Amp" type="angle" />
+    <slider id="tRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="Tilt Rand Freq" />
+    <slider id="tWaveAmp" default="0.0" min="-360.0" max="360.0" step="0.01" label="Tilt Wave Amp" type="angle" />
+    <slider id="tWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="Tilt Wave Freq" />
+    <slider id="tPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="Tilt Phase" />
+  </params>
+
+  
+
+</effect>

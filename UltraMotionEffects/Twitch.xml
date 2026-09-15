@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.smartMotionBlurShake" name="Twitch" desc="Random directional twitch: the image jumps to a new random offset at each shake interval and is motion-blurred by averaging up to 32 samples along the shake vector. Controls set amplitude, interval, angle, and blur sample count." category="blur" tags="motion,blur,shake" thumb="thumb/Blur and Sharpen/Twitch.webp" experimental="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="amplitude" default="0.115" min="0.0" max="1000.0" step="0.001" label="Shake Amplitude" />
+    <slider id="shakeInterval" default="0.03" min="0.01" max="1000.0" step="0.001" label="Shake Interval (sec)" />
+    <slider id="samples" default="16" min="4" max="300" step="1" label="Blur Quality (Samples)" />
+    <slider id="angle" default="0.0" min="-180.0" max="1800.0" step="1.0" label="Shake Angle" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    float rand(vec2 co) {
+        return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main() {
+        vec2 uv = acScreenNorm;
+        float t = floor(acTime / shakeInterval);
+
+        // Convert angle to radians and get direction
+        float rad = radians(angle);
+        vec2 dir = vec2(cos(rad), sin(rad));
+
+        // Jitter magnitude (modulated by random)
+        float jitter = (rand(vec2(t, 0.0)) - 0.5) * 2.0;
+
+        // Final shake offset vector
+        vec2 shakeVec = dir * jitter * amplitude;
+
+        const int MAX_SAMPLES = 32;
+        int N = int(clamp(float(samples), 1.0, float(MAX_SAMPLES)));
+
+        vec3 blurColor = vec3(0.0);
+        for (int i = 0; i &lt; MAX_SAMPLES; i++) {
+            if (i &gt;= N) break;
+            float factor = float(i) / float(N - 1);
+            vec2 sampleUV = uv + shakeVec * factor;
+            sampleUV = clamp(sampleUV, 0.0, 1.0);
+            blurColor += texture2DCv(inputImg.texture, sampleUV).rgb;
+        }
+        blurColor /= float(N);
+        gl_FragColor = vec4(blurColor, 1.0);
+    }
+  </shader>
+</effect>

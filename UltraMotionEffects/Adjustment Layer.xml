@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.adjustment_layer" name="Adjustment Layer" desc="Samples the composite beneath the layer into the layer's own coordinate space, so subsequent effects and layer transforms (move, scale, shake) apply to the background content." category="warp" tags="color,composite,adjustment,background" thumb="thumb/Other/Adjustment Layer.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="comp" srcType="comp" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            // Use local UV coordinates (acLayerNorm) which are built-in.
+            // This maps the full screen background to the 0-1 range of this layer.
+            // When the layer is transformed (moved/scaled/shaken), the coordinates move with it.
+            vec4 bg = texture2DCv(comp.texture, acLayerNorm);
+            gl_FragColor = bg;
+        }
+    </shader>
+
+</effect>

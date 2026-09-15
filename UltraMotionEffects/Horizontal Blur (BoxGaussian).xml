@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect thumb="thumb/Blur and Sharpen/Horizontal Blur (BoxGaussian).webp" id="com.alightcreative.effects.bcc_blur_h" name="Horizontal Blur (Box/Gaussian)" desc="Single-pass horizontal-only blur with selectable kernel: box, Gaussian, or triangle (triangle currently resolves to a box blur; its iteration count has no cumulative effect). Radius is X Width scaled by Glow Radius percent; optional mirrored edge sampling. Large radii are very expensive." category="blur" tags="blur,triangle,gaussian" internal="true" overdraw="true" max-overdraw="1.5">
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="xWidth" default="100.0" min="0.0" max="400.0" step="1.0" label="X Width" />
+    <slider id="glowRadius" default="30.0" min="0.0" max="300.0" step="0.1" label="Glow Radius" />
+    <menu id="blurType" default="0" style="dropdown" label="Blur Type">
+      <menu label="Triangle" value="0" />
+      <menu label="Gaussian" value="1" />
+      <menu label="Box" value="2" />
+    </menu>
+    <slider id="triangleIterations" default="1" min="1" max="4" step="1" label="Triangle Blur Iterations" />
+    <switch id="mirrorEdge" default="true" label="Mirror Edge" />
+  </params>
+  <shader type="fragment" precision="high">
+    vec2 clampMirror(vec2 uv){
+      if(mirrorEdge){
+        uv = vec2(1.0,1.0) - abs(mod(uv,vec2(2.0,2.0)) - vec2(1.0,1.0));
+      } else {
+        uv = clamp(uv, vec2(0.0), vec2(1.0));
+      }
+      return uv;
+    }
+    vec4 sample(vec2 uv){ return texture2DCv(inputImg.texture, clampMirror(uv)); }
+
+    // Half-tap budget. Beyond 64 half-taps (129 samples) adjacent samples land
+    // sub-pixel apart on any sane radius, so we hold the tap count and widen the
+    // stride instead: extent = halfTaps*stride = radius, unchanged.
+    // Extent is clamped to 1024 px exactly as the original loop bound did.
+    highp float blurExtent(float radiusPx){ return min(1024.0, max(1.0, floor(radiusPx))); }
+
+    vec4 blurBox(vec2 uv, float radiusPx){
+      if(radiusPx&lt;=0.0) return sample(uv);
+      highp float texX = 1.0/getTexSize(inputImg.size).x;
+      highp float r = blurExtent(radiusPx);
+      highp float n = min(r, 64.0);          // half-taps actually taken
+      highp float du = (r/n)*texX;           // stride in UV; n*du == r px
+      mediump vec4 acc = sample(uv);
+      highp float w = 1.0;
+      for(int i=1;i&lt;=64;i++){
+        if(float(i)&gt;n) break;
+        highp float o = float(i)*du;
+        acc += sample(uv+vec2(o,0.0)) + sample(uv-vec2(o,0.0));
+        w += 2.0;
+      }
+      return acc/max(1.0,w);
+    }
+    vec4 blurGaussian(vec2 uv, float radiusPx){
+      if(radiusPx&lt;=0.0) return sample(uv);
+      highp float texX = 1.0/getTexSize(inputImg.size).x;
+      highp float r = blurExtent(radiusPx);
+      highp float n = min(r, 64.0);
+      highp float stride = r/n;              // pixels between taps
+      highp float du = stride*texX;
+      highp float sigma = max(0.0001, radiusPx*0.35);
+      highp float k = -1.0/(2.0*sigma*sigma);  // hoisted out of the loop
+      mediump vec4 acc = sample(uv);           // i==0, weight 1
+      highp float wsum = 1.0;
+      for(int i=1;i&lt;=64;i++){
+        if(float(i)&gt;n) break;
+        highp float d = float(i)*stride;       // true pixel distance
+        mediump float w = exp(k*d*d);
+        highp float o = float(i)*du;
+        acc += (sample(uv+vec2(o,0.0)) + sample(uv-vec2(o,0.0))) * w;
+        wsum += 2.0*w;
+      }
+      return acc/max(0.0001,wsum);
+    }
+    vec4 blurTriangle(vec2 uv, float radiusPx, int iterations){
+      // Each "iteration" overwrote outC with an identical blurBox of the same
+      // source and radius, so N passes == 1 pass. Collapsed to one evaluation.
+      vec4 outC = sample(uv);
+      if(iterations&gt;=1) outC = blurBox(uv, radiusPx);
+      return outC;
+    }
+    void main(){
+      float radiusPx = xWidth * (glowRadius/100.0);
+      vec2 uv = acScreenNorm;
+      vec4 col;
+      if(blurType==0){ col = blurTriangle(uv, radiusPx, int(triangleIterations)); }
+      else if(blurType==1){ col = blurGaussian(uv, radiusPx); }
+      else { col = blurBox(uv, radiusPx); }
+      gl_FragColor = col;
+    }
+  </shader>
+</effect>

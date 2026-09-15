@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.example.learning.cclens" name="Lens Orb" desc="Spherical orb distortion: remaps pixels inside a circular radius using a spherical projection shaped by the Convergence control; everything outside the orb becomes transparent." category="warp" thumb="thumb/Distort and Warp/Lens Orb.webp" tags="learning,distort,lens,orb" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="size" default="50.0" min="10.0" max="200.0" step="1.0" label="Size" />
+
+    
+    <slider id="convergence" default="1.0" min="-2.0" max="2.0" step="0.1" label="Convergence" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    
+    const float PI = 3.14159265359;
+
+    void main() {
+      // 1. NORMALIZE COORDINATES
+      // acScreenNorm is 0.0 to 1.0 (bottom-left to top-right).
+      // We want (0,0) to be in the CENTER for easier circle math.
+      // So we subtract 0.5. Range becomes -0.5 to 0.5.
+      vec2 uv = acScreenNorm - 0.5;
+
+      // 2. ASPECT RATIO CORRECTION
+      // Screens are usually rectangles, not squares.
+      // If we draw a circle on a rectangle using raw 0-1 coords, it looks like an oval.
+      // We fix this by multiplying the X coordinate by the aspect ratio.
+      float aspect = acScreenSize.x / acScreenSize.y;
+      uv.x *= aspect;
+
+      // 3. CALCULATE DISTANCE &amp; ANGLE
+      // We convert Cartesian (x,y) to Polar (radius, angle) coordinates.
+      float dist = length(uv);  // How far from center?
+      float angle = atan(uv.y, uv.x); // What direction?
+
+      // 4. CALCULATE SPHERICAL DISTORTION
+      // This is the core "Lens" math.
+      // We normalize the distance based on the 'size' parameter.
+      // size is a percentage, so we divide by 100.0.
+      float radius = size / 100.0;
+      
+      // If the pixel is outside the lens radius, we don't distort it (or we mask it).
+      // For a true "Orb" effect, anything outside is transparent.
+      if (dist &gt; radius) {
+          // You can choose to:
+          // a) Discard (transparent)
+          // b) Show original (return texture2DCv(inputImg.texture, acScreenNorm))
+          // Let's make it transparent for a clean Orb look.
+          gl_FragColor = vec4(0.0);
+          return; 
+      }
+
+      // Map the 0-&gt;radius distance to 0-&gt;1 range for easier math
+      float normalizedDist = dist / radius;
+
+      // Apply the distortion curve.
+      // A simple way to get a sphere look is using separate formulas for X and Y or 
+      // just using a power function on the distance.
+      // Here we simulate the surface of a sphere using cosine interpolation.
+      // As 'convergence' changes, we modify the curve.
+      
+      float z = sqrt(1.0 - normalizedDist * normalizedDist); // Height of the sphere at this point
+      float r = atan(normalizedDist, z * convergence) / PI; // New distance from center
+      
+      // Scale it back up
+      r *= 2.0; // Adjustment factor
+
+      // 5. CONVERT BACK TO UV
+      // New UV position based on the new distance 'r' and original 'angle'.
+      vec2 newUV;
+      newUV.x = r * cos(angle);
+      newUV.y = r * sin(angle);
+
+      // Undo Aspect Ratio Correction
+      newUV.x /= aspect;
+
+      // Shift back to 0.0-&gt;1.0 range
+      newUV += 0.5;
+
+      // 6. SAMPLE &amp; OUTPUT
+      // Read the texture at the distorted position.
+      gl_FragColor = texture2DCv(inputImg.texture, newUV);
+    }
+  </shader>
+
+</effect>

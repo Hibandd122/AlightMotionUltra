@@ -1,0 +1,203 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.creative.monitor_on_table" name="3D Monitor Scene (Raymarched)" desc="Replaces the layer with a raymarched room containing a desk and a monitor, mapping the layer content onto the monitor screen. Zoom dollies the camera and View Rotation orbits it; the render includes checkered floor, soft shadows, specular highlights, distance fog and an opaque output." category="3d" thumb="thumb/3D/3D Monitor Scene (Raymarched).webp" tags="3d,monitor,desk,raymarching,glsl">
+
+    <params>
+        <texture id="iChannel0" srcType="content" label="Screen Texture" />
+        
+        <slider id="zoom" default="2.30" min="0.2" max="3.0" step="0.01" label="Zoom Level" />
+        <slider id="rotation" default="-0.15" min="-1.5" max="1.5" step="0.01" label="View Rotation" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        precision highp float;
+
+        #define MAX_STEPS 100
+        #define MAX_DIST 50.0
+        #define SURF_DIST 0.001
+
+        // Material IDs
+        #define MAT_NONE 0.0
+        #define MAT_FLOOR 1.0
+        #define MAT_TABLE 2.0
+        #define MAT_PLASTIC 3.0
+        #define MAT_SCREEN 4.0
+        #define MAT_WALL 5.0
+
+        // Rotation matrix
+        mat2 Rot(float a) {
+            float s = sin(a), c = cos(a);
+            return mat2(c, -s, s, c);
+        }
+
+        // SDF Box
+        float sdBox(vec3 p, vec3 b) {
+            vec3 q = abs(p) - b;
+            return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+        }
+
+        // Scene Map
+        vec2 map(vec3 p) {
+            vec2 res = vec2(MAX_DIST, MAT_NONE);
+            
+            // 1. Room Geometry
+            float dFloor = p.y;
+            float dWall = 2.5 - p.z; 
+            
+            if(dFloor &lt; res.x) res = vec2(dFloor, MAT_FLOOR);
+            if(dWall &lt; res.x) res = vec2(dWall, MAT_WALL);
+            
+            // 2. Table Geometry
+            float tH = 0.8; 
+            float tW = 1.4; 
+            float tD = 0.7; 
+            float tThick = 0.05;
+            
+            // Table Top
+            vec3 pTop = p - vec3(0.0, tH, 0.0);
+            float dTop = sdBox(pTop, vec3(tW*0.5, tThick*0.5, tD*0.5));
+            
+            // Table Legs
+            vec3 pLegs = p;
+            pLegs.x = abs(pLegs.x);
+            pLegs.z = abs(pLegs.z);
+            pLegs -= vec3(tW*0.4, tH*0.5, tD*0.4);
+            float dLegs = sdBox(pLegs, vec3(0.04, tH*0.5, 0.04));
+            
+            float dTable = min(dTop, dLegs);
+            if(dTable &lt; res.x) res = vec2(dTable, MAT_TABLE);
+            
+            // 3. Monitor Geometry
+            vec3 pm = p - vec3(0.0, tH + tThick*0.5, 0.0);
+            
+            // Stand Base
+            float dBase = sdBox(pm - vec3(0.0, 0.01, 0.0), vec3(0.15, 0.01, 0.12));
+            // Stand Neck
+            float dNeck = sdBox(pm - vec3(0.0, 0.15, 0.05), vec3(0.04, 0.15, 0.02));
+            
+            // Screen Bezel
+            vec3 ph = pm - vec3(0.0, 0.45, 0.0);
+            float dBezel = sdBox(ph, vec3(0.6, 0.35, 0.04));
+            
+            float dMonitorFrame = min(dBase, min(dNeck, dBezel));
+            if(dMonitorFrame &lt; res.x) res = vec2(dMonitorFrame, MAT_PLASTIC);
+            
+            // Screen Surface
+            float dScreen = sdBox(ph - vec3(0.0, 0.0, -0.041), vec3(0.57, 0.32, 0.001));
+            if(dScreen &lt; res.x) res = vec2(dScreen, MAT_SCREEN);
+            
+            return res;
+        }
+
+        // Raymarch
+        vec2 rayMarch(vec3 ro, vec3 rd) {
+            float dO = 0.0;
+            float m = MAT_NONE;
+            
+            for(int i=0; i&lt;MAX_STEPS; i++) {
+                vec3 p = ro + rd * dO;
+                vec2 dS = map(p);
+                dO += dS.x;
+                m = dS.y;
+                if(dO &gt; MAX_DIST || abs(dS.x) &lt; SURF_DIST) break;
+            }
+            return vec2(dO, m);
+        }
+
+        // Normals
+        vec3 getNormal(vec3 p) {
+            float d = map(p).x;
+            vec2 e = vec2(0.001, 0);
+            vec3 n = d - vec3(
+                map(p-e.xyy).x,
+                map(p-e.yxy).x,
+                map(p-e.yyx).x);
+            return normalize(n);
+        }
+
+        // Soft Shadows
+        float getShadow(vec3 p, vec3 l, float k) {
+            float res = 1.0;
+            float t = 0.02;
+            for(int i=0; i&lt;20; i++) { // Reduced steps for mobile
+                float h = map(p + l * t).x;
+                if(h &lt; 0.001) return 0.0;
+                res = min(res, k*h/t);
+                t += h;
+                if(t &gt; 10.0) break;
+            }
+            return res;
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm - 0.5;
+            uv.x *= (acLayerSize.x / acLayerSize.y);
+
+            // Camera Setup
+            float d = 4.0 / zoom;
+            vec3 pivot = vec3(0.0, 1.25, 0.0);
+            vec3 camPos = vec3(0.0, 0.5, -d);
+            
+            // Apply rotation
+            camPos.xz *= Rot(rotation);
+            camPos += pivot;
+            
+            vec3 lookAt = pivot;
+            vec3 f = normalize(lookAt - camPos);
+            vec3 r = normalize(cross(vec3(0,1,0), f));
+            vec3 u = cross(f, r);
+            vec3 rd = normalize(f + uv.x * r + uv.y * u);
+
+            // Render
+            vec2 tr = rayMarch(camPos, rd);
+            float dist = tr.x;
+            float m = tr.y;
+            
+            vec3 col = vec3(0.05, 0.05, 0.08); // Background/Fog color
+            
+            if(dist &lt; MAX_DIST) {
+                vec3 p = camPos + rd * dist;
+                vec3 n = getNormal(p);
+                vec3 lightPos = vec3(2.0, 4.0, -2.0);
+                vec3 l = normalize(lightPos - p);
+                
+                float shadow = getShadow(p, l, 8.0);
+                float diff = max(0.0, dot(n, l));
+                float amb = 0.05;
+                
+                vec3 albedo = vec3(0.5);
+                
+                if(m == MAT_FLOOR) {
+                    albedo = vec3(0.15);
+                    if((fract(p.x) &gt; 0.5) != (fract(p.z) &gt; 0.5)) albedo *= 0.8;
+                } else if(m == MAT_TABLE) {
+                    albedo = vec3(0.95);
+                } else if(m == MAT_PLASTIC) {
+                    albedo = vec3(0.1);
+                } else if(m == MAT_WALL) {
+                    albedo = vec3(0.8, 0.8, 0.85);
+                } else if(m == MAT_SCREEN) {
+                    vec3 screenCenter = vec3(0.0, 1.275, -0.041);
+                    vec3 local = p - screenCenter;
+                    vec2 sUV = local.xy / vec2(0.57, 0.32) * 0.5 + 0.5;
+                    sUV = clamp(sUV, 0.0, 1.0);
+                    albedo = texture2D(iChannel0.texture, sUV).rgb;
+                    col = albedo * 1.5; 
+                }
+                
+                if(m != MAT_SCREEN) {
+                    col = albedo * (diff * shadow + amb);
+                    vec3 h = normalize(l - rd);
+                    float spec = pow(max(0.0, dot(n, h)), 32.0);
+                    float specStr = (m == MAT_TABLE) ? 0.5 : 0.3;
+                    col += vec3(spec * specStr * shadow);
+                }
+                
+                // Fog
+                col = mix(col, vec3(0.05, 0.05, 0.08), 1.0 - exp(-dist * 0.02));
+            }
+            
+            col = pow(col, vec3(0.4545));
+            gl_FragColor = vec4(col, 1.0);
+        }
+    </shader>
+</effect>

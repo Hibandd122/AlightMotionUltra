@@ -1,0 +1,306 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bccgradientmap" name="Gradient Map (5-Stop)" desc="Maps image luminance to a 5-stop color gradient with selectable luminance modes, gradient gamma/contrast/brightness, zone isolation (shadows/midtones/highlights), seven blend modes, hue/saturation/luminance preserve options and a quick duotone mode." category="colorlight" tags="gradient,map,color,duotone,tritone,grade,stylize" thumb="thumb/Color/Gradient Map (5-Stop).webp">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <color id="color1" label="Blacks Color" default="#000000" alpha="false" />
+        <color id="color2" label="Shadows Color" default="#1A0A30" alpha="false" />
+        <color id="color3" label="Midtones Color" default="#CC4400" alpha="false" />
+        <color id="color4" label="Highlights Color" default="#FFAA44" alpha="false" />
+        <color id="color5" label="Whites Color" default="#FFFFFF" alpha="false" />
+
+        
+        <slider id="stop1" label="Blacks Stop" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="stop2" label="Shadows Stop" default="0.25" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="stop3" label="Midtones Stop" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="stop4" label="Highlights Stop" default="0.75" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="stop5" label="Whites Stop" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <menu id="lumMode" style="dropdown" default="1" label="Luminance Mode">
+            <menu label="Rec.709" value="1" />
+            <menu label="Max RGB" value="2" />
+            <menu label="Average" value="3" />
+            <menu label="Perceptual" value="4" />
+            <menu label="Red" value="5" />
+            <menu label="Green" value="6" />
+            <menu label="Blue" value="7" />
+            <menu label="Desaturated" value="8" />
+        </menu>
+
+        
+        <slider id="gradGamma" label="Gradient Gamma" default="1.0" min="0.2" max="3.0" step="0.05" type="float" />
+        <slider id="gradContrast" label="Gradient Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="gradBrightness" label="Gradient Brightness" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <switch id="gradInvert" default="false" label="Invert Gradient" />
+        <switch id="gradReverse" default="false" label="Reverse Colors" />
+
+        
+        <slider id="mapStrength" label="Map Strength" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+            <menu label="Normal" value="1" />
+            <menu label="Multiply" value="2" />
+            <menu label="Screen" value="3" />
+            <menu label="Overlay" value="4" />
+            <menu label="Soft Light" value="5" />
+            <menu label="Color" value="6" />
+            <menu label="Luminosity" value="7" />
+        </menu>
+
+        
+        <slider id="preserveLum" label="Preserve Luminance" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="preserveSat" label="Preserve Saturation" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="preserveHue" label="Preserve Hue" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="hueShift" label="Hue Shift" default="0.0" min="-180.0" max="180.0" step="1.0" type="float" />
+        <slider id="satAdjust" label="Saturation Adjust" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="lumAdjust" label="Luminance Adjust" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+
+        
+        <slider id="shadowsOnly" label="Shadows Strength" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="midtonesOnly" label="Midtones Strength" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="highlightsOnly" label="Highlights Strength" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <switch id="duotoneMode" default="false" label="Duotone Mode" />
+        <color id="duoShadow" label="Duo Shadow" default="#0A1628" alpha="false" />
+        <color id="duoHighlight" label="Duo Highlight" default="#FFD4A0" alpha="false" />
+
+        
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum709(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    float getLum(vec3 c, float mode) {
+        if (mode &lt; 1.5) return dot(c, vec3(0.2126, 0.7152, 0.0722));
+        if (mode &lt; 2.5) return max(c.r, max(c.g, c.b));
+        if (mode &lt; 3.5) return (c.r + c.g + c.b) / 3.0;
+        if (mode &lt; 4.5) return pow(dot(pow(max(c, 0.0), vec3(2.2)), vec3(0.2126, 0.7152, 0.0722)), 1.0 / 2.2);
+        if (mode &lt; 5.5) return c.r;
+        if (mode &lt; 6.5) return c.g;
+        if (mode &lt; 7.5) return c.b;
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        return (mx + mn) * 0.5;
+    }
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+    float h2r(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0/6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+        return p;
+    }
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(h2r(p,q,c.x+1.0/3.0), h2r(p,q,c.x), h2r(p,q,c.x-1.0/3.0));
+    }
+    vec3 sampleGradient(float t, vec3 c1, vec3 c2, vec3 c3, vec3 c4, vec3 c5,
+                        float s1, float s2, float s3, float s4, float s5) {
+        if (t &lt;= s1) return c1;
+        if (t &gt;= s5) return c5;
+        if (t &lt; s2) {
+            float f = (t - s1) / max(s2 - s1, EPS);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(c1, c2, f);
+        }
+        if (t &lt; s3) {
+            float f = (t - s2) / max(s3 - s2, EPS);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(c2, c3, f);
+        }
+        if (t &lt; s4) {
+            float f = (t - s3) / max(s4 - s3, EPS);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(c3, c4, f);
+        }
+        float f = (t - s4) / max(s5 - s4, EPS);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(c4, c5, f);
+    }
+    vec3 blendColors(vec3 base, vec3 mapped, float mode) {
+        if (mode &lt; 1.5) {
+            return mapped;
+        }
+        if (mode &lt; 2.5) {
+            return base * mapped;
+        }
+        if (mode &lt; 3.5) {
+            return 1.0 - (1.0 - base) * (1.0 - mapped);
+        }
+        if (mode &lt; 4.5) {
+            vec3 r;
+            r.r = (base.r &lt; 0.5) ? 2.0*base.r*mapped.r : 1.0-2.0*(1.0-base.r)*(1.0-mapped.r);
+            r.g = (base.g &lt; 0.5) ? 2.0*base.g*mapped.g : 1.0-2.0*(1.0-base.g)*(1.0-mapped.g);
+            r.b = (base.b &lt; 0.5) ? 2.0*base.b*mapped.b : 1.0-2.0*(1.0-base.b)*(1.0-mapped.b);
+            return r;
+        }
+        if (mode &lt; 5.5) {
+            vec3 r;
+            r.r = (mapped.r&lt;0.5) ? 2.0*base.r*mapped.r+base.r*base.r*(1.0-2.0*mapped.r) : 2.0*base.r*(1.0-mapped.r)+sqrt(max(base.r,0.0))*(2.0*mapped.r-1.0);
+            r.g = (mapped.g&lt;0.5) ? 2.0*base.g*mapped.g+base.g*base.g*(1.0-2.0*mapped.g) : 2.0*base.g*(1.0-mapped.g)+sqrt(max(base.g,0.0))*(2.0*mapped.g-1.0);
+            r.b = (mapped.b&lt;0.5) ? 2.0*base.b*mapped.b+base.b*base.b*(1.0-2.0*mapped.b) : 2.0*base.b*(1.0-mapped.b)+sqrt(max(base.b,0.0))*(2.0*mapped.b-1.0);
+            return r;
+        }
+        if (mode &lt; 6.5) {
+            vec3 mappedHSL = rgb2hsl(mapped);
+            vec3 baseHSL = rgb2hsl(base);
+            return hsl2rgb(vec3(mappedHSL.x, mappedHSL.y, baseHSL.z));
+        }
+        vec3 mappedHSL = rgb2hsl(mapped);
+        vec3 baseHSL = rgb2hsl(base);
+        return hsl2rgb(vec3(baseHSL.x, baseHSL.y, mappedHSL.z));
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 rgb = max(original.rgb, 0.0);
+        vec3 baseRGB = rgb;
+        float lm = float(lumMode);
+
+        // Get luminance
+        float t = getLum(rgb, lm);
+
+        // Gamma
+        if (abs(gradGamma - 1.0) &gt; EPS) {
+            t = pow(max(t, 0.0), 1.0 / max(gradGamma, EPS));
+        }
+
+        // Contrast
+        if (abs(gradContrast) &gt; 0.5) {
+            float gc = gradContrast / 100.0;
+            t = clamp((t - 0.5) * (1.0 + gc) + 0.5, 0.0, 1.0);
+        }
+
+        // Brightness
+        if (abs(gradBrightness) &gt; 0.5) {
+            t = clamp(t + gradBrightness / 100.0 * 0.3, 0.0, 1.0);
+        }
+
+        // Invert
+        if (gradInvert) {
+            t = 1.0 - t;
+        }
+
+        // Get gradient colors
+        vec3 c1 = color1.rgb;
+        vec3 c2 = color2.rgb;
+        vec3 c3 = color3.rgb;
+        vec3 c4 = color4.rgb;
+        vec3 c5 = color5.rgb;
+
+        // Reverse colors
+        if (gradReverse) {
+            vec3 tmp;
+            tmp = c1; c1 = c5; c5 = tmp;
+            tmp = c2; c2 = c4; c4 = tmp;
+        }
+
+        // Duotone override
+        if (duotoneMode) {
+            c1 = duoShadow.rgb;
+            c2 = mix(duoShadow.rgb, duoHighlight.rgb, 0.25);
+            c3 = mix(duoShadow.rgb, duoHighlight.rgb, 0.5);
+            c4 = mix(duoShadow.rgb, duoHighlight.rgb, 0.75);
+            c5 = duoHighlight.rgb;
+        }
+
+        // Sample gradient
+        vec3 mapped = sampleGradient(t, c1, c2, c3, c4, c5,
+                                     stop1, stop2, stop3, stop4, stop5);
+
+        // Zone isolation
+        float shadowMask = 1.0 - smoothstep(0.0, 0.4, t);
+        float highlightMask = smoothstep(0.6, 1.0, t);
+        float midtoneMask = 1.0 - shadowMask - highlightMask;
+        midtoneMask = max(midtoneMask, 0.0);
+
+        float zoneMask = shadowMask * shadowsOnly
+                       + midtoneMask * midtonesOnly
+                       + highlightMask * highlightsOnly;
+
+        // Blend mapped with zone mask
+        mapped = mix(rgb, mapped, zoneMask);
+
+        // Apply map strength
+        mapped = mix(rgb, mapped, mapStrength);
+
+        // Blend mode
+        vec3 blended = blendColors(rgb, mapped, float(blendMode));
+
+        // Preserve hue
+        if (preserveHue &gt; EPS) {
+            vec3 origHSL = rgb2hsl(rgb);
+            vec3 blendHSL = rgb2hsl(max(blended, 0.0));
+            blendHSL.x = mix(blendHSL.x, origHSL.x, preserveHue);
+            blended = hsl2rgb(blendHSL);
+        }
+
+        // Preserve saturation
+        if (preserveSat &gt; EPS) {
+            vec3 origHSL = rgb2hsl(rgb);
+            vec3 blendHSL = rgb2hsl(max(blended, 0.0));
+            blendHSL.y = mix(blendHSL.y, origHSL.y, preserveSat);
+            blended = hsl2rgb(blendHSL);
+        }
+
+        // Preserve luminance
+        if (preserveLum &gt; EPS) {
+            float origLum = lum709(rgb);
+            float blendLum = lum709(blended);
+            if (blendLum &gt; EPS) {
+                blended *= mix(1.0, origLum / blendLum, preserveLum);
+            }
+        }
+
+        // Color shift
+        if (abs(hueShift) &gt; 0.5 || abs(satAdjust) &gt; 0.5 || abs(lumAdjust) &gt; 0.5) {
+            vec3 hsl = rgb2hsl(max(blended, 0.0));
+            if (abs(hueShift) &gt; 0.5) {
+                hsl.x = fract(hsl.x + hueShift / 360.0);
+            }
+            if (abs(satAdjust) &gt; 0.5) {
+                hsl.y = clamp(hsl.y * (1.0 + satAdjust / 100.0), 0.0, 1.0);
+            }
+            if (abs(lumAdjust) &gt; 0.5) {
+                hsl.z = clamp(hsl.z + lumAdjust / 100.0 * 0.3, 0.0, 1.0);
+            }
+            blended = hsl2rgb(hsl);
+        }
+
+        // Global mix
+        vec3 fin = mix(baseRGB, blended, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+
+        gl_FragColor = vec4(fin, original.a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

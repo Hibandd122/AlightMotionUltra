@@ -1,0 +1,265 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ccglow" name="CC Glow" desc="Multi-pass soft glow: two separable Gaussian blurs at different radii (half resolution) are combined with a soft-knee luminance threshold, then added per luminance zone (highlight/midtone/shadow glow) with tint, warmth, saturation, color-preserve, atmosphere fog, four blend modes, and quality/dither controls." category="colorlight" tags="glow,bloom,soft,cc,grade,atmosphere,highlight,manga,cinematic" thumb="thumb/Color/CC Glow.webp" overdraw="true" max-overdraw="1.5">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="blurA" srcType="buffer" downsample="2" />
+        <texture id="blurB" srcType="buffer" downsample="2" />
+        <texture id="blurC" srcType="buffer" downsample="2" />
+        <texture id="blurD" srcType="buffer" downsample="2" />
+
+        
+        <slider id="glowAmount" label="Glow Amount" default="0.4" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="glowRadius" label="Glow Radius" default="15.0" min="1.0" max="60.0" step="0.5" type="float" />
+        <slider id="glowSoftness" label="Glow Softness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="glowThreshold" label="Glow Threshold" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="glowKnee" label="Soft Knee" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="hlGlow" label="Highlight Glow" default="0.3" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="hlThreshold" label="Highlight Threshold" default="0.6" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hlWrap" label="Highlight Wrap" default="0.2" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hlSaturation" label="Highlight Saturation" default="0.8" min="0.0" max="2.0" step="0.05" type="float" />
+
+        
+        <slider id="midGlow" label="Midtone Glow" default="0.15" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="midRange" label="Midtone Range" default="0.3" min="0.1" max="0.5" step="0.01" type="float" />
+
+        
+        <slider id="shGlow" label="Shadow Glow" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="shLift" label="Shadow Lift" default="0.0" min="0.0" max="0.2" step="0.005" type="float" />
+
+        
+        <color id="glowTint" label="Glow Tint" default="#FFFFFF" alpha="false" />
+        <slider id="glowTintStrength" label="Tint Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="glowWarmth" label="Glow Warmth" default="0.0" min="-0.5" max="0.5" step="0.01" type="float" />
+        <slider id="glowSatBoost" label="Glow Saturation" default="1.0" min="0.0" max="2.0" step="0.05" type="float" />
+        <slider id="colorPreserve" label="Color Preserve" default="0.7" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="atmoAmount" label="Atmosphere Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <color id="atmoColor" label="Atmosphere Color" default="#E8E0D8" alpha="false" />
+        <slider id="atmoDensity" label="Atmosphere Density" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+            <menu label="Add" value="1" />
+            <menu label="Screen" value="2" />
+            <menu label="Soft Light" value="3" />
+            <menu label="Overlay" value="4" />
+        </menu>
+
+        
+        <menu id="quality" style="radio" default="2" label="Quality">
+            <menu label="Low" value="1" />
+            <menu label="Medium" value="2" />
+            <menu label="High" value="3" />
+        </menu>
+
+        
+        <switch id="glowOnly" default="false" label="Glow Only" />
+        <slider id="ditherAmt" label="Dither" default="0.006" min="0.0" max="0.03" step="0.001" type="float" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass target="blurA" />
+        <pass target="blurB" />
+        <pass target="blurC" />
+        <pass target="blurD" />
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    vec3 toLinear(vec3 s) {
+        vec3 lo = s / 12.92;
+        vec3 hi = pow((s + 0.055) / 1.055, vec3(2.4));
+        return mix(lo, hi, step(vec3(0.04045), s));
+    }
+    vec3 toSRGB(vec3 l) {
+        vec3 lo = l * 12.92;
+        vec3 hi = 1.055 * pow(max(l, 0.0), vec3(1.0 / 2.4)) - 0.055;
+        return mix(lo, hi, step(vec3(0.0031308), l));
+    }
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    float getTaps(float q) {
+        if (q &lt; 1.5) return 10.0;
+        if (q &lt; 2.5) return 18.0;
+        return 28.0;
+    }
+    vec4 separableBlur(sampler2D tex, vec2 uv, vec2 dir, float radius, float taps) {
+        if (radius &lt;= 0.5) return texture2DCv(tex, uv);
+        float sigma = radius / 2.14596602;
+        sigma = max(sigma, EPS);
+        float baseCoeff = 1.0 / (sqrt(2.0 * PI) * sigma);
+        float decayRate = exp(-0.5 / (sigma * sigma));
+        float decaySq = decayRate * decayRate;
+        vec4 acc = texture2DCv(tex, uv) * baseCoeff;
+        float wSum = baseCoeff;
+        float coeff = baseCoeff;
+        float decay = decayRate;
+        for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+            if (i &gt; taps) break;
+            float p0 = i;
+            float p1 = i + 1.0;
+            coeff *= decay;
+            wSum += 2.0 * coeff;
+            float w0 = coeff;
+            coeff *= decay;
+            decay *= decaySq;
+            wSum += 2.0 * coeff;
+            float w1 = coeff;
+            float wPair = w0 + w1;
+            float oPair = (p0*w0 + p1*w1) / max(wPair, EPS);
+            vec2 uvA = clamp(uv - oPair * dir, 0.0, 1.0);
+            vec2 uvB = clamp(uv + oPair * dir, 0.0, 1.0);
+            acc += texture2DCv(tex, uvA) * wPair;
+            acc += texture2DCv(tex, uvB) * wPair;
+        }
+        return acc / max(wSum, EPS);
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float taps = getTaps(float(quality));
+        float r1 = glowRadius * 0.4;
+        float r2 = glowRadius * 1.2;
+        if (acPass == 0) {
+            vec2 dir = vec2(1.0 / getTexSize(inputImg.size).x, 0.0);
+            gl_FragColor = separableBlur(inputImg.texture, uv, dir, r1, taps);
+            return;
+        }
+        if (acPass == 1) {
+            vec2 dir = vec2(0.0, 1.0 / getTexSize(blurA.size).y);
+            gl_FragColor = separableBlur(blurA.texture, uv, dir, r1, taps);
+            return;
+        }
+        if (acPass == 2) {
+            vec2 dir = vec2(1.0 / getTexSize(inputImg.size).x, 0.0);
+            gl_FragColor = separableBlur(inputImg.texture, uv, dir, r2, taps);
+            return;
+        }
+        if (acPass == 3) {
+            vec2 dir = vec2(0.0, 1.0 / getTexSize(blurC.size).y);
+            gl_FragColor = separableBlur(blurC.texture, uv, dir, r2, taps);
+            return;
+        }
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 baseRGB = max(original.rgb, 0.0);
+        vec3 baseLin = toLinear(baseRGB);
+        float baseLum = lum(baseLin);
+        vec3 narrowBlur = max(texture2DCv(blurB.texture, uv).rgb, 0.0);
+        vec3 wideBlur = max(texture2DCv(blurD.texture, uv).rgb, 0.0);
+        vec3 narrowLin = toLinear(narrowBlur);
+        vec3 wideLin = toLinear(wideBlur);
+        vec3 softBlur = mix(narrowLin, wideLin, glowSoftness);
+        float softLum = lum(softBlur);
+        float knee = max(glowKnee, EPS);
+        float edge = softLum - glowThreshold + knee;
+        edge = clamp(edge / (2.0 * knee), 0.0, 1.0);
+        edge *= edge;
+        float threshMask = max(edge, max(softLum - glowThreshold, 0.0));
+        threshMask = threshMask / max(softLum, EPS);
+        vec3 glowExtract = softBlur * threshMask;
+        vec3 totalGlow = glowExtract * glowAmount;
+        if (hlGlow &gt; EPS) {
+            float hlMask = smoothstep(hlThreshold - 0.1, hlThreshold + 0.1, baseLum);
+            vec3 hlBlur = wideLin * hlMask;
+            if (abs(hlSaturation - 1.0) &gt; EPS) {
+                float hlL = lum(hlBlur);
+                hlBlur = mix(vec3(hlL), hlBlur, hlSaturation);
+            }
+            totalGlow += hlBlur * hlGlow * 0.5;
+            if (hlWrap &gt; EPS) {
+                float wrapMask = smoothstep(hlThreshold, hlThreshold + 0.3, baseLum);
+                vec3 wrapGlow = wideLin * wrapMask * hlWrap * 0.2;
+                totalGlow += wrapGlow;
+            }
+        }
+        if (midGlow &gt; EPS) {
+            float midMask = 1.0 - abs(baseLum - 0.5) / max(midRange, EPS);
+            midMask = clamp(midMask, 0.0, 1.0);
+            midMask *= midMask;
+            totalGlow += softBlur * midMask * midGlow * 0.3;
+        }
+        if (shGlow &gt; EPS) {
+            float shMask = smoothstep(0.3, 0.0, baseLum);
+            totalGlow += narrowLin * shMask * shGlow * 0.2;
+            if (shLift &gt; EPS) {
+                totalGlow += shLift * shMask;
+            }
+        }
+        if (colorPreserve &gt; EPS) {
+            float glowLum = lum(totalGlow);
+            float baseSatRatio = lum(baseLin);
+            if (baseSatRatio &gt; EPS &amp;&amp; glowLum &gt; EPS) {
+                vec3 baseColor = baseLin / max(baseSatRatio, EPS);
+                vec3 coloredGlow = baseColor * glowLum;
+                totalGlow = mix(totalGlow, coloredGlow, colorPreserve * 0.5);
+            }
+        }
+        if (abs(glowSatBoost - 1.0) &gt; EPS) {
+            float gL = lum(totalGlow);
+            totalGlow = mix(vec3(gL), totalGlow, glowSatBoost);
+        }
+        if (abs(glowWarmth) &gt; EPS) {
+            totalGlow.r += glowWarmth * 0.04 * lum(totalGlow);
+            totalGlow.b -= glowWarmth * 0.03 * lum(totalGlow);
+        }
+        if (glowTintStrength &gt; EPS) {
+            vec3 tintLin = toLinear(glowTint.rgb);
+            totalGlow = mix(totalGlow, totalGlow * tintLin, glowTintStrength);
+        }
+        if (atmoAmount &gt; EPS) {
+            vec3 atmoLin = toLinear(atmoColor.rgb);
+            float atmoMask = pow(max(lum(softBlur), 0.0), 1.0 + atmoDensity * 2.0);
+            vec3 atmosphere = atmoLin * atmoMask;
+            totalGlow += atmosphere * atmoAmount * 0.15;
+        }
+        totalGlow = max(totalGlow, 0.0);
+        if (glowOnly) {
+            vec3 glowView = toSRGB(totalGlow);
+            gl_FragColor = vec4(clamp(glowView, 0.0, 1.0), 1.0);
+            return;
+        }
+        vec3 composited;
+        float bm = float(blendMode);
+        if (bm &lt; 1.5) {
+            composited = baseLin + totalGlow;
+        } else if (bm &lt; 2.5) {
+            vec3 baseS = baseRGB;
+            vec3 glowS = toSRGB(totalGlow);
+            composited = toLinear(1.0 - (1.0 - baseS) * (1.0 - clamp(glowS, 0.0, 1.0)));
+        } else if (bm &lt; 3.5) {
+            vec3 baseS = baseRGB;
+            vec3 glowS = toSRGB(clamp(totalGlow, 0.0, 1.0));
+            vec3 r;
+            r.r = (glowS.r&lt;0.5) ? 2.0*baseS.r*glowS.r+baseS.r*baseS.r*(1.0-2.0*glowS.r) : 2.0*baseS.r*(1.0-glowS.r)+sqrt(max(baseS.r,0.0))*(2.0*glowS.r-1.0);
+            r.g = (glowS.g&lt;0.5) ? 2.0*baseS.g*glowS.g+baseS.g*baseS.g*(1.0-2.0*glowS.g) : 2.0*baseS.g*(1.0-glowS.g)+sqrt(max(baseS.g,0.0))*(2.0*glowS.g-1.0);
+            r.b = (glowS.b&lt;0.5) ? 2.0*baseS.b*glowS.b+baseS.b*baseS.b*(1.0-2.0*glowS.b) : 2.0*baseS.b*(1.0-glowS.b)+sqrt(max(baseS.b,0.0))*(2.0*glowS.b-1.0);
+            composited = toLinear(r);
+        } else {
+            vec3 baseS = baseRGB;
+            vec3 glowS = toSRGB(clamp(totalGlow, 0.0, 1.0));
+            vec3 r;
+            r.r = (baseS.r&lt;0.5) ? 2.0*baseS.r*glowS.r : 1.0-2.0*(1.0-baseS.r)*(1.0-glowS.r);
+            r.g = (baseS.g&lt;0.5) ? 2.0*baseS.g*glowS.g : 1.0-2.0*(1.0-baseS.g)*(1.0-glowS.g);
+            r.b = (baseS.b&lt;0.5) ? 2.0*baseS.b*glowS.b : 1.0-2.0*(1.0-baseS.b)*(1.0-glowS.b);
+            composited = toLinear(r);
+        }
+        vec3 fin = toSRGB(max(composited, 0.0));
+        if (ditherAmt &gt; EPS) {
+            vec2 px = floor(getTexSize(inputImg.size) * uv);
+            float n1 = fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453);
+            float n2 = fract(sin(dot(px, vec2(24.123, 17.321))) * 12345.6789);
+            float n3 = fract(sin(dot(px, vec2(93.989, 67.345))) * 98765.4321);
+            fin += (vec3(n1, n2, n3) - 0.5) * ditherAmt;
+        }
+        fin = mix(baseRGB, fin, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+        gl_FragColor = vec4(fin, original.a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

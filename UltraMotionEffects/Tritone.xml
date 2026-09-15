@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.tritone" name="Tritone" desc="Maps highlights, midtones, and shadows to three custom colors" category="colorlight" tags="color,tritone,tint,mapping" thumb="thumb/Color/Tritone.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <color id="highlights" default="#FFFFFFFF" label="Highlights" alpha="false" />
+    <color id="midtones" default="#FF71533B" label="Midtones" alpha="false" />
+    <color id="shadows" default="#FF000000" label="Shadows" alpha="false" />
+
+    
+    <slider id="blend" default="0.0" min="0.0" max="1.0" step="0.001" label="Blend With Original" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 src = texture2DCv(inputImg.texture, uv);
+        
+        // 1. Calculate Luminance (standard weights for grayscale)
+        float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114));
+        
+        // 2. Map colors based on luminance
+        vec3 tritoneCol;
+        if (lum &lt; 0.5) {
+            // Map Shadows to Midtones
+            tritoneCol = mix(shadows.rgb, midtones.rgb, lum * 2.0);
+        } else {
+            // Map Midtones to Highlights
+            tritoneCol = mix(midtones.rgb, highlights.rgb, (lum - 0.5) * 2.0);
+        }
+        
+        // 3. Blend with original
+        vec3 finalCol = mix(tritoneCol, src.rgb, blend);
+        
+        // 4. Output with original alpha
+        gl_FragColor = vec4(finalCol, 1.0) * src.a;
+    }
+  </shader>
+
+</effect>

@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.creative.sway_custom" name="Sway" desc="Displaces the layer along a set direction angle with a travelling sine wave driven by the vertical coordinate, and scales the wave by a vertical falloff so the sway fades out across the layer height. Speed, Frequency, Amplitude, Vertical Decay, and Angle control it." category="warp" thumb="thumb/Distort and Warp/Sway.webp" tags="distortion,sway,wave,glsl" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputLayer" srcType="content" label="Input Layer" />
+        <slider id="speed" default="-5.60" min="-10.0" max="10.0" step="0.01" label="Speed" />
+        <slider id="frequency" default="17.83" min="1.0" max="100.0" step="0.01" label="Frequency" />
+        <slider id="amplitude" default="0.07" min="0.0" max="0.5" step="0.01" label="Amplitude" />
+        <slider id="falloff" default="2.87" min="0.1" max="10.0" step="0.01" label="Vertical Decay" />
+        <slider id="angle" default="0.0" min="0.0" max="360.0" step="0.1" label="Angle" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        precision highp float;
+
+        void main() {
+            vec2 uv = acLayerNorm;
+            
+            // Calculate the intensity mask (stronger at bottom, 0 at top)
+            float mask = pow(max(0.0, 1.0 - uv.y), falloff);
+            
+            // Generate wave offset
+            float wave = sin(uv.y * frequency - acTime * speed) * amplitude * mask;
+            
+            // Handle Angle (Directional offset)
+            float rad = radians(angle);
+            vec2 direction = vec2(cos(rad), sin(rad));
+            
+            vec2 offset = direction * wave;
+            
+            vec2 distortedUV = uv + offset;
+            
+            // Sample the input channel using the declared texture parameter
+            gl_FragColor = texture2D(inputLayer.texture, distortedUV);
+        }
+    </shader>
+</effect>

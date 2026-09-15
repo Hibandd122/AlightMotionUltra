@@ -1,0 +1,490 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.lumetriultra" name="Color Grading Suite" desc="Full single-pass grading toolset: white balance, exposure/contrast/highlights/shadows/whites/blacks, saturation, vibrance, clarity, dehaze, a 5-point master curve plus per-channel RGB curves, lift/gamma/gain, three-way color wheels, split toning, creative looks (faded film, sharpen, grain, bleach bypass, cross process), vignette, and master gamma/gain/offset." category="colorlight" tags="color,grade,curves,wheels,lift,gamma,gain,cinematic" thumb="thumb/Color/Color Grading Suite.webp" overdraw="true" max-overdraw="1.0">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="temperature" label="Temperature" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="tint" label="Tint" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="exposure" label="Exposure" default="0.0" min="-5.0" max="5.0" step="0.01" type="float" />
+        <slider id="contrast" label="Contrast" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="highlights" label="Highlights" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="shadows" label="Shadows" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="whites" label="Whites" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="blacks" label="Blacks" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="saturation" label="Saturation" default="100.0" min="0.0" max="200.0" step="0.5" type="float" />
+        <slider id="vibrance" label="Vibrance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="clarity" label="Clarity" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="dehaze" label="Dehaze" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="mcBlacks" label="Blacks Point" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="mcShadows" label="Shadows Point" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="mcMidtones" label="Midtones Point" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="mcHighlights" label="Highlights Point" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="mcWhites" label="Whites Point" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+
+        
+        <slider id="rcShadows" label="Red Shadows" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="rcMidtones" label="Red Midtones" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="rcHighlights" label="Red Highlights" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+
+        
+        <slider id="gcShadows" label="Green Shadows" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="gcMidtones" label="Green Midtones" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="gcHighlights" label="Green Highlights" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+
+        
+        <slider id="bcShadows" label="Blue Shadows" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="bcMidtones" label="Blue Midtones" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+        <slider id="bcHighlights" label="Blue Highlights" default="0.0" min="-50.0" max="50.0" step="0.5" type="float" />
+
+        
+        <color id="liftColor" label="Lift Color" default="#808080" alpha="false" />
+        <slider id="liftLum" label="Lift Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <color id="gammaColor" label="Gamma Color" default="#808080" alpha="false" />
+        <slider id="gammaLum" label="Gamma Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <color id="gainColor" label="Gain Color" default="#808080" alpha="false" />
+        <slider id="gainLum" label="Gain Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <color id="wheelShadow" label="Shadow Wheel" default="#808080" alpha="false" />
+        <slider id="wheelShadowStr" label="Shadow Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="wheelShadowLum" label="Shadow Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <color id="wheelMidtone" label="Midtone Wheel" default="#808080" alpha="false" />
+        <slider id="wheelMidtoneStr" label="Midtone Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="wheelMidtoneLum" label="Midtone Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <color id="wheelHighlight" label="Highlight Wheel" default="#808080" alpha="false" />
+        <slider id="wheelHighlightStr" label="Highlight Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="wheelHighlightLum" label="Highlight Luminance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <color id="splitShadow" label="Shadow Tint" default="#808080" alpha="false" />
+        <slider id="splitShadowStr" label="Shadow Tint Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <color id="splitHighlight" label="Highlight Tint" default="#808080" alpha="false" />
+        <slider id="splitHighlightStr" label="Highlight Tint Strength" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="splitBalance" label="Balance" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="fadedFilm" label="Faded Film" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="sharpen" label="Sharpen" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="filmGrain" label="Film Grain" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="bleachBypass" label="Bleach Bypass" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="crossProcess" label="Cross Process" default="0.0" min="0.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="vigAmount" label="Amount" default="0.0" min="-100.0" max="100.0" step="0.5" type="float" />
+        <slider id="vigMidpoint" label="Midpoint" default="50.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="vigRoundness" label="Roundness" default="50.0" min="0.0" max="100.0" step="0.5" type="float" />
+        <slider id="vigFeather" label="Feather" default="50.0" min="0.0" max="100.0" step="0.5" type="float" />
+
+        
+        <slider id="masterGamma" label="Gamma" default="1.0" min="0.2" max="3.0" step="0.01" type="float" />
+        <slider id="masterGain" label="Gain" default="1.0" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="masterOffset" label="Offset" default="0.0" min="-0.5" max="0.5" step="0.005" type="float" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+    float h2r(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0/6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+        return p;
+    }
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(h2r(p,q,c.x+1.0/3.0), h2r(p,q,c.x), h2r(p,q,c.x-1.0/3.0));
+    }
+    float noiseHash(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+    float applyCurve5(float x, float b, float s, float m, float h, float w) {
+        float result = x;
+        float bN = b / 100.0;
+        float sN = s / 100.0;
+        float mN = m / 100.0;
+        float hN = h / 100.0;
+        float wN = w / 100.0;
+        float wBlacks = smoothstep(0.15, 0.0, x);
+        result += bN * wBlacks * 0.5;
+        float wShadows = smoothstep(0.0, 0.12, x) * smoothstep(0.4, 0.2, x);
+        result += sN * wShadows * 0.5;
+        float wMids = smoothstep(0.15, 0.35, x) * smoothstep(0.85, 0.65, x);
+        result += mN * wMids * 0.5;
+        float wHighs = smoothstep(0.6, 0.8, x) * smoothstep(1.0, 0.88, x);
+        result += hN * wHighs * 0.5;
+        float wWhites = smoothstep(0.85, 1.0, x);
+        result += wN * wWhites * 0.5;
+        return clamp(result, 0.0, 1.0);
+    }
+    float applyCurve3(float x, float s, float m, float h) {
+        float result = x;
+        float sN = s / 100.0;
+        float mN = m / 100.0;
+        float hN = h / 100.0;
+        float wS = smoothstep(0.4, 0.0, x);
+        result += sN * wS * 0.5;
+        float wM = smoothstep(0.0, 0.3, x) * smoothstep(1.0, 0.7, x);
+        result += mN * wM * 0.5;
+        float wH = smoothstep(0.6, 1.0, x);
+        result += hN * wH * 0.5;
+        return clamp(result, 0.0, 1.0);
+    }
+    vec3 applyWhiteBalance(vec3 rgb) {
+        if (abs(temperature) &lt; 0.5 &amp;&amp; abs(tint) &lt; 0.5) return rgb;
+        float t = temperature / 100.0;
+        float tn = tint / 100.0;
+        // Physically-based temperature shift
+        float warm = t * 0.08;
+        rgb.r += warm;
+        rgb.b -= warm;
+        rgb.g += warm * 0.15;
+        // Tint (green-magenta axis)
+        rgb.g += tn * 0.08;
+        rgb.r -= tn * 0.03;
+        rgb.b -= tn * 0.03;
+        return rgb;
+    }
+    vec3 applyExposure(vec3 rgb) {
+        if (abs(exposure) &lt; EPS) return rgb;
+        return rgb * pow(2.0, exposure);
+    }
+    vec3 applyContrast(vec3 rgb) {
+        if (abs(contrast) &lt; 0.5) return rgb;
+        float c = contrast / 100.0;
+        // S-curve contrast — not just linear
+        float pivot = 0.18; // Middle grey
+        float factor = 1.0 + c;
+        rgb = (rgb - pivot) * factor + pivot;
+        // Extra S-curve shaping for film-like feel
+        if (c &gt; 0.0) {
+            float strength = c * 0.3;
+            rgb = rgb + strength * (rgb - 0.5) * (1.0 - abs(rgb - 0.5) * 2.0);
+        }
+        return rgb;
+    }
+    vec3 applyHighlightsShadows(vec3 rgb) {
+        float l = lum(rgb);
+        // Smooth zone masks — overlapping for natural transitions
+        float shadowMask = 1.0 - smoothstep(0.0, 0.5, l);
+        shadowMask *= shadowMask; // Squared for smoother falloff
+        float highlightMask = smoothstep(0.5, 1.0, l);
+        highlightMask *= highlightMask;
+        float whiteMask = smoothstep(0.75, 1.0, l);
+        float blackMask = 1.0 - smoothstep(0.0, 0.25, l);
+        float sAdj = shadows / 100.0 * 0.4;
+        float hAdj = highlights / 100.0 * 0.4;
+        float wAdj = whites / 100.0 * 0.25;
+        float bAdj = blacks / 100.0 * 0.25;
+        // Preserve color ratios during adjustment
+        float origLum = max(l, EPS);
+        float newLum = l + sAdj * shadowMask + hAdj * highlightMask + wAdj * whiteMask + bAdj * blackMask;
+        float ratio = max(newLum, 0.0) / origLum;
+        rgb *= ratio;
+        return rgb;
+    }
+    vec3 applySaturation(vec3 rgb) {
+        if (abs(saturation - 100.0) &lt; 0.5) return rgb;
+        float s = saturation / 100.0;
+        float l = lum(rgb);
+        return mix(vec3(l), rgb, s);
+    }
+    vec3 applyVibrance(vec3 rgb) {
+        if (abs(vibrance) &lt; 0.5) return rgb;
+        float v = vibrance / 100.0;
+        float l = lum(rgb);
+        float currentSat = length(rgb - vec3(l));
+        // Vibrance affects low-saturation areas more
+        float weight = 1.0 - clamp(currentSat * 3.0, 0.0, 1.0);
+        float boost = 1.0 + v * weight;
+        return mix(vec3(l), rgb, boost);
+    }
+    vec3 applyClarity(vec3 rgb, vec2 uv) {
+        if (abs(clarity) &lt; 0.5) return rgb;
+        float c = clarity / 100.0;
+        vec2 texSz = getTexSize(inputImg.size);
+        vec2 px = 1.0 / texSz;
+        // Local contrast enhancement using cross sample
+        vec3 t = texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -px.y * 2.0), 0.0, 1.0)).rgb;
+        vec3 b = texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, px.y * 2.0), 0.0, 1.0)).rgb;
+        vec3 l = texture2DCv(inputImg.texture, clamp(uv + vec2(-px.x * 2.0, 0.0), 0.0, 1.0)).rgb;
+        vec3 r = texture2DCv(inputImg.texture, clamp(uv + vec2(px.x * 2.0, 0.0), 0.0, 1.0)).rgb;
+        float localAvg = lum(t + b + l + r) * 0.25;
+        float centerLum = lum(rgb);
+        float detail = centerLum - localAvg;
+        // Apply only to midtones for natural feel
+        float midMask = 1.0 - abs(centerLum - 0.5) * 2.0;
+        midMask = max(midMask, 0.0);
+        rgb += detail * c * 1.5 * midMask;
+        return rgb;
+    }
+    vec3 applyDehaze(vec3 rgb) {
+        if (abs(dehaze) &lt; 0.5) return rgb;
+        float d = dehaze / 100.0;
+        float l = lum(rgb);
+        if (d &gt; 0.0) {
+            // Remove haze — increase contrast in low-contrast areas
+            float hazeMask = 1.0 - smoothstep(0.0, 0.6, 1.0 - l);
+            rgb = mix(rgb, rgb * (1.0 + d * 0.5), hazeMask);
+            // Restore saturation that haze kills
+            float satBoost = 1.0 + d * 0.15;
+            rgb = mix(vec3(lum(rgb)), rgb, satBoost);
+        } else {
+            // Add haze
+            float addHaze = abs(d);
+            rgb = mix(rgb, vec3(0.7, 0.75, 0.8), addHaze * 0.35);
+        }
+        return rgb;
+    }
+    vec3 applyLiftGammaGain(vec3 rgb) {
+        // Lift — affects shadows
+        vec3 liftOff = (liftColor.rgb - 0.5) * 2.0;
+        float liftL = liftLum / 100.0 * 0.3;
+        float l = lum(rgb);
+        float shadowMask = 1.0 - smoothstep(0.0, 0.5, l);
+        rgb += (liftOff * 0.15 + liftL) * shadowMask;
+        // Gamma — affects midtones
+        vec3 gammaOff = (gammaColor.rgb - 0.5) * 2.0;
+        float gammaL = gammaLum / 100.0 * 0.3;
+        float midMask = smoothstep(0.0, 0.3, l) * smoothstep(1.0, 0.7, l);
+        rgb += (gammaOff * 0.15 + gammaL) * midMask;
+        // Gain — affects highlights
+        vec3 gainOff = (gainColor.rgb - 0.5) * 2.0;
+        float gainL = gainLum / 100.0 * 0.3;
+        float highMask = smoothstep(0.5, 1.0, l);
+        rgb += (gainOff * 0.15 + gainL) * highMask;
+        // Apply actual gamma adjustment
+        if (abs(gammaL) &gt; EPS) {
+            float gammaVal = 1.0 / max(1.0 + gammaL, 0.1);
+            rgb = pow(max(rgb, 0.0), vec3(gammaVal));
+        }
+        return rgb;
+    }
+    vec3 applyColorWheels(vec3 rgb) {
+        float l = lum(rgb);
+        float sMask = 1.0 - smoothstep(0.0, 0.5, l);
+        sMask *= sMask;
+        float mMask = smoothstep(0.0, 0.3, l) * smoothstep(1.0, 0.7, l);
+        float hMask = smoothstep(0.5, 1.0, l);
+        hMask *= hMask;
+        float sStr = wheelShadowStr / 100.0;
+        float mStr = wheelMidtoneStr / 100.0;
+        float hStr = wheelHighlightStr / 100.0;
+        vec3 sOff = (wheelShadow.rgb - 0.5) * 2.0 * sStr;
+        vec3 mOff = (wheelMidtone.rgb - 0.5) * 2.0 * mStr;
+        vec3 hOff = (wheelHighlight.rgb - 0.5) * 2.0 * hStr;
+        rgb += sOff * sMask * 0.2;
+        rgb += mOff * mMask * 0.2;
+        rgb += hOff * hMask * 0.2;
+        float sLum = wheelShadowLum / 100.0 * 0.25;
+        float mLum = wheelMidtoneLum / 100.0 * 0.25;
+        float hLum = wheelHighlightLum / 100.0 * 0.25;
+        rgb += sLum * sMask;
+        rgb += mLum * mMask;
+        rgb += hLum * hMask;
+        return rgb;
+    }
+    vec3 applySplitTone(vec3 rgb) {
+        float sStr = splitShadowStr / 100.0;
+        float hStr = splitHighlightStr / 100.0;
+        if (sStr &lt; EPS &amp;&amp; hStr &lt; EPS) return rgb;
+        float l = lum(rgb);
+        float balanceShift = splitBalance / 100.0 * 0.3;
+        float sMask = 1.0 - smoothstep(0.0, 0.5 + balanceShift, l);
+        float hMask = smoothstep(0.5 + balanceShift, 1.0, l);
+        vec3 sTint = (splitShadow.rgb - 0.5) * 2.0;
+        vec3 hTint = (splitHighlight.rgb - 0.5) * 2.0;
+        // Preserve luminance during tinting
+        vec3 tinted = rgb;
+        tinted += sTint * sStr * sMask * 0.2;
+        tinted += hTint * hStr * hMask * 0.2;
+        float origLum = lum(rgb);
+        float newLum = lum(tinted);
+        if (newLum &gt; EPS) {
+            tinted *= mix(1.0, origLum / newLum, 0.7);
+        }
+        return tinted;
+    }
+    vec3 applyFadedFilm(vec3 rgb) {
+        if (fadedFilm &lt; 0.5) return rgb;
+        float f = fadedFilm / 100.0;
+        // Lift blacks
+        float liftAmount = f * 0.12;
+        rgb = rgb * (1.0 - f * 0.15) + liftAmount;
+        // Slight desaturation
+        float l = lum(rgb);
+        rgb = mix(rgb, vec3(l), f * 0.2);
+        // Compress highlights
+        rgb = rgb * (1.0 - f * 0.1);
+        return rgb;
+    }
+    vec3 applySharpen(vec3 rgb, vec2 uv) {
+        if (sharpen &lt; 0.5) return rgb;
+        float s = sharpen / 100.0 * 1.5;
+        vec2 px = 1.0 / getTexSize(inputImg.size);
+        vec3 t = texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -px.y), 0.0, 1.0)).rgb;
+        vec3 b = texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, px.y), 0.0, 1.0)).rgb;
+        vec3 l = texture2DCv(inputImg.texture, clamp(uv + vec2(-px.x, 0.0), 0.0, 1.0)).rgb;
+        vec3 r = texture2DCv(inputImg.texture, clamp(uv + vec2(px.x, 0.0), 0.0, 1.0)).rgb;
+        vec3 blur = (t + b + l + r) * 0.25;
+        rgb += (rgb - blur) * s;
+        return rgb;
+    }
+    vec3 applyFilmGrain(vec3 rgb, vec2 uv) {
+        if (filmGrain &lt; 0.5) return rgb;
+        float g = filmGrain / 100.0;
+        vec2 px = floor(getTexSize(inputImg.size) * uv);
+        float n = noiseHash(px + acTime * 100.0) * 2.0 - 1.0;
+        float l = lum(rgb);
+        float grainMask = 1.0 - l * 0.4;
+        rgb += n * g * 0.08 * grainMask;
+        return rgb;
+    }
+    vec3 applyBleachBypass(vec3 rgb) {
+        if (bleachBypass &lt; 0.5) return rgb;
+        float a = bleachBypass / 100.0;
+        float l = lum(rgb);
+        vec3 desat = vec3(l);
+        // Overlay blend between desat and original
+        vec3 result;
+        result.r = (l &lt; 0.5) ? 2.0 * rgb.r * desat.r : 1.0 - 2.0 * (1.0 - rgb.r) * (1.0 - desat.r);
+        result.g = (l &lt; 0.5) ? 2.0 * rgb.g * desat.g : 1.0 - 2.0 * (1.0 - rgb.g) * (1.0 - desat.g);
+        result.b = (l &lt; 0.5) ? 2.0 * rgb.b * desat.b : 1.0 - 2.0 * (1.0 - rgb.b) * (1.0 - desat.b);
+        return mix(rgb, result, a);
+    }
+    vec3 applyCrossProcess(vec3 rgb) {
+        if (crossProcess &lt; 0.5) return rgb;
+        float a = crossProcess / 100.0;
+        vec3 cp;
+        cp.r = pow(max(rgb.r, 0.0), 0.8 + a * 0.3);
+        cp.g = pow(max(rgb.g, 0.0), 1.0 - a * 0.15);
+        cp.b = pow(max(rgb.b, 0.0), 1.2 - a * 0.1);
+        cp.r += a * 0.04;
+        cp.b -= a * 0.02;
+        return mix(rgb, cp, a);
+    }
+    vec3 applyVignette(vec3 rgb, vec2 uv) {
+        if (abs(vigAmount) &lt; 0.5) return rgb;
+        float amount = vigAmount / 100.0;
+        float midpoint = vigMidpoint / 100.0;
+        float roundness = vigRoundness / 100.0;
+        float feather = vigFeather / 100.0;
+        vec2 center = uv - 0.5;
+        center.x *= mix(1.5, 1.0, roundness);
+        float dist = length(center);
+        float vigRange = max(feather * 0.5, 0.01);
+        float vig = smoothstep(midpoint - vigRange, midpoint + vigRange, dist);
+        if (amount &gt; 0.0) {
+            rgb *= 1.0 - vig * amount;
+        } else {
+            rgb *= 1.0 + vig * abs(amount) * 0.5;
+        }
+        return rgb;
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 rgb = max(original.rgb, 0.0);
+        vec3 baseRGB = rgb;
+
+        // ═══ WHITE BALANCE ═══
+        rgb = applyWhiteBalance(rgb);
+
+        // ═══ TONE ═══
+        rgb = applyExposure(rgb);
+        rgb = applyContrast(rgb);
+        rgb = applyHighlightsShadows(rgb);
+
+        // ═══ PRESENCE ═══
+        rgb = applySaturation(rgb);
+        rgb = applyVibrance(rgb);
+        rgb = applyClarity(rgb, uv);
+        rgb = applyDehaze(rgb);
+
+        // ═══ MASTER CURVE ═══
+        float masterL = lum(rgb);
+        float curvedL = applyCurve5(masterL, mcBlacks, mcShadows, mcMidtones, mcHighlights, mcWhites);
+        float masterRatio = curvedL / max(masterL, EPS);
+        rgb *= masterRatio;
+
+        // ═══ PER-CHANNEL CURVES ═══
+        rgb.r = applyCurve3(rgb.r, rcShadows, rcMidtones, rcHighlights);
+        rgb.g = applyCurve3(rgb.g, gcShadows, gcMidtones, gcHighlights);
+        rgb.b = applyCurve3(rgb.b, bcShadows, bcMidtones, bcHighlights);
+
+        // ═══ LIFT GAMMA GAIN ═══
+        rgb = applyLiftGammaGain(rgb);
+
+        // ═══ COLOR WHEELS ═══
+        rgb = applyColorWheels(rgb);
+
+        // ═══ SPLIT TONE ═══
+        rgb = applySplitTone(rgb);
+
+        // ═══ CREATIVE ═══
+        rgb = applyFadedFilm(rgb);
+        rgb = applySharpen(rgb, uv);
+        rgb = applyFilmGrain(rgb, uv);
+        rgb = applyBleachBypass(rgb);
+        rgb = applyCrossProcess(rgb);
+
+        // ═══ VIGNETTE ═══
+        rgb = applyVignette(rgb, uv);
+
+        // ═══ MASTER OUTPUT ═══
+        if (abs(masterGamma - 1.0) &gt; EPS) {
+            rgb = pow(max(rgb, 0.0), vec3(1.0 / max(masterGamma, EPS)));
+        }
+        rgb *= masterGain;
+        rgb += masterOffset;
+
+        // ═══ GLOBAL MIX ═══
+        rgb = mix(baseRGB, rgb, globalMix);
+
+        // ═══ SAFETY ═══
+        rgb = clamp(rgb, 0.0, 1.0);
+
+        gl_FragColor = vec4(rgb, original.a);
+    }
+    </shader>
+    
+</effect>

@@ -1,0 +1,153 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.noise_tunnel_blue" name="Noise Tunnel Blue" desc="Blue simplex FBM tunnel with rotation and optional whiteout (Shadertoy port)" category="procedural" tags="tunnel, noise, simplex" thumb="thumb/Procedural/Noise Tunnel Blue.webp">
+
+    <params>
+        
+        <slider id="SPEED" label="Scroll Speed" default="2.0" min="0.0" max="10.0" step="0.001" type="float" />
+        <slider id="CYCLE" label="Cycle Length (t2)" default="4.0" min="0.5" max="20.0" step="0.01" type="float" />
+
+        
+        <slider id="ROT_Y" label="Yaw (ay rad)" default="0.0" min="-3.1416" max="3.1416" step="0.001" type="float" />
+        <slider id="ROT_X" label="Pitch (ax rad)" default="0.0" min="-3.1416" max="3.1416" step="0.001" type="float" />
+        <slider id="ROT_SPEED" label="Angular Scroll Speed" default="0.3" min="-4.0" max="4.0" step="0.001" type="float" />
+
+        
+        <slider id="FBM_SCALE" label="Start Scale" default="5.0" min="0.5" max="16.0" step="0.01" type="float" />
+        <slider id="FBM_OCT" label="Octaves (1..8)" default="5.0" min="1.0" max="8.0" step="1.0" type="float" />
+        <slider id="FBM_PERSIST" label="Persistence" default="0.75" min="0.1" max="1.0" step="0.001" type="float" />
+
+        
+        <slider id="FOCAL_DEPTH" label="Focal Depth" default="0.15" min="0.005" max="1.0" step="0.001" type="float" />
+        <slider id="DISK_MIN" label="Disk Min Size" default="0.025" min="0.0" max="0.5" step="0.001" type="float" />
+        <slider id="DISK_SCALE" label="Disk Scale" default="1.5" min="0.0" max="4.0" step="0.01" type="float" />
+
+        
+        <color id="COLOR_BASE" label="Base Color" default="#FF2766E6" alpha="true" />
+        <slider id="WHITE_GAIN" label="White Spots Gain" default="0.35" min="0.0" max="1.0" step="0.001" type="float" />
+        <slider id="GAMMA" label="Gamma" default="1.0" min="0.2" max="2.2" step="0.01" type="float" />
+        <menu id="WHITEOUT" style="radio" default="1" label="Whiteout Mode">
+            <menu label="Enabled" value="1" />
+            <menu label="Disabled" value="0" />
+        </menu>
+    </params>
+
+    <shader type="fragment" precision="high">
+// Blue Simplex FBM Tunnel - AM single pass
+#define PI 3.141592653589793
+#define TAU 6.283185307179586
+
+// Hash and simplex noise (hash33-based)
+#define MOD3 vec3(0.1031, 0.11369, 0.13787)
+vec3 hash33(vec3 p3){
+    p3 = fract(p3 * MOD3);
+    p3 += dot(p3, p3.yxz + 19.19);
+    return -1.0 + 2.0 * fract(vec3(
+        (p3.x + p3.y) * p3.z,
+        (p3.x + p3.z) * p3.y,
+        (p3.y + p3.z) * p3.x
+    ));
+}
+
+float simplexNoise(vec3 p){
+    const float K1 = 0.333333333;
+    const float K2 = 0.166666667;
+    vec3 i = floor(p + (p.x + p.y + p.z) * K1);
+    vec3 d0 = p - (i - (i.x + i.y + i.z) * K2);
+    vec3 e = step(vec3(0.0), d0 - d0.yzx);
+    vec3 i1 = e * (1.0 - e.zxy);
+    vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+    vec3 d1 = d0 - (i1 - vec3(1.0) * K2);
+    vec3 d2 = d0 - (i2 - vec3(2.0) * K2);
+    vec3 d3 = d0 - (vec3(1.0) - vec3(3.0) * K2);
+    vec4 h = max(0.6 - vec4(dot(d0,d0), dot(d1,d1), dot(d2,d2), dot(d3,d3)), 0.0);
+    vec4 n = h * h * h * h * vec4(dot(d0, hash33(i)), dot(d1, hash33(i + i1)), dot(d2, hash33(i + i2)), dot(d3, hash33(i + vec3(1.0))));
+    return dot(vec4(31.316), n);
+}
+
+float fbm3(vec3 p){
+    float f = 0.0;
+    float scale = FBM_SCALE;
+    float amp = 0.75;
+    int oct = int(clamp(FBM_OCT, 1.0, 8.0));
+    const int MAX_OCT = 8;
+    for (int i=0; i&lt;MAX_OCT; ++i){
+        if (i &gt;= oct) break;
+        f += simplexNoise(p * scale) * amp;
+        amp *= FBM_PERSIST;
+        scale *= 2.0;
+    }
+    return min(f, 1.0);
+}
+
+mat3 rotY(float a){ return mat3(cos(a),0.0,sin(a), 0.0,1.0,0.0, -sin(a),0.0,cos(a)); }
+mat3 rotX(float a){ return mat3(1.0,0.0,0.0, 0.0,cos(a),sin(a), 0.0,-sin(a),cos(a)); }
+
+void main(){
+    vec2 R = acScreenSize;
+    vec2 frag = acScreenNorm * R;
+
+    float t2 = max(CYCLE, 1e-3);
+    float t = mod(acTime, t2) / t2; // normalized 0..1
+
+    vec2 q = frag / R; // unused but retained
+    vec2 p = (2.0 * frag - R) / min(R.y, R.x);
+    p += vec2(0.0, -0.1);
+
+    float ay = ROT_Y;
+    float ax = ROT_X;
+
+    mat3 m = rotX(ax) * rotY(ay);
+    vec3 v = vec3(p, 1.0);
+    v = m * v;
+    float v_xy = length(v.xy);
+    float z = v.z / max(v_xy, 1e-5);
+
+    float focal_depth = FOCAL_DEPTH;
+    float whiteoutSel = float(WHITEOUT);
+    if (whiteoutSel &gt; 0.5){
+        float wf = smoothstep(0.65, 0.9, t);
+        focal_depth = mix(0.15, 0.015, wf);
+    }
+
+    vec2 polar;
+    float p_len = length(v.xy);
+    polar.y = z * focal_depth + acTime * SPEED;
+
+    float a = atan(v.y, v.x);
+    a = 0.5 + 0.5 * a / PI;
+    a -= acTime * ROT_SPEED;
+    float x = fract(a);
+    if (x &gt;= 0.5) x = 1.0 - x;
+    polar.x = x;
+
+    float val = 0.45 + 0.55 * fbm3(vec3(vec2(2.0, 0.5) * polar, 0.15 * acTime));
+    val = clamp(val, 0.0, 1.0);
+
+    vec3 baseCol = COLOR_BASE.rgb;
+    vec3 col = baseCol * vec3(val);
+
+    vec3 white = WHITE_GAIN * vec3(smoothstep(0.55, 1.0, val));
+    col += white;
+    col = clamp(col, 0.0, 1.0);
+
+    float w_total = 0.0;
+    float w_out = 0.0;
+    if (whiteoutSel &gt; 0.5){
+        float w_in = abs(1.0 - smoothstep(0.0, 0.25, t));
+        w_out = abs(smoothstep(0.8, 1.0, t));
+        w_total = max(w_in, w_out);
+    }
+
+    float disk_size = max(DISK_MIN, DISK_SCALE * w_out);
+    float disk_col = exp(-(p_len - disk_size) * 4.0);
+    col += clamp(vec3(disk_col), 0.0, 1.0);
+
+    if (whiteoutSel &gt; 0.5){
+        col = mix(col, vec3(1.0), w_total);
+    }
+
+    col = pow(max(col, 0.0), vec3(GAMMA));
+    gl_FragColor = vec4(col, 1.0);
+}
+    </shader>
+</effect>

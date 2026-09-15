@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.rays_edge" name="Edge Rays" desc="Two-pass radial light rays: an edge-detect pass isolates layer edges, then rays are accumulated by marching up to Quality samples from each pixel toward a center point, with length, intensity, threshold, color fill/blend, and feather controls. High Quality values are very expensive." category="colorlight" thumb="thumb/Light and Glow/Edge Rays.webp" tags="rays,edges,stylize">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <texture id="edge" srcType="buffer" />
+    <slider id="edgeThreshold" default="1.0" min="0.00" max="1.00" step="0.01" label="Edge Threshold" />
+    <slider id="brightThreshold" default="0.30" min="0.00" max="1.00" step="0.01" label="Bright Threshold" />
+    <slider id="feather" default="20.0" min="0.0" max="20.0" step="0.5" label="Feather (px)" />
+    <switch id="useLuma" default="true" label="Use Luminance" />
+    <point id="centerPoint" label="Center" />
+    <slider id="strength" default="1.20" min="0.0" max="4.0" step="0.01" label="Length" />
+    <slider id="intensity" default="5.0" min="0.0" max="5.0" step="0.01" label="Intensity" />
+    <slider id="threshold" default="0.0" min="0.0" max="1.0" step="0.01" label="Threshold" />
+    <color id="thresholdColor" default="#FF000000" label="Threshold Add" alpha="false" />
+    <color id="fillColor" default="#FFFFFF" label="Color" alpha="false" />
+    <slider id="blend" default="0.00" min="0.0" max="1" label="Blend" type="percent" />
+    <slider id="quality" default="150.0" min="10.0" max="800.0" step="1" label="Quality" ticks="150" />
+  </params>
+
+  <passes>
+    <pass target="edge" effect="com.alightcreative.effects.rays_edge_detect" />
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+    vec4 src(vec2 uv){ return texture2DCv(inputImg.texture, uv); }
+    vec4 eTex(vec2 uv){ return texture2DCv(edge.texture, uv); }
+    void main(){
+      vec2 uvs = acScreenNorm.st;
+      vec4 baseColor = src(uvs);
+      int nSamples = int(quality);
+      if( intensity &lt;= 0.0 || nSamples &lt; 2 ) { gl_FragColor = baseColor; return; }
+
+      vec2 texelSize = 1.0 / getTexSize(inputImg.size);
+      vec2 center = vec2(0.5 + centerPoint.x/500., 0.5 - centerPoint.y/500.);
+      vec2 v = uvs - (vec4(center,0.0,1.0) * acLayerToScreen).xy;
+      float speed = length(strength / 2.0 / texelSize);
+      speed *= length( acLayerNorm.st - center );
+      float vl = length(v);
+      vec2 vnorm = (vl &gt; 1.0e-8 ? v/vl : vec2(0.0)) * texelSize * speed;
+      vec2 offsetScale = vec2(1., 1.);
+      if( acScreenSize.y &gt; acScreenSize.x ) {
+        offsetScale.x *= acScreenSize.x / acScreenSize.y;
+      } else {
+        offsetScale.y *= acScreenSize.y / acScreenSize.x;
+      }
+      vnorm *= offsetScale;              // hoisted: was re-applied every tap
+
+      // Quality drives nSamples-1 taps spanning p = 0..1. Cap the march at 128
+      // taps and stretch the stride so the last tap still lands at p == 1 (ray
+      // length unchanged); the 1/nSamples normaliser is rescaled by the same
+      // stride so total brightness is unchanged. quality &lt;= 129 is bit-identical.
+      int nIter = nSamples - 1;
+      int nCap  = nIter &lt; 128 ? nIter : 128;
+      float invCap = 1.0 / float(nCap);
+      float stride = float(nIter) * invCap;
+      // dot() is linear, so the per-tap subtract of thresholdColor folds into
+      // one frame-constant offset.
+      float thrOff = threshold + dot(thresholdColor.rgb, luminanceWeighting);
+
+      vec4 outColor = vec4(0.0);
+      for(int m=1; m&lt;129; m++ ) {
+        if(m&gt;nCap) break;
+        float p = float(m) * invCap;
+        vec2 sp = uvs - vnorm*p;
+        // Fetch the edge buffer first: taps that fail the test contributed
+        // vec4(0.0) anyway, so their source fetch is pure waste.
+        if( dot(eTex(sp).rgb, luminanceWeighting) &gt; thrOff ) {
+          vec4 c = (blend &gt;= 1.0) ? fillColor : mix(src(sp), fillColor, blend);
+          outColor += c * (1.-p);
+        }
+      }
+      gl_FragColor = baseColor + outColor * (intensity * stride / float(nSamples));
+    }
+  </shader>
+
+</effect>

@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.textprogress" name="@am:string/effect_textprogress_name" desc="@am:string/effect_textprogress_desc" affinity="text!" type="text" category="text" tags="text,progress,essentials,kinetic,propAdjust" thumb="thumb/textprogress.webp">
+
+    
+        
+            
+            
+            
+            
+        
+    
+
+    <params>
+        <slider id="start" default="0.0" min="0.0" max="1.0" label="@am:string/effect_param_start" type="percent" step="0.001" />
+        <slider id="end" default="1.0" min="0.0" max="1.0" label="@am:string/effect_param_end" type="percent" step="0.001" />
+        <menu id="cursor" default="0" style="dropdown" label="@am:string/effect_param_cursor">
+            <menu label="@am:string/effect_param_none" value="0" />
+            <menu label="@am:string/effect_param_c1" value="1" />
+            <menu label="@am:string/effect_param_c2" value="2" />
+            <menu label="@am:string/effect_param_c3" value="3" />
+            <menu label="@am:string/effect_param_c4" value="4" />
+            <menu label="@am:string/effect_param_c5" value="5" />
+            <menu label="@am:string/effect_param_c6" value="6" />
+            <menu label="@am:string/effect_param_c7" value="7" />
+            <menu label="@am:string/effect_param_c8" value="8" />
+        </menu>
+        <switch id="blink" default="false" label="@am:string/effect_param_blinkCursor" />
+    </params>
+
+
+    
+
+</effect>

@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.starry_planes" name="Starry Planes" desc="Flies the camera through a tunnel of star-shaped planes along a curved path (raymarched over 16 depth layers), with palette coloring and ACES-style tone mapping, composited over the layer. Speed, intensity, exposure, and opacity controls." category="procedural" tags="shadertoy,star,procedural,space" thumb="thumb/3D/Starry Planes.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="speed" default="1.0" min="-4.0" max="4.0" step="0.01" label="Speed" />
+    <slider id="intensity" default="1.0" min="0.0" max="5.0" step="0.01" label="Intensity" />
+    <slider id="exposure" default="1.0" min="0.0" max="4.0" step="0.01" label="Exposure" />
+    <slider id="opacity" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Alight Motion mapping
+    // iResolution -&gt; acScreenSize
+    // iTime -&gt; acTime
+
+    const float PI = 3.14159265358979323846264;
+
+    mat2 ROT(float a){
+      float c = cos(a), s = sin(a);
+      return mat2(c, s, -s, c);
+    }
+
+    // Matt Taylor ACES approx (tonemapping)
+    vec3 aces_approx(vec3 v) {
+      v = max(v, 0.0);
+      v *= 0.6;
+      float a = 2.51;
+      float b = 0.03;
+      float c = 2.43;
+      float d = 0.59;
+      float e = 0.14;
+      return clamp((v*(a*v+b))/(v*(c*v+d)+e), 0.0, 1.0);
+    }
+
+    // Scene constants
+    const float planeDist = 0.5;
+    const float furthest  = 16.0;
+    const float fadeFrom  = 8.0;
+
+    const vec2  pathA = vec2(0.31, 0.41);
+    const vec2  pathB = vec2(1.0, 0.7071067811865476); // sqrt(0.5)
+
+    vec3 offsetf(float z) {
+      return vec3(pathB * sin(pathA*z), z);
+    }
+
+    vec3 doffsetf(float z) {
+      return vec3(pathA*pathB * cos(pathA*z), 1.0);
+    }
+
+    vec3 ddoffsetf(float z) {
+      return vec3(-pathA*pathA*pathB * sin(pathA*z), 0.0);
+    }
+
+    vec4 alphaBlend(vec4 back, vec4 front) {
+      float w = front.w + back.w*(1.0-front.w);
+      vec3 xyz = (front.xyz*front.w + back.xyz*back.w*(1.0-front.w)) / max(w, 1e-6);
+      return (w &gt; 0.0) ? vec4(xyz, w) : vec4(0.0);
+    }
+
+    float pmin(float a, float b, float k) {
+      float h = clamp(0.5 + 0.5*(b-a)/k, 0.0, 1.0);
+      return mix(b, a, h) - k*h*(1.0-h);
+    }
+
+    float pabs(float a, float k) {
+      return -pmin(a, -a, k);
+    }
+
+    // 5-pointed star SDF (tweaked inner rounding)
+    float star5(vec2 p, float r, float rf, float sm) {
+      p = -p;
+      const vec2 k1 = vec2(0.809016994375, -0.587785252292);
+      const vec2 k2 = vec2(-k1.x, k1.y);
+      p.x = abs(p.x);
+      p -= 2.0*max(dot(k1,p), 0.0)*k1;
+      p -= 2.0*max(dot(k2,p), 0.0)*k2;
+      p.x = pabs(p.x, sm);
+      p.y -= r;
+      vec2 ba = rf*vec2(-k1.y, k1.x) - vec2(0,1);
+      float h = clamp(dot(p,ba)/dot(ba,ba), 0.0, r);
+      return length(p - ba*h) * sign(p.y*ba.x - p.x*ba.y);
+    }
+
+    vec3 palette(float n) {
+      return 0.5 + 0.5 * sin(vec3(0.0, 1.0, 2.0) + n);
+    }
+
+    vec4 plane(vec3 ro, vec3 rd, vec3 pp, vec3 npp, float pd, vec3 cp, vec3 off, float n) {
+      float aa = 3.0 * pd * distance(pp.xy, npp.xy);
+      vec4 col = vec4(0.0);
+      vec2 p2 = pp.xy;
+      p2 -= offsetf(pp.z).xy;
+      vec2 doff   = ddoffsetf(pp.z).xz;
+      vec2 ddoff  = doffsetf(pp.z).xz;
+      float dd = dot(doff, ddoff);
+      p2 = ROT(dd*PI*5.0) * p2;
+
+      float d0 = star5(p2, 0.45, 1.6, 0.2) - 0.02;
+      float d1 = d0 - 0.01;
+      float d2 = length(p2);
+      const float colp = PI*100.0;
+      float colaa = aa*200.0;
+
+      col.xyz = palette(0.5*n + 2.0*d2)
+              * mix(0.5/(d2*d2), 1.0, smoothstep(-0.5+colaa, 0.5+colaa, sin(d2*colp)))
+              / max(3.0*d2*d2, 1e-1);
+      col.xyz = mix(col.xyz, vec3(2.0), smoothstep(aa, -aa, d1));
+      col.w = smoothstep(aa, -aa, -d0);
+      return col;
+    }
+
+    vec3 colorfn(vec3 ww, vec3 uu, vec3 vv, vec3 ro, vec2 p, vec2 iResolution) {
+      vec2 np = p + 1.0/iResolution.xy;
+      float rdd = 1.75; // 2.0-0.25
+
+      vec3 rd  = normalize(p.x*uu + p.y*vv + rdd*ww);
+      vec3 nrd = normalize(np.x*uu + np.y*vv + rdd*ww);
+
+      float nz = floor(ro.z / planeDist);
+      vec4 acol = vec4(0.0);
+      vec3 aro = ro;
+      float apd = 0.0;
+
+      for (float i = 1.0; i &lt;= furthest; i += 1.0) {
+        if (acol.w &gt; 0.95) break;
+        float pz = planeDist*nz + planeDist*i;
+
+        float lpd = (pz - aro.z)/rd.z;
+        float npd = (pz - aro.z)/nrd.z;
+        float cpd = (pz - aro.z)/ww.z;
+
+        vec3 pp  = aro + rd*lpd;
+        vec3 npp = aro + nrd*npd;
+        vec3 cp  = aro + ww*cpd;
+        apd += lpd;
+
+        vec3 off = offsetf(pp.z);
+        float dz = pp.z - ro.z;
+        float fadeIn   = smoothstep(planeDist*furthest, planeDist*fadeFrom, dz);
+        float fadeOut  = smoothstep(0.0, planeDist*0.1, dz);
+        float fadeOutRI= smoothstep(0.0, planeDist*1.0, dz);
+        float ri = mix(1.0, 0.9, fadeOutRI*fadeIn);
+
+        vec4 pcol = plane(ro, rd, pp, npp, apd, cp, off, nz + i);
+        pcol.w *= fadeOut*fadeIn;
+        acol = alphaBlend(pcol, acol);
+        aro = pp;
+      }
+
+      return acol.xyz * acol.w;
+    }
+
+    void main(){
+      vec2 fragCoord = acScreenNorm * acScreenSize;
+      vec2 iResolution = acScreenSize;
+      float iTime = acTime * speed;
+
+      vec2 r = iResolution.xy;
+      vec2 q = fragCoord / r;
+      vec2 pp = -1.0 + 2.0*q;
+      vec2 p = pp;
+      p.x *= r.x / max(r.y, 1.0);
+
+      float tm = planeDist * iTime;
+      vec3 ro   = offsetf(tm);
+      vec3 dro  = doffsetf(tm);
+      vec3 ddro = ddoffsetf(tm);
+
+      vec3 ww = normalize(dro);
+      vec3 uu = normalize(cross(vec3(0.0,1.0,0.0)+ddro, ww));
+      vec3 vv = cross(ww, uu);
+
+      vec3 col = colorfn(ww, uu, vv, ro, p, iResolution);
+      col = aces_approx(col * exposure) * intensity;
+      col = sqrt(max(col, 0.0));
+
+      // Composite over input layer
+      vec4 base = texture2DCv(inputImg.texture, acScreenNorm);
+      vec4 outC = vec4(col, 1.0) * opacity;
+      outC = base * (1.0 - outC.a) + outC;
+      gl_FragColor = outC;
+    }
+  </shader>
+</effect>

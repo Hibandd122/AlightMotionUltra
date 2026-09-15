@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.camera_lens_blur" name="Gaussian Blur + Exposure" desc="Two-pass separable Gaussian blur (not a true lens/bokeh blur) with radius and quality controls. The blurred result is blended back over the source via Normal, Add, or Screen with an exposure gain and mix amount." category="blur" tags="blur,gaussian,exposure,lens" thumb="thumb/Blur and Sharpen/Gaussian Blur + Exposure.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <texture id="h" srcType="buffer" />
+    <texture id="v" srcType="buffer" />
+
+    
+    <slider id="radius" default="12.0" min="0.0" max="200.0" step="0.1" label="Radius (px)" />
+    <menu id="quality" style="radio" default="2" label="Quality">
+      <menu label="Low" value="1" />
+      <menu label="Medium" value="2" />
+      <menu label="High" value="3" />
+    </menu>
+
+    
+    <slider id="exposure" default="1.0" min="0.0" max="10.0" step="0.01" label="Exposure" />
+
+    
+    <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+      <menu label="Normal" value="1" />
+      <menu label="Add" value="2" />
+      <menu label="Screen" value="3" />
+    </menu>
+    <slider id="mixAmount" default="1.0" min="0.0" max="1.0" step="0.01" label="Mix" />
+  </params>
+
+  <passes>
+    <pass target="h" />
+    <pass target="v" />
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    const float PI = 3.14159265358979323846;
+
+    vec4 sampleTex(sampler2D t, vec2 uv){ return texture2DCv(t, uv); }
+
+    // Incremental Gaussian blur helper (separable)
+    vec4 blurInternal(sampler2D tex, vec2 texOffset, vec2 st, float numBlurPixelsPerSide)
+    {
+      if(numBlurPixelsPerSide &lt;= 0.0) return sampleTex(tex, st);
+
+      highp vec3 incrementalGaussian;
+      float adjSigma = numBlurPixelsPerSide / 2.14596602;
+      incrementalGaussian.x = 1.0 / (sqrt(2.0 * PI) * max(adjSigma, 1e-4));
+      incrementalGaussian.y = exp(-0.5 / (max(adjSigma, 1e-4) * max(adjSigma, 1e-4)));
+      incrementalGaussian.z = incrementalGaussian.y * incrementalGaussian.y;
+
+      vec4 avgValue = sampleTex(tex, st) * incrementalGaussian.x;
+      highp float coefficientSum = incrementalGaussian.x;
+
+      for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+        if (i &gt; numBlurPixelsPerSide) break;
+        float offset0 = i;
+        float offset1 = i + 1.0;
+
+        incrementalGaussian.xy *= incrementalGaussian.yz;
+        coefficientSum += (2.0 * incrementalGaussian.x);
+        float weight0 = incrementalGaussian.x;
+        incrementalGaussian.xy *= incrementalGaussian.yz;
+        coefficientSum += (2.0 * incrementalGaussian.x);
+        float weight1 = incrementalGaussian.x;
+        float weightL = weight0 + weight1;
+        float offsetL = (offset0*weight0 + offset1*weight1) / max(weightL, 1e-6);
+        vec2 stL = st - offsetL * texOffset;
+        vec2 stR = st + offsetL * texOffset;
+        avgValue += sampleTex(tex, stL) * weightL;
+        avgValue += sampleTex(tex, stR) * weightL;
+      }
+      return avgValue / max(coefficientSum, 1e-6);
+    }
+
+    float tapsForQualityF(float q){
+      return (q &lt; 1.5) ? 6.0 : ((q &lt; 2.5) ? 10.0 : 14.0);
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+
+      // Compute kernel based on radius (pixels) and quality
+      float taps = tapsForQualityF(float(quality));
+      float kernelSize = radius * 0.5 * (taps/10.0);
+
+      if (acPass == 0) {
+        // Horizontal blur: input -&gt; h
+        vec2 to = vec2(1.0 / getTexSize(inputImg.size).x, 0.0);
+        gl_FragColor = blurInternal(inputImg.texture, to, uv, kernelSize);
+        return;
+      }
+      if (acPass == 1) {
+        // Vertical blur: h -&gt; v
+        vec2 to = vec2(0.0, 1.0 / getTexSize(h.size).y);
+        gl_FragColor = blurInternal(h.texture, to, uv, kernelSize);
+        return;
+      }
+
+      // Composite: apply exposure and blend with source
+      vec4 src = sampleTex(inputImg.texture, uv);
+      vec3 blurred = sampleTex(v.texture, uv).rgb * exposure;
+
+      int bm = int(blendMode);
+      vec3 outRGB;
+      if (bm == 1) {
+        // Normal: interpolate between src and blurred
+        outRGB = mix(src.rgb, blurred, clamp(mixAmount, 0.0, 1.0));
+      } else if (bm == 2) {
+        // Add
+        outRGB = src.rgb + blurred * clamp(mixAmount, 0.0, 1.0);
+      } else {
+        // Screen
+        vec3 scr = 1.0 - (1.0 - src.rgb) * (1.0 - clamp(blurred, 0.0, 100.0));
+        outRGB = mix(src.rgb, scr, clamp(mixAmount, 0.0, 1.0));
+      }
+
+      gl_FragColor = vec4(outRGB, src.a);
+    }
+  </shader>
+
+</effect>

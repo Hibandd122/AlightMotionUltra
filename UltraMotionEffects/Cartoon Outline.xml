@@ -1,0 +1,103 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cartoon_outline" name="Cartoon Outline" desc="Draws a colored outline on image edges using Sobel edge detection combined with 8-direction difference sampling. Controls include width, intensity, threshold, outline color, edge smoothing and an option to overlay the outline on the original." category="drawingedge" tags="extra" thumb="thumb/Drawing/Cartoon Outline.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="outlineWidth" default="2.0" min="0.5" max="10.0" label="Width" />
+        <slider id="outlineIntensity" default="1.0" min="0.1" max="2.0" label="Intensity" />
+        <color id="outlineColor" default="#FF000000" label="Color" alpha="true" />
+        <slider id="edgeThreshold" default="0.1" min="0.01" max="0.5" label="Threshold" />
+        <switch id="smoothEdges" default="true" label="Smooth" />
+        <switch id="preserveOriginal" default="false" label="Preserve Original" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Cartoon Outline Effect - Creates black outline around edges
+        
+        vec3 rgb2gray(vec3 c) {
+            return vec3(dot(c, vec3(0.299, 0.587, 0.114)));
+        }
+        
+        float sobelEdge(vec2 uv, float threshold) {
+            float s = outlineWidth * 0.001;
+            
+            // Sobel edge detection kernel
+            float gx = 0.0;
+            float gy = 0.0;
+            
+            // Sample neighboring pixels
+            float tl = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(-s, -s)).rgb).r;
+            float tm = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(0.0, -s)).rgb).r;
+            float tr = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(s, -s)).rgb).r;
+            
+            float ml = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(-s, 0.0)).rgb).r;
+            float mr = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(s, 0.0)).rgb).r;
+            
+            float bl = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(-s, s)).rgb).r;
+            float bm = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(0.0, s)).rgb).r;
+            float br = rgb2gray(texture2DCv(inputImg.texture, uv + vec2(s, s)).rgb).r;
+            
+            // Sobel X kernel: [-1  0  1; -2  0  2; -1  0  1]
+            gx = -tl - 2.0 * ml - bl + tr + 2.0 * mr + br;
+            
+            // Sobel Y kernel: [-1 -2 -1;  0  0  0;  1  2  1]
+            gy = -tl - 2.0 * tm - tr + bl + 2.0 * bm + br;
+            
+            float edge = sqrt(gx * gx + gy * gy);
+            return smoothstep(threshold, threshold * 2.0, edge);
+        }
+        
+        float advancedEdge(vec2 uv, float threshold) {
+            float edge1 = sobelEdge(uv, threshold);
+            
+            // Additional edge detection for better outline quality
+            float s2 = outlineWidth * 0.002;
+            float center = rgb2gray(texture2DCv(inputImg.texture, uv).rgb).r;
+            
+            float edge2 = 0.0;
+            for (int i = 0; i &lt; 8; i++) {
+                float angle = float(i) * 3.14159 / 4.0;
+                vec2 offset = vec2(cos(angle), sin(angle)) * s2;
+                float sample = rgb2gray(texture2DCv(inputImg.texture, uv + offset).rgb).r;
+                edge2 += abs(center - sample);
+            }
+            edge2 /= 8.0;
+            
+            return max(edge1, smoothstep(threshold * 0.5, threshold, edge2));
+        }
+        
+        void main() {
+            vec2 uv = acScreenNorm;
+            vec4 originalColor = texture2DCv(inputImg.texture, uv);
+            
+            // Edge detection
+            float edge = advancedEdge(uv, edgeThreshold);
+            
+            // Apply intensity and smoothness
+            if (smoothEdges) {
+                edge = smoothstep(0.0, 1.0, edge * outlineIntensity);
+            } else {
+                edge = step(0.1, edge * outlineIntensity);
+            }
+            
+            // Create outline color
+            vec4 outline = vec4(outlineColor.rgb, outlineColor.a * edge);
+            
+            // Composite with original
+            vec4 result;
+            if (preserveOriginal) {
+                // Blend outline over original (preserves original colors)
+                result = mix(originalColor, outline, outline.a);
+            } else {
+                // Replace with outline where detected
+                result = mix(originalColor, outline, edge);
+            }
+            
+            // Preserve original alpha
+            result.a = originalColor.a;
+            
+            gl_FragColor = result;
+        }
+    </shader>
+
+</effect>

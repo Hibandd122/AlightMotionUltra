@@ -1,0 +1,172 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cloud2d" name="Clouds 2D" desc="Procedural side-scrolling cartoon clouds built from layered sine-curve disks, with background and cloud colors, layer amount, auto or manual progress, transform controls, and normal/layer/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/Procedural/Clouds 2D.webp" experimental="false">
+
+    <params>
+        
+        <switch id="autop" default="true" label="Auto Progress" />
+        <color id="BackColor" default="#FF0077AA" label="Color BG" alpha="true" />
+        <color id="CloudColor" default="#FF20AADD" label="Color Clouds" alpha="true" />
+        <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="AMT" default="8" min="1" max="9" label="Amount" type="integer" step="1" />
+        
+        <slider id="scale" default="0.5" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <menu id="blendMode" style="radio" default="3">
+            <menu label="NORMAL" value="0" />
+            <menu label="LAYER" value="3" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+         #define TAU 6.28318530718
+         
+         
+         // const vec3 BackColor	= vec3(0.0, 0.4, 0.58);
+         // const vec3 CloudColor	= vec3(0.18,0.70,0.87);
+         
+         
+         float Func(float pX)
+         {
+         	return 0.6*(0.5*sin(0.1*pX) + 0.5*sin(0.553*pX) + 0.7*sin(1.2*pX));
+         }
+         
+         
+         float FuncR(float pX)
+         {
+         	return 0.5 + 0.25*(1.0 + sin(mod(40.0*pX, TAU)));
+         }
+         
+         
+         float Layer(vec2 pQ, float pT)
+         {
+         	vec2 Qt = 3.5*pQ;
+         	pT *= 0.5;
+         	Qt.x += pT;
+         
+         	float Xi = floor(Qt.x);
+         	float Xf = Qt.x - Xi -0.5;
+         
+         	vec2 C;
+         	float Yi;
+         	float D = 1.0 - step(Qt.y,  Func(Qt.x));
+         
+         	// Disk:
+         	Yi = Func(Xi + 0.5);
+         	C = vec2(Xf, Qt.y - Yi ); 
+         	D =  min(D, length(C) - FuncR(Xi+ pT/80.0));
+         
+         	// Previous disk:
+         	Yi = Func(Xi+1.0 + 0.5);
+         	C = vec2(Xf-1.0, Qt.y - Yi ); 
+         	D =  min(D, length(C) - FuncR(Xi+1.0+ pT/80.0));
+         
+         	// Next Disk:
+         	Yi = Func(Xi-1.0 + 0.5);
+         	C = vec2(Xf+1.0, Qt.y - Yi ); 
+         	D =  min(D, length(C) - FuncR(Xi-1.0+ pT/80.0));
+         
+         	return min(1.0, D);
+         }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec3 iMouse = vec3(0.5, 0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+        
+        vec2 umefx;
+        // umefx = acScreenNorm; 
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        
+        umefx /= scale;
+        umefx *= rot2m((180.0+angle)*0.0174533);
+        umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+         	vec2 UV = umefx;
+         	// vec2 UV = 2.0*(fragCoord.xy - iResolution.xy/2.0) / min(iResolution.x, iResolution.y);	
+         	
+         	// Render:
+         	vec3 Color= BackColor.rgb;
+         	float XNXX = (1.0 - (AMT/10.0));
+         	
+         
+         	for(float J=0.0; J&lt;=1.0; J+= XNXX )
+         	// for(float J=0.0; J&lt;=1.0; J+=0.2)
+         	{
+         		// Cloud Layer: 
+         		float Lt =  iTime*(0.5  + 2.0*J)*(1.0 + 0.1*sin(226.0*J)) + 17.0*J;
+         		vec2 Lp = vec2(0.0, 0.3+1.5*( J - 0.5));
+         		float L = Layer(UV + Lp, Lt);
+         
+         		// Blur and color:
+         		float Blur = 4.0*(0.5*abs(2.0 - 5.0*J))/(11.0 - 5.0*J);
+         
+         		float V = mix( 0.0, 1.0, 1.0 - smoothstep( 0.0, 0.01 +0.2*Blur, L ) );
+         		vec3 Lc=  mix( CloudColor.rgb, vec3(1.0), J);
+         
+         		Color =mix(Color, Lc,  V);
+         	}
+         
+         	fragColor = vec4(Color, 1.0);
+        
+    	    vec4 factor = mix(texColorX,fragColor,1.0);
+    	    // const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            // float luminance = dot(fragColor.rgb, luminanceWeighting);
+            // vec4 gradmap = mix(color1,color2,luminance)*fragColor.a;
+    	    // if(GRADMAP) { factor = mix(texColorX,gradmap,1.0); }
+    	    
+    	    // vec4 xbuffer = texture2DCv(buff1.texture, acScreenNorm.st);
+
+        vec4 resultfinal;
+          if( blendMode==0 ) { resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra.light-rays" name="Light Rays" desc="Creates radial light streaks by accumulating 32 luminance-weighted samples along the line from each pixel toward a movable light source, tinted with a chosen color. Density, Decay, and Weight shape the ray length and brightness." category="colorlight" thumb="thumb/Drawing/Light Rays.webp" tags="light,rays,glow,raster,animated" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="source" default="0,-200" label="Light Source" />
+        <slider id="density" default="0.6" min="0.0" max="1.0" label="Density" />
+        <slider id="decay" default="0.92" min="0.8" max="0.99" label="Decay" />
+        <slider id="weight" default="0.5" min="0.0" max="1.0" label="Weight" />
+        <color id="color" default="#FFFFF2CC" label="Ray Color" alpha="false" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec2 src = source/1000.0 + 0.5;
+            vec2 uv = acScreenNorm;
+            vec2 delta = (uv - src) * density * 0.04;
+            vec4 base = texture2DCv(inputImg.texture, uv);
+            vec3 accum = vec3(0.0);
+            float illum = 1.0;
+            vec2 coord = uv;
+            for(int i=0;i&lt;32;i++){
+                coord -= delta;
+                vec4 s = texture2DCv(inputImg.texture, coord);
+                float l = dot(s.rgb, vec3(0.299,0.587,0.114));
+                accum += l * illum * color.rgb;
+                illum *= decay;
+            }
+            accum *= weight*0.15;
+            vec3 outc = base.rgb + accum;
+            gl_FragColor = vec4(outc, base.a) + vec4(accum,0.0)*(1.0-base.a);
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.smooth_transform_tileshift" name="Motion Transform (Tile Shift + Blur)" desc="Script-driven transform that adds X/Y shift, rotation and Z-distance scaling (each invertible) to the layer, plus two shader passes: optional random tile displacement of the image grid and a 5-tap horizontal motion blur." category="warp" tags="transform,tile,blur" thumb="thumb/Move and Transform/Motion Transform (Tile Shift + Blur).webp">
+
+    <params>
+        
+        <slider id="posz" default="1" min="0.001" max="30" step="0.005" label="Z Dist" />
+        <slider id="posx" default="0" min="-8192" max="8192" step="0.5" label="Shift X" />
+        <slider id="posy" default="0" min="-8192" max="8192" step="0.5" label="Shift Y" />
+        <slider id="angle" default="0.0" min="-3600" max="3600" label="Rotate" step="0.5" type="angle" />
+        <switch id="zinv" default="false" label="Invert Z" />
+        <switch id="xinv" default="false" label="Invert X" />
+        <switch id="yinv" default="false" label="Invert Y" />
+        <switch id="ainv" default="false" label="Invert Angle" />
+
+        
+        <switch id="tileEnable" default="false" label="Enable TileShift" />
+        <slider id="tileStrength" default="0.1" min="0.0" max="1.0" step="0.01" label="Tile Strength" />
+        <slider id="tileAmount" default="10.0" min="1.0" max="200.0" step="0.5" label="Tile Count" />
+        <slider id="tileSeed" default="0.0" min="0.0" max="5.0" step="0.01" label="Tile Random Seed" />
+
+        
+        <slider id="motionBlurAmount" default="0.3" min="0.0" max="1.0" step="0.01" label="Motion Blur Amount" />
+    </params>
+
+    
+    
+
+    
+    <pass name="tileShift">
+        <slider id="inputImg" type="texture" />
+        <slider id="tileEnable" type="bool" />
+        <slider id="tileStrength" type="float" />
+        <slider id="tileAmount" type="float" />
+        <slider id="tileSeed" type="float" />
+
+        <shader>
+            uniform sampler2D inputImg;
+            uniform bool tileEnable;
+            uniform float tileStrength;
+            uniform float tileAmount;
+            uniform float tileSeed;
+            varying vec2 uv;
+
+            float rand(vec2 co) {
+                float a = 719.31;
+                float b = 178.233;
+                float c = 33758.5453;
+                float dt = dot(co.xy, vec2(a, b));
+                float sn = mod(dt, 3.14);
+                return fract(sin(sn) * c);
+            }
+
+            void main() {
+                vec2 uv_out = uv;
+
+                if (tileEnable) {
+                    vec2 st = uv - 0.5;
+                    float px = floor(st.x * tileAmount);
+                    float py = floor(st.y * tileAmount);
+
+                    float dx = rand(vec2(px, py + 3937.7249 * tileSeed));
+                    float dy = rand(vec2(px + 328.7319 + 432.7249 * tileSeed, py - 971.382));
+                    vec2 dv = (vec2(dx, dy) - 0.5) * 2.0;
+
+                    uv_out += dv * tileStrength;
+                    uv_out = abs(mod(uv_out - 1.0, 2.0) - 1.0);
+                }
+
+                gl_FragColor = texture2D(inputImg, uv_out);
+            }
+        </shader>
+    </pass>
+
+    
+    <pass name="motionBlur" depends="tileShift">
+        <slider id="inputImg" type="texture" />
+        <slider id="motionBlurAmount" type="float" />
+        <shader>
+            uniform sampler2D inputImg;
+            uniform float motionBlurAmount;
+            varying vec2 uv;
+
+            void main() {
+                vec4 color = vec4(0.0);
+                float samples = 5.0;
+                float blurSize = motionBlurAmount * 0.02;
+
+                for (float i = 0.0; i &lt; samples; i++) {
+                    float offset = (i - 2.0) * blurSize;
+                    color += texture2D(inputImg, uv + vec2(offset, 0.0));
+                }
+
+                gl_FragColor = color / samples;
+            }
+        </shader>
+    </pass>
+
+</effect>

@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.flicker2" name="@am:string/effect_flicker_name" desc="@am:string/effect_flicker_desc" category="opacity" tags="opacity,visibility,auto,glitch,propAdjust" thumb="thumb/flicker.webp">
+
+    
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+    
+
+    <params>
+        <slider id="freq" default="7" min="0.05" max="10.0" label="@am:string/effect_param_freq" type="hz" />
+        <slider id="mag" default="0.75" min="0" max="1" label="@am:string/effect_param_strength" />
+        <slider id="seed" default="0" min="0" max="10" label="@am:string/effect_param_seed" />
+        <menu id="basis" default="0" style="radio" label="@am:string/effect_param_basis">
+            <menu label="@am:string/effect_param_time" value="0" />
+            <menu label="@am:string/effect_param_position" value="1" />
+        </menu>
+
+    </params>
+
+    
+
+</effect>

@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.fractal_zoom_trails" name="Zoom Blur Trails" desc="Radial zoom blur that accumulates up to 32 samples along a geometric progression toward a center point, each weighted by a decay factor so the echoes trail off. Center, zoom amount, rotation, step count, decay, per-step chromatic shift and radial offset are adjustable, plus a manual Time/Pulse pair that modulates the zoom." category="blur" tags="zoom,trails,radial,blur" thumb="thumb/Blur and Sharpen/Zoom Blur Trails.webp" overdraw="true" max-overdraw="1.5">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    <slider id="centerX" default="0.5" min="0.0" max="1.0" step="0.001" label="Center X" />
+    <slider id="centerY" default="0.5" min="0.0" max="1.0" step="0.001" label="Center Y" />
+
+    <slider id="zoomAmount" default="0.15" min="-1.0" max="1.0" step="0.001" label="Zoom Amount" />
+    <slider id="rotation" default="0.0" min="-3.1416" max="3.1416" step="0.001" label="Rotation (rad)" />
+
+    <slider id="trailSteps" default="10.0" min="1.0" max="32.0" step="1.0" label="Trail Steps" />
+    <slider id="trailDecay" default="0.75" min="0.0" max="1.0" step="0.01" label="Trail Decay" type="percent" />
+
+    <slider id="chromaticShift" default="0.002" min="0.0" max="0.02" step="0.0005" label="Chromatic Shift" />
+    <slider id="radialBlur" default="0.0" min="0.0" max="0.02" step="0.0005" label="Radial Blur" />
+
+    <slider id="time" default="0.0" min="0.0" max="1000.0" step="0.01" label="Time" />
+    <slider id="pulse" default="0.0" min="0.0" max="1.0" step="0.01" label="Pulse Amount" type="percent" />
+    <slider id="speed" default="0.5" min="-5.0" max="5.0" step="0.01" label="Pulse Speed" />
+
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" type="percent" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Fractal Zoom Trails: multi-sample zoom smear toward a center
+
+    vec3 sampleRGB(vec2 uv){ return texture2DCv(inputImg.texture, uv).rgb; }
+
+    mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec2 texSize = getTexSize(inputImg.size);
+      vec2 aspect = vec2(texSize.x/max(texSize.y,1.0), 1.0);
+      vec2 center = vec2(centerX, centerY);
+
+      // Animated pulse for zoom
+      float pulsePhase = sin(time*speed*6.28318)*0.5+0.5;
+      float zAmt = zoomAmount + pulse * (pulsePhase - 0.5) * 2.0 * abs(zoomAmount);
+
+      // Vector from center (aspect-corrected), with optional rotation
+      vec2 d = (uv - center) * aspect;
+      d = rot(rotation) * d;
+
+      // Base color
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      vec3 acc = vec3(0.0);
+      float wsum = 0.0;
+
+      int maxSteps = 32;
+      float N = clamp(trailSteps, 1.0, float(maxSteps));
+
+      // Accumulate samples along a geometric progression toward center
+      for(int i=0;i&lt;32;i++){
+        if(float(i) &gt;= N) break;
+        float t = (float(i)+1.0) / N; // 0..1
+        // geometric zoom factor: closer to center for larger i
+        float g = pow(1.0 - clamp(zAmt*0.95, -0.95, 0.95), t);
+        vec2 dv = d * g;
+        vec2 suv = center + (rot(-rotation)*dv)/aspect;
+
+        // optional radial blur along direction to center
+        vec2 dir = normalize((uv - center) + 1e-6);
+        float rb = radialBlur * float(i) / N;
+
+        // chromatic shift per step
+        float cs = chromaticShift * float(i) / N;
+        vec3 c;
+        c.r = texture2DCv(inputImg.texture, suv + dir*rb + vec2( cs, 0.0)).r;
+        c.g = texture2DCv(inputImg.texture, suv + dir*rb).g;
+        c.b = texture2DCv(inputImg.texture, suv + dir*rb + vec2(-cs, 0.0)).b;
+
+        float w = pow(trailDecay, float(i));
+        acc += c * w;
+        wsum += w;
+      }
+
+      vec3 trail = acc / max(wsum, 1e-6);
+
+      // Mix trails with original
+      vec3 outRGB = mix(src.rgb, trail, alpha);
+      gl_FragColor = vec4(clamp(outRGB,0.0,1.0), src.a);
+    }
+  </shader>
+
+</effect>

@@ -1,0 +1,308 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bcc_mixed_colors" name="BCC Mixed Colors" desc="Generates an animated procedural color-noise map (independent R/G/B value-noise fields with fBm detail) in the style of BCC Mixed Colors, then composites it over the source with 17 apply modes. Controls cover offset/scale/rotation, coarseness, detail octaves, mutation speed, brightness/contrast, RGB balance, and mix." category="colorlight" tags="bcc,mixed,colors,noise,texture,rgb,procedural,boris,continuum,color map,animated" thumb="thumb/Color/BCC Mixed Colors.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        
+        <slider id="offsetX" default="0.0" min="-5000.0" max="5000.0" step="1.0" label="Offset X" />
+        <slider id="offsetY" default="0.0" min="-5000.0" max="5000.0" step="1.0" label="Offset Y" />
+        <slider id="scaleX" default="1.0" min="0.01" max="10.0" label="Scale X" />
+        <slider id="lockToScaleX" default="1.0" min="0.0" max="1.0" label="Lock Scale Y to X" type="percent" />
+        <slider id="scaleY" default="1.0" min="0.01" max="10.0" label="Scale Y (if unlocked)" />
+        <slider id="rotation" default="0.0" min="-360.0" max="360.0" step="0.1" label="Rotation" />
+
+        
+        
+        <slider id="detail" default="40.0" min="0.0" max="100.0" step="0.5" label="Detail" />
+        <slider id="coarseness" default="40.0" min="0.0" max="100.0" step="0.5" label="Coarseness" />
+        <slider id="mutation" default="1.0" min="0.0" max="10.0" label="Mutation (Animation Speed)" />
+
+        
+        
+        <slider id="brightness" default="0.0" min="-100.0" max="100.0" step="0.5" label="Brightness" />
+        <slider id="contrast" default="25.0" min="-100.0" max="100.0" step="0.5" label="Contrast" />
+
+        
+        
+        <slider id="redBalance" default="0.0" min="-100.0" max="100.0" step="0.5" label="Red Balance" />
+        <slider id="greenBalance" default="0.0" min="-100.0" max="100.0" step="0.5" label="Green Balance" />
+        <slider id="blueBalance" default="0.0" min="-100.0" max="100.0" step="0.5" label="Blue Balance" />
+
+        
+        <slider id="useSourceAlpha" default="1.0" min="0.0" max="1.0" label="Use Source Alpha" type="percent" />
+        <slider id="opacity" default="1.0" min="0.0" max="1.0" label="Opacity" type="percent" />
+
+        
+        
+        <menu id="applyMode" style="dropdown" default="0" label="Apply Mode">
+            <menu value="0" label="Normal" />
+            <menu value="1" label="Add" />
+            <menu value="2" label="Multiply" />
+            <menu value="3" label="Screen" />
+            <menu value="4" label="Overlay" />
+            <menu value="5" label="Soft Light" />
+            <menu value="6" label="Hard Light" />
+            <menu value="7" label="Color Dodge" />
+            <menu value="8" label="Color Burn" />
+            <menu value="9" label="Darken" />
+            <menu value="10" label="Lighten" />
+            <menu value="11" label="Difference" />
+            <menu value="12" label="Exclusion" />
+            <menu value="13" label="Hue" />
+            <menu value="14" label="Saturation" />
+            <menu value="15" label="Color" />
+            <menu value="16" label="Luminosity" />
+        </menu>
+        <slider id="applyMix" default="1.0" min="0.0" max="1.0" label="Apply Mix" type="percent" />
+
+        
+        
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Overall Blend" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        // ═════════════════════════════════════════════════════════════
+        //  BCC MIXED COLORS — TECHNICAL BREAKDOWN
+        //
+        //  BCC Mixed Colors generates a PROCEDURAL COLOR NOISE MAP.
+        //  It does NOT read from the source image in the traditional
+        //  sense — it GENERATES a new color texture from noise and
+        //  then COMPOSITES it over the source using an apply mode.
+        //
+        //  Internal pipeline:
+        //  1. Generate 3 independent noise fields (R, G, B channels)
+        //     at different frequency offsets so they look "mixed"
+        //  2. Apply coarseness (controls the noise cell size / scale)
+        //  3. Apply detail (number of fbm octaves → fine structure)
+        //  4. Apply mutation — offsets noise seed over time → animation
+        //  5. Apply RGB balance shifts per channel
+        //  6. Apply brightness + contrast to luminance
+        //  7. Apply source alpha masking if enabled
+        //  8. Composite over source using chosen apply mode at mix %
+        // ═════════════════════════════════════════════════════════════
+
+        // ── Hash / Noise primitives ───────────────────────────────────
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        vec3 hash3(vec2 p) {
+            vec3 q = vec3(
+                dot(p, vec2(127.1, 311.7)),
+                dot(p, vec2(269.5, 183.3)),
+                dot(p, vec2(419.2, 371.9))
+            );
+            return fract(sin(q) * 43758.5453);
+        }
+
+        // Value noise — single channel
+        float vnoise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            float a = hash(i);
+            float b = hash(i + vec2(1.0, 0.0));
+            float c = hash(i + vec2(0.0, 1.0));
+            float d = hash(i + vec2(1.0, 1.0));
+            return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        }
+
+        // Color noise — 3 independent channels with phase offset
+        // This is the core of BCC Mixed Colors: each channel (R,G,B)
+        // samples a different "slice" of the noise space so they don't
+        // correlate, creating the vivid mixed color patches.
+        vec3 colorNoise(vec2 p) {
+            float r = vnoise(p + vec2(0.0,    0.0   ));
+            float g = vnoise(p + vec2(5.2,    1.3   ));
+            float b = vnoise(p + vec2(10.4,   2.6   ));
+            return vec3(r, g, b);
+        }
+
+        // FBM color noise — detail controls octave count
+        // detail 0..100 → 1..8 octaves
+        vec3 fbmColor(vec2 p, float detailAmt) {
+            int octaves = int(clamp(detailAmt / 100.0 * 7.0 + 1.0, 1.0, 8.0));
+            vec3 v   = vec3(0.0);
+            float amp  = 0.5;
+            float freq = 1.0;
+            for (int i = 0; i &lt; 8; i++) {
+                if (i &gt;= octaves) break;
+                v   += amp * colorNoise(p * freq);
+                freq *= 2.0;
+                amp  *= 0.5;
+            }
+            return v;
+        }
+
+        // ── Luminance helper ──────────────────────────────────────────
+        float luma(vec3 c) {
+            return dot(c, vec3(0.2126, 0.7152, 0.0722));
+        }
+
+        // ── RGB → HSL → RGB for hue/sat/luma blend modes ─────────────
+        vec3 rgb2hsl(vec3 c) {
+            float mx = max(c.r, max(c.g, c.b));
+            float mn = min(c.r, min(c.g, c.b));
+            float d  = mx - mn;
+            float l  = (mx + mn) * 0.5;
+            float s  = 0.0;
+            float h  = 0.0;
+            if (d &gt; 0.0001) {
+                s = d / (1.0 - abs(2.0 * l - 1.0));
+                if      (mx == c.r) h = mod((c.g - c.b) / d, 6.0);
+                else if (mx == c.g) h = (c.b - c.r) / d + 2.0;
+                else                h = (c.r - c.g) / d + 4.0;
+                h /= 6.0;
+            }
+            return vec3(h, s, l);
+        }
+
+        vec3 hsl2rgb(vec3 hsl) {
+            float h = hsl.x; float s = hsl.y; float l = hsl.z;
+            float c2 = (1.0 - abs(2.0 * l - 1.0)) * s;
+            float x  = c2 * (1.0 - abs(mod(h * 6.0, 2.0) - 1.0));
+            float m  = l - c2 * 0.5;
+            vec3 rgb;
+            if      (h &lt; 1.0/6.0) rgb = vec3(c2, x,  0.0);
+            else if (h &lt; 2.0/6.0) rgb = vec3(x,  c2, 0.0);
+            else if (h &lt; 3.0/6.0) rgb = vec3(0.0, c2, x);
+            else if (h &lt; 4.0/6.0) rgb = vec3(0.0, x,  c2);
+            else if (h &lt; 5.0/6.0) rgb = vec3(x,  0.0, c2);
+            else                   rgb = vec3(c2, 0.0, x);
+            return clamp(rgb + m, 0.0, 1.0);
+        }
+
+        // ── Apply Mode compositor ─────────────────────────────────────
+        // Matches AE / BCC apply mode pipeline exactly
+        vec3 applyBlend(vec3 base, vec3 blend2, int mode) {
+            if (mode == 0)  return blend2;                                          // Normal
+            if (mode == 1)  return base + blend2;                                   // Add
+            if (mode == 2)  return base * blend2;                                   // Multiply
+            if (mode == 3)  return 1.0 - (1.0 - base) * (1.0 - blend2);           // Screen
+            if (mode == 4)  return mix(                                             // Overlay
+                                2.0 * base * blend2,
+                                1.0 - 2.0 * (1.0 - base) * (1.0 - blend2),
+                                step(0.5, base));
+            if (mode == 5) {                                                        // Soft Light
+                vec3 d = mix(2.0 * base * blend2 + base * base * (1.0 - 2.0 * blend2),
+                             sqrt(base) * (2.0 * blend2 - 1.0) + 2.0 * base * (1.0 - blend2),
+                             step(0.5, blend2));
+                return d;
+            }
+            if (mode == 6)  return mix(                                             // Hard Light
+                                2.0 * base * blend2,
+                                1.0 - 2.0 * (1.0 - base) * (1.0 - blend2),
+                                step(0.5, blend2));
+            if (mode == 7)  return base / max(1.0 - blend2, 0.001);               // Color Dodge
+            if (mode == 8)  return 1.0 - (1.0 - base) / max(blend2, 0.001);       // Color Burn
+            if (mode == 9)  return min(base, blend2);                              // Darken
+            if (mode == 10) return max(base, blend2);                              // Lighten
+            if (mode == 11) return abs(base - blend2);                             // Difference
+            if (mode == 12) return base + blend2 - 2.0 * base * blend2;           // Exclusion
+            if (mode == 13) {                                                       // Hue
+                vec3 baseHSL  = rgb2hsl(base);
+                vec3 blendHSL = rgb2hsl(blend2);
+                return hsl2rgb(vec3(blendHSL.x, baseHSL.y, baseHSL.z));
+            }
+            if (mode == 14) {                                                       // Saturation
+                vec3 baseHSL  = rgb2hsl(base);
+                vec3 blendHSL = rgb2hsl(blend2);
+                return hsl2rgb(vec3(baseHSL.x, blendHSL.y, baseHSL.z));
+            }
+            if (mode == 15) {                                                       // Color
+                vec3 baseHSL  = rgb2hsl(base);
+                vec3 blendHSL = rgb2hsl(blend2);
+                return hsl2rgb(vec3(blendHSL.x, blendHSL.y, baseHSL.z));
+            }
+            if (mode == 16) {                                                       // Luminosity
+                vec3 baseHSL  = rgb2hsl(base);
+                vec3 blendHSL = rgb2hsl(blend2);
+                return hsl2rgb(vec3(baseHSL.x, baseHSL.y, blendHSL.z));
+            }
+            return blend2;
+        }
+
+        void main() {
+            vec2 uv    = acScreenNorm;
+            vec4 src   = texture2DCv(inputImg.texture, uv);
+            vec3 srcCol = src.rgb;
+            float srcAlpha = src.a;
+
+            // ── 1. Build noise UV ─────────────────────────────────────
+            // Offset XY: AE uses pixel coords, we normalise to 0..1
+            // AE default offset 9600,5400 = centre of a 19200x10800 canvas
+            // We treat it as UV offset 0..1
+            vec2 noiseUV = uv;
+
+            // Apply offset (normalised to screen)
+            noiseUV -= vec2(offsetX, offsetY) / acScreenSize;
+
+            // Apply rotation around centre
+            vec2 centred = noiseUV - vec2(0.5);
+            float rad    = radians(rotation);
+            float cosR   = cos(rad);
+            float sinR   = sin(rad);
+            centred = vec2(centred.x * cosR - centred.y * sinR,
+                           centred.x * sinR + centred.y * cosR);
+            noiseUV = centred + vec2(0.5);
+
+            // Apply scale
+            // lockToScaleX: if true, scaleY = scaleX
+            float sY = mix(scaleY, scaleX, step(0.5, lockToScaleX));
+            noiseUV  = (noiseUV - 0.5) / vec2(max(scaleX, 0.001), max(sY, 0.001)) + 0.5;
+
+            // ── 2. Coarseness controls base frequency ─────────────────
+            // coarseness 0..100 → frequency 1..40
+            // Low coarseness = large blobs, high = fine grain
+            float freq = mix(0.5, 20.0, coarseness / 100.0);
+
+            // ── 3. Mutation animates noise over time ──────────────────
+            // mutation 1.0 = default speed, 0 = static
+            float mutTime = acTime * mutation * 0.15;
+
+            // ── 4. Generate colour noise ──────────────────────────────
+            vec2 noiseCoord = noiseUV * freq + vec2(mutTime);
+            vec3 noiseCol   = fbmColor(noiseCoord, detail);
+
+            // ── 5. RGB Balance (per-channel brightness offset) ────────
+            // AE range -100..100 → GLSL offset -0.5..0.5
+            noiseCol.r = clamp(noiseCol.r + redBalance   / 200.0, 0.0, 1.0);
+            noiseCol.g = clamp(noiseCol.g + greenBalance / 200.0, 0.0, 1.0);
+            noiseCol.b = clamp(noiseCol.b + blueBalance  / 200.0, 0.0, 1.0);
+
+            // ── 6. Brightness + Contrast ──────────────────────────────
+            // AE range -100..100 → brightness offset -0.5..0.5
+            float bright = brightness / 200.0;
+            // AE contrast 0..100 maps to multiplier 0.5..2.5
+            float cont   = mix(0.5, 2.5, (contrast + 100.0) / 200.0);
+            noiseCol     = (noiseCol - 0.5) * cont + 0.5 + bright;
+            noiseCol     = clamp(noiseCol, 0.0, 1.0);
+
+            // ── 7. Apply Mode blend over source ───────────────────────
+            vec3 blended = applyBlend(srcCol, noiseCol, applyMode);
+            blended      = clamp(blended, 0.0, 1.0);
+
+            // Apply Mix: 0 = pure source, 1 = pure blend result
+            blended = mix(srcCol, blended, applyMix);
+
+            // ── 8. Opacity ────────────────────────────────────────────
+            blended = mix(srcCol, blended, opacity);
+
+            float outAlpha = srcAlpha;
+
+            // ── 9. Source Alpha masking ───────────────────────────────
+            float alphaMask = step(0.5, useSourceAlpha);
+            blended  = mix(blended, blended * srcAlpha, alphaMask);
+            outAlpha = mix(1.0, srcAlpha, alphaMask);
+
+            // ── 10. Overall blend ─────────────────────────────────────
+            vec3 result = mix(srcCol, blended, blend);
+            result      = clamp(result, 0.0, 1.0);
+
+            gl_FragColor = vec4(result, outAlpha);
+        }
+    </shader>
+</effect>

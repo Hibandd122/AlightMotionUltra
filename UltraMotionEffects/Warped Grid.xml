@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.warpedGrid" name="Warped Grid" desc="A rotating and zooming grid texture with an optional warp effect." category="procedural" tags="grid,warp,rotozoom,texture,motion" thumb="thumb/Procedural/Warped Grid.webp" experimental="false">
+
+    <params>
+        <slider id="gridSize" label="Grid Size" default="20.0" min="5.0" max="100.0" step="1.0" />
+        <slider id="rotationSpeed" label="Rotation Speed" default="0.5" min="-2.0" max="2.0" step="0.05" />
+        <slider id="zoomSpeed" label="Zoom Speed" default="0.2" min="-1.0" max="1.0" step="0.01" />
+        <slider id="warpAmount" label="Warp Amount" default="0.1" min="0.0" max="1.0" step="0.01" />
+        <slider id="warpFrequency" label="Warp Freq." default="5.0" min="1.0" max="20.0" step="0.1" />
+        <color id="gridColor" label="Grid Color" default="#1a3d54" />
+        <color id="bgColor" label="Background Color" default="#00091c" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+    // Helper function for 2D rotation
+    mat2 rotate2d(float angle){
+        return mat2(cos(angle), -sin(angle),
+                    sin(angle), cos(angle));
+    }
+
+    void main() {
+        vec2 uv = acLayerNorm;
+        uv -= 0.5; // Center UVs to -0.5 to 0.5
+        uv.x *= acLayerSize.x / acLayerSize.y; // Maintain aspect ratio
+
+        float time = acTime;
+
+        // --- Rotozoom ---
+        float zoom = exp(time * zoomSpeed); // Exponential zoom for smoother effect
+        float angle = time * rotationSpeed;
+
+        uv = rotate2d(angle) * uv; // Apply rotation
+        uv *= zoom; // Apply zoom
+
+        // --- Warp Effect (using sine waves) ---
+        // This adds a subtle, wave-like distortion
+        uv.x += sin(uv.y * warpFrequency + time * 0.5) * warpAmount;
+        uv.y += cos(uv.x * warpFrequency - time * 0.3) * warpAmount;
+
+
+        // --- Create the Grid ---
+        // Take the fractional part of UVs multiplied by gridSize.
+        // This creates a repeating pattern where each cell goes from 0 to 1.
+        vec2 grid = fract(uv * gridSize);
+
+        // Calculate the thickness of the grid lines
+        float lineWidth = 0.05; // 5% of the cell size
+
+        // Check if the pixel is near the edge of a grid cell
+        // We're looking for values close to 0 or 1 for both x and y.
+        float lineX = step(1.0 - lineWidth, grid.x) + step(lineWidth, grid.x) * step(grid.x, lineWidth);
+        float lineY = step(1.0 - lineWidth, grid.y) + step(lineWidth, grid.y) * step(grid.y, lineWidth);
+
+        // Combine X and Y lines (if either is a line, it's a grid line)
+        float isGridLine = min(lineX + lineY, 1.0); // Clamp to 1.0 for clean white lines
+
+        // Interpolate between background and grid color
+        vec3 finalColor = mix(bgColor.rgb, gridColor.rgb, isGridLine);
+
+        gl_FragColor = vec4(finalColor, 1.0);
+    }
+
+    </shader>
+</effect>

@@ -1,0 +1,118 @@
+﻿name: Build Tweak
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Startup A/B profile'
+        required: true
+        default: full
+        type: choice
+        options:
+          - full
+          - minimal
+          - hooks
+          - report
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Theos
+        uses: actions/checkout@v4
+        with:
+          repository: theos/theos
+          path: theos
+          submodules: recursive
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-${{ inputs.profile || 'full' }}
+          path: |
+            Makefile
+            Tweak_Full_Protected.m
+            Tweak_BuildB_Minimal.m
+            fishhook.*
+          if-no-files-found: warn
+
+      - name: Setup iOS SDK
+        run: |
+          git clone -n --depth=1 --filter=tree:0 https://github.com/theos/sdks.git
+          cd sdks
+          git sparse-checkout set --no-cone iPhoneOS14.5.sdk
+          git checkout
+          mv iPhoneOS14.5.sdk ../theos/sdks/
+          
+      - name: Install Dependencies
+        run: brew install ldid dpkg
+          
+      - name: Build Tweak
+        run: |
+          export THEOS=$GITHUB_WORKSPACE/theos
+          profile="${{ inputs.profile || 'full' }}"
+          case "$profile" in
+            minimal) make_args="BUILD_B=1" ;;
+            hooks) make_args="HOOKS=1" ;;
+            report) make_args="CRASH_REPORTING=1" ;;
+            full) make_args="" ;;
+            *) echo "Unknown profile: $profile"; exit 2 ;;
+          esac
+          set +e
+          make clean package FINALPACKAGE=1 V=1 $make_args 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          grep -E "error:|fatal error:|undefined reference|No rule to make" build.log | while IFS= read -r line; do
+            echo "::error title=Theos build::$line"
+          done
+          exit $status
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tweak-DEB-${{ inputs.profile || 'full' }}
+          path: |
+            packages/*.deb
+            build.log
+
+      - name: Mach-O audit
+        if: always()
+        run: |
+          mkdir -p audit
+          dylib=$(find packages -name '*.deb' -print -quit)
+          if [ -n "$dylib" ]; then
+            ar -x "$dylib" --output audit 2>/dev/null || true
+            find audit -type f -maxdepth 3 -print
+          fi
+          file .theos/obj/arm64/AlightMotionAutoExport.dylib 2>/dev/null || true
+          otool -hv .theos/obj/arm64/AlightMotionAutoExport.dylib 2>/dev/null || true
+          otool -L .theos/obj/arm64/AlightMotionAutoExport.dylib 2>/dev/null || true
+          shasum -a 256 .theos/obj/arm64/AlightMotionAutoExport.dylib 2>/dev/null || true
+
+      - name: Build IPA (requires BASE_IPA_URL secret)
+        if: ${{ vars.BASE_IPA_URL != '' }}
+        env:
+          BASE_IPA_URL: ${{ vars.BASE_IPA_URL }}
+        run: |
+          curl --fail --location "$BASE_IPA_URL" --output base.ipa
+          echo "IPA packaging/signing is project-specific and intentionally not inferred by this tweak build."
+          echo "Base IPA downloaded; hand off to package_final_ipa.py with the resulting signed dylib."
+
+      - name: Simulator launch gate
+        if: always()
+        run: |
+          echo "NOT_APPLICABLE: this tweak is an iPhoneOS arm64 dylib, not an iOS Simulator arm64/x86_64 app bundle."
+          echo "Physical-device launch testing is required."
+          mkdir -p audit
+          echo "NOT_APPLICABLE" > audit/simulator-launch.txt
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: startup-audit-${{ inputs.profile || 'full' }}
+          path: audit/
+          if-no-files-found: warn

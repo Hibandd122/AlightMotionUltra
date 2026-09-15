@@ -1,0 +1,290 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.sshakeultra" name="S_Shake Ultra" desc="Camera shake on X/Y position, Z zoom and tilt rotation using banded Catmull-Rom noise plus sine waves, with 5 shake modes (normal, handheld, earthquake, whip, bounce), frequency-band weights, decay/ramp envelope, per-channel RGB separation with amplitude/phase/randomness, and black/tile/reflect edge handling." category="warp" tags="shake,camera,transform,impact,handheld,earthquake,whip,manga,anime" thumb="thumb/Move and Transform/S_Shake Ultra.webp" overdraw="true" max-overdraw="1.0">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="amplitude" label="Amplitude" default="10.0" min="0.0" max="50.0" step="0.1" type="float" />
+        <slider id="frequency" label="Frequency" default="8.0" min="0.1" max="40.0" step="0.1" type="float" />
+        <slider id="phase" label="Phase" default="0.0" min="-10.0" max="10.0" step="0.01" type="float" />
+        <slider id="globalAngle" label="Global Angle" default="0.0" min="-360.0" max="360.0" step="1.0" type="float" />
+        <slider id="seed" label="Seed" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="smoothness" label="Smoothness" default="0.4" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <menu id="shakeMode" style="dropdown" default="1" label="Shake Mode">
+            <menu label="Normal" value="1" />
+            <menu label="Handheld" value="2" />
+            <menu label="Earthquake" value="3" />
+            <menu label="Whip" value="4" />
+            <menu label="Bounce" value="5" />
+        </menu>
+        <slider id="modeIntensity" label="Mode Intensity" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        
+        <slider id="decayAmount" label="Decay Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="decaySpeed" label="Decay Speed" default="2.0" min="0.5" max="10.0" step="0.1" type="float" />
+        <slider id="rampAmount" label="Ramp Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="rampSpeed" label="Ramp Speed" default="2.0" min="0.5" max="10.0" step="0.1" type="float" />
+        
+        <slider id="lowFreqAmp" label="Low Freq Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="midFreqAmp" label="Mid Freq Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="highFreqAmp" label="High Freq Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        
+        <slider id="xRandAmp" label="X Random Amp" default="0.5" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="xRandFreq" label="X Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="xWaveAmp" label="X Wave Amp" default="0.0" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="xWaveFreq" label="X Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="xPhase" label="X Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="yRandAmp" label="Y Random Amp" default="0.3" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="yRandFreq" label="Y Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="yWaveAmp" label="Y Wave Amp" default="0.0" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="yWaveFreq" label="Y Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="yPhase" label="Y Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="zRandAmp" label="Z Random Amp" default="0.05" min="0.0" max="0.5" step="0.01" type="float" />
+        <slider id="zRandFreq" label="Z Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="zWaveAmp" label="Z Wave Amp" default="0.0" min="0.0" max="0.5" step="0.01" type="float" />
+        <slider id="zWaveFreq" label="Z Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="zPhase" label="Z Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="tiltRandAmp" label="Tilt Random Amp" default="2.0" min="0.0" max="30.0" step="0.1" type="float" />
+        <slider id="tiltRandFreq" label="Tilt Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="tiltWaveAmp" label="Tilt Wave Amp" default="0.0" min="0.0" max="30.0" step="0.1" type="float" />
+        <slider id="tiltWaveFreq" label="Tilt Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="tiltPhase" label="Tilt Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="redAmp" label="Red Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="greenAmp" label="Green Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="blueAmp" label="Blue Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="redPhase" label="Red Phase" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="greenPhase" label="Green Phase" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="bluePhase" label="Blue Phase" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="rgbRandomness" label="RGB Randomness" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="rgbFrequency" label="RGB Frequency" default="2.0" min="0.1" max="10.0" step="0.1" type="float" />
+        
+        <menu id="edgeMode" style="dropdown" default="3" label="Edge Mode">
+            <menu label="Black" value="1" />
+            <menu label="Tile" value="2" />
+            <menu label="Reflect" value="3" />
+        </menu>
+        
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float hash(float n) {
+        return fract(sin(n) * 43758.5453123);
+    }
+    float catmullRom(float t, float s) {
+        float i = floor(t);
+        float f = fract(t);
+        float a = hash(i - 1.0 + s);
+        float b = hash(i + s);
+        float c = hash(i + 1.0 + s);
+        float d = hash(i + 2.0 + s);
+        float f2 = f * f;
+        float f3 = f2 * f;
+        float cr0 = -0.5*a + 1.5*b - 1.5*c + 0.5*d;
+        float cr1 = a - 2.5*b + 2.0*c - 0.5*d;
+        float cr2 = -0.5*a + 0.5*c;
+        float cr3 = b;
+        return cr0*f3 + cr1*f2 + cr2*f + cr3;
+    }
+    float bandedNoise(float t, float s, float sm, float lowAmp, float midAmp, float highAmp) {
+        float n = 0.0;
+        float low = catmullRom(t * 0.7, s) * 2.0 - 1.0;
+        float mid = catmullRom(t * 2.1, s + 50.0) * 2.0 - 1.0;
+        float high1 = catmullRom(t * 5.3, s + 100.0) * 2.0 - 1.0;
+        float high2 = catmullRom(t * 11.7, s + 150.0) * 2.0 - 1.0;
+        float highBlend = mix(high1, high2, 0.5) * mix(0.3, 0.15, sm);
+        n = low * lowAmp * 1.0
+          + mid * midAmp * mix(0.5, 0.3, sm)
+          + highBlend * highAmp;
+        return n;
+    }
+    float getRandomShake(float time, float freq, float ph, float seedOff, float sm) {
+        float t = (time + ph) * freq;
+        float s = seed + seedOff;
+        return bandedNoise(t, s, sm, lowFreqAmp, midFreqAmp, highFreqAmp);
+    }
+    float getWaveShake(float time, float freq, float ph) {
+        return sin((time + ph) * freq * 2.0 * PI);
+    }
+    float getEnvelope(float time) {
+        float env = 1.0;
+        if (decayAmount &gt; EPS) {
+            float decay = exp(-time * decaySpeed);
+            env *= mix(1.0, decay, decayAmount);
+        }
+        if (rampAmount &gt; EPS) {
+            float ramp = 1.0 - exp(-time * rampSpeed);
+            env *= mix(1.0, ramp, rampAmount);
+        }
+        return clamp(env, 0.0, 1.0);
+    }
+    float applyMode(float value, float time, float seedOff) {
+        float md = float(shakeMode);
+        if (md &lt; 1.5) {
+            return value;
+        }
+        if (md &lt; 2.5) {
+            float drift = catmullRom(time * 0.3, seed + seedOff + 700.0) * 2.0 - 1.0;
+            float micro = catmullRom(time * 8.0, seed + seedOff + 800.0) * 2.0 - 1.0;
+            float breathe = sin(time * 0.8 * PI) * 0.1;
+            return value * 0.6 + (drift * 0.3 + micro * 0.08 + breathe) * modeIntensity * amplitude * 0.01;
+        }
+        if (md &lt; 3.5) {
+            float rumble = catmullRom(time * 1.5, seed + seedOff + 900.0) * 2.0 - 1.0;
+            float spike = catmullRom(time * 12.0, seed + seedOff + 950.0) * 2.0 - 1.0;
+            spike = spike * spike * sign(spike);
+            return value * (1.0 + modeIntensity * 0.5) + (rumble * 0.4 + spike * 0.15) * modeIntensity * amplitude * 0.01;
+        }
+        if (md &lt; 4.5) {
+            float whipBase = sin(time * frequency * PI * 2.0);
+            float whipSnap = pow(abs(whipBase), 3.0) * sign(whipBase);
+            float whipNoise = catmullRom(time * 6.0, seed + seedOff + 1000.0) * 2.0 - 1.0;
+            return whipSnap * modeIntensity * amplitude * 0.015 + whipNoise * modeIntensity * 0.003 * amplitude;
+        }
+        if (md &lt; 5.5) {
+            float bounceT = time * frequency * 1.5;
+            float bounce = abs(sin(bounceT * PI)) * exp(-bounceT * 0.3);
+            float bounceNoise = catmullRom(time * 4.0, seed + seedOff + 1100.0) * 2.0 - 1.0;
+            float dir = (mod(floor(bounceT), 2.0) == 0.0) ? 1.0 : -1.0;
+            return (bounce * dir * modeIntensity + bounceNoise * 0.1 * modeIntensity) * amplitude * 0.01;
+        }
+        return value;
+    }
+    float getShakeAxis(float time, float rAmp, float rFreq,
+                       float wAmp, float wFreq, float ph, float seedOff) {
+        float result = 0.0;
+        if (rAmp &gt; EPS) {
+            float rnd = getRandomShake(time, frequency * rFreq, ph + phase, seedOff, smoothness);
+            result += rnd * rAmp;
+        }
+        if (wAmp &gt; EPS) {
+            float wav = getWaveShake(time, wFreq, ph + phase);
+            result += wav * wAmp;
+        }
+        result *= amplitude * 0.01;
+        result = applyMode(result, time, seedOff);
+        return result;
+    }
+    vec2 applyEdge(vec2 uv, float mode) {
+        if (mode &lt; 1.5) {
+            return uv;
+        } else if (mode &lt; 2.5) {
+            return fract(uv);
+        } else {
+            vec2 r = uv;
+            r.x = (mod(floor(r.x), 2.0) == 0.0) ? fract(r.x) : 1.0 - fract(r.x);
+            r.y = (mod(floor(r.y), 2.0) == 0.0) ? fract(r.y) : 1.0 - fract(r.y);
+            return r;
+        }
+    }
+    vec2 computeShakeUV(vec2 uv, float time, float chAmp, float chPhase,
+                        float rgbRX, float rgbRY, float rgbRZ, float rgbRT) {
+        float t = time + chPhase * 0.1;
+        float env = getEnvelope(t);
+        float sX = getShakeAxis(t, xRandAmp, xRandFreq, xWaveAmp, xWaveFreq, xPhase, 0.0);
+        float sY = getShakeAxis(t, yRandAmp, yRandFreq, yWaveAmp, yWaveFreq, yPhase, 100.0);
+        float sZ = getShakeAxis(t, zRandAmp, zRandFreq, zWaveAmp, zWaveFreq, zPhase, 200.0);
+        float sT = getShakeAxis(t, tiltRandAmp, tiltRandFreq, tiltWaveAmp, tiltWaveFreq, tiltPhase, 300.0);
+        sX += rgbRX;
+        sY += rgbRY;
+        sZ += rgbRZ;
+        sT += rgbRT;
+        sX *= chAmp * env;
+        sY *= chAmp * env;
+        sZ *= chAmp * env;
+        sT *= chAmp * env;
+        float angRad = globalAngle * PI / 180.0;
+        float cosA = cos(angRad);
+        float sinA = sin(angRad);
+        float rX = sX * cosA - sY * sinA;
+        float rY = sX * sinA + sY * cosA;
+        sX = rX;
+        sY = rY;
+        vec2 center = vec2(0.5);
+        vec2 result = uv - center;
+        float tiltRad = sT * PI / 180.0;
+        float cs = cos(tiltRad);
+        float sn = sin(tiltRad);
+        result = vec2(result.x*cs - result.y*sn, result.x*sn + result.y*cs);
+        float zm = 1.0 / max(1.0 + sZ, 0.1);
+        result *= zm;
+        result += center;
+        result.x += sX;
+        result.y += sY;
+        return result;
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float t = acTime;
+        float em = float(edgeMode);
+        float rgbRXR=0.0; float rgbRYR=0.0; float rgbRZR=0.0; float rgbRTR=0.0;
+        float rgbRXG=0.0; float rgbRYG=0.0; float rgbRZG=0.0; float rgbRTG=0.0;
+        float rgbRXB=0.0; float rgbRYB=0.0; float rgbRZB=0.0; float rgbRTB=0.0;
+        if (rgbRandomness &gt; EPS) {
+            float rt = t * rgbFrequency;
+            float rScale = rgbRandomness * amplitude * 0.005;
+            rgbRXR = getRandomShake(rt,1.0,0.0,400.0,smoothness) * rScale * xRandAmp;
+            rgbRYR = getRandomShake(rt,1.0,0.0,410.0,smoothness) * rScale * yRandAmp;
+            rgbRZR = getRandomShake(rt,1.0,0.0,420.0,smoothness) * rScale * zRandAmp * 10.0;
+            rgbRTR = getRandomShake(rt,1.0,0.0,430.0,smoothness) * rScale * tiltRandAmp * 10.0;
+            rgbRXG = getRandomShake(rt,1.0,0.0,500.0,smoothness) * rScale * xRandAmp;
+            rgbRYG = getRandomShake(rt,1.0,0.0,510.0,smoothness) * rScale * yRandAmp;
+            rgbRZG = getRandomShake(rt,1.0,0.0,520.0,smoothness) * rScale * zRandAmp * 10.0;
+            rgbRTG = getRandomShake(rt,1.0,0.0,530.0,smoothness) * rScale * tiltRandAmp * 10.0;
+            rgbRXB = getRandomShake(rt,1.0,0.0,600.0,smoothness) * rScale * xRandAmp;
+            rgbRYB = getRandomShake(rt,1.0,0.0,610.0,smoothness) * rScale * yRandAmp;
+            rgbRZB = getRandomShake(rt,1.0,0.0,620.0,smoothness) * rScale * zRandAmp * 10.0;
+            rgbRTB = getRandomShake(rt,1.0,0.0,630.0,smoothness) * rScale * tiltRandAmp * 10.0;
+        }
+        bool needsSep = (abs(redAmp-1.0)&gt;EPS || abs(greenAmp-1.0)&gt;EPS || abs(blueAmp-1.0)&gt;EPS ||
+                         abs(redPhase)&gt;EPS || abs(greenPhase)&gt;EPS || abs(bluePhase)&gt;EPS ||
+                         rgbRandomness&gt;EPS);
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 fin;
+        float finAlpha;
+        if (needsSep) {
+            vec2 uvR = computeShakeUV(uv, t, redAmp, redPhase, rgbRXR, rgbRYR, rgbRZR, rgbRTR);
+            vec2 uvG = computeShakeUV(uv, t, greenAmp, greenPhase, rgbRXG, rgbRYG, rgbRZG, rgbRTG);
+            vec2 uvB = computeShakeUV(uv, t, blueAmp, bluePhase, rgbRXB, rgbRYB, rgbRZB, rgbRTB);
+            float outR=1.0; float outG=1.0; float outB=1.0;
+            if (em &lt; 1.5) {
+                outR = (uvR.x&lt;0.0||uvR.x&gt;1.0||uvR.y&lt;0.0||uvR.y&gt;1.0) ? 0.0 : 1.0;
+                outG = (uvG.x&lt;0.0||uvG.x&gt;1.0||uvG.y&lt;0.0||uvG.y&gt;1.0) ? 0.0 : 1.0;
+                outB = (uvB.x&lt;0.0||uvB.x&gt;1.0||uvB.y&lt;0.0||uvB.y&gt;1.0) ? 0.0 : 1.0;
+            }
+            uvR = applyEdge(uvR, em); uvR = clamp(uvR, 0.0, 1.0);
+            uvG = applyEdge(uvG, em); uvG = clamp(uvG, 0.0, 1.0);
+            uvB = applyEdge(uvB, em); uvB = clamp(uvB, 0.0, 1.0);
+            vec4 sR = texture2DCv(inputImg.texture, uvR);
+            vec4 sG = texture2DCv(inputImg.texture, uvG);
+            vec4 sB = texture2DCv(inputImg.texture, uvB);
+            fin = vec3(sR.r*outR, sG.g*outG, sB.b*outB);
+            finAlpha = (sR.a*outR + sG.a*outG + sB.a*outB) / 3.0;
+        } else {
+            vec2 shakenUV = computeShakeUV(uv, t, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            float outB = 1.0;
+            if (em &lt; 1.5) {
+                outB = (shakenUV.x&lt;0.0||shakenUV.x&gt;1.0||shakenUV.y&lt;0.0||shakenUV.y&gt;1.0) ? 0.0 : 1.0;
+            }
+            shakenUV = applyEdge(shakenUV, em);
+            shakenUV = clamp(shakenUV, 0.0, 1.0);
+            vec4 s = texture2DCv(inputImg.texture, shakenUV);
+            fin = s.rgb * outB;
+            finAlpha = s.a * outB;
+        }
+        fin = mix(original.rgb, fin, globalMix);
+        finAlpha = mix(original.a, finAlpha, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+        gl_FragColor = vec4(fin, finAlpha);
+    }
+    </shader>
+    
+</effect>

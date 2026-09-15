@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.color_luma_key" name="Color-Luma Key" desc="Keys out a chosen color using a combined chroma-distance and weighted luminance-distance matte with tolerance and softness thresholds. Includes invert (keep keyed color), despill toward neutral luma, and output alpha control." category="warp" tags="key,luma,chroma,matte,remove,color" thumb="thumb/Matte and Mask/Color-Luma Key.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <color id="keyColor" default="#FF00FF00" label="Color to Remove" alpha="false" />
+    <slider id="tolerance" default="0.20" min="0.0" max="1.0" step="0.001" label="Tolerance" />
+    <slider id="softness" default="0.10" min="0.0" max="1.0" step="0.001" label="Softness" />
+    <slider id="lumaWeight" default="0.30" min="0.0" max="1.0" step="0.01" label="Luma Weight" />
+    <switch id="invertKey" default="false" label="Invert (Keep keyed color)" />
+
+    
+    <slider id="despill" default="0.20" min="0.0" max="1.0" step="0.01" label="Despill Amount" />
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Color-Luma Key (official AM style)
+    // - Only AM builtins
+    // - No dynamic loops/derivatives
+
+    const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+
+    // Simple YUV-like chroma for distance that's less sensitive to brightness
+    vec2 chroma(vec3 c){
+      float y = dot(c, LUMA);
+      return vec2(c.b - y, c.r - y);
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      vec3 c = src.rgb;
+
+      // Key color chroma and luma
+      vec3 k = keyColor.rgb;
+      float y  = dot(c, LUMA);
+      float yk = dot(k, LUMA);
+      vec2 cc = chroma(c);
+      vec2 ck = chroma(k);
+
+      float chromaDist = length(cc - ck);          // 0..~1
+      float lumaDist   = abs(y - yk);              // 0..1
+
+      // Combined distance (scaled by lumaWeight)
+      float d = chromaDist + lumaWeight * lumaDist;
+
+      // Soft thresholding to build matte
+      float t = tolerance;
+      float s = max(softness, 1e-5);
+      float matte = 1.0 - smoothstep(t - s, t + s, d); // 1 where color matches key
+      if(invertKey) matte = 1.0 - matte;
+
+      // Despill: reduce contribution of keyed color on remaining pixels
+      // Simple projection toward neutral luma
+      float match = matte; // 1 near key
+      vec3 neutral = vec3(y);
+      vec3 cDespill = mix(c, mix(c, neutral, 0.6), despill * match);
+
+      // Compose: attenuate alpha where key matched
+      float aOut = src.a * (1.0 - matte) * alpha;
+      gl_FragColor = vec4(cDespill, 1.0) * aOut;
+    }
+  </shader>
+
+</effect>

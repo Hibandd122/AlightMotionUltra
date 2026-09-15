@@ -1,0 +1,106 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.audio_spectrum_purple" name="Audio Spectrum (Transparent)" desc="Draws spectrum-style bars and dots along a baseline over a transparent background. Bar heights are driven by a keyframeable Audio Level parameter with per-band randomness and wobble; it does not read actual audio." category="procedural" tags="audio,spectrum,visualizer,transparent,bars,dots" thumb="thumb/Procedural/Audio Spectrum (Transparent).webp" overdraw="true" max-overdraw="1.5">
+
+  <params>
+    
+    <color id="color" default="#D62AD9" label="Color" />
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" type="percent" />
+    <slider id="line_thickness" default="0.006" min="0.0" max="0.05" step="0.0005" label="Baseline Thickness" />
+    <slider id="bar_width" default="0.009" min="0.003" max="0.06" step="0.0005" label="Bar Width" />
+    <slider id="dot_size" default="0.006" min="0.001" max="0.05" step="0.0005" label="Dot Size" />
+
+    
+    <slider id="baseline_y" default="0.50" min="0.0" max="1.0" step="0.001" label="Baseline Y" />
+    <slider id="left_margin" default="0.06" min="0.0" max="0.3" step="0.001" label="Left/Right Margin" />
+    <slider id="bar_count" default="60" min="10" max="200" step="1" label="Bar Count" />
+    <slider id="bar_max_height" default="0.20" min="0.02" max="0.60" step="0.001" label="Max Height" />
+
+    
+    
+    <slider id="audio_level" default="0.80" min="0.0" max="1.0" step="0.001" label="Audio Level" type="percent" />
+    <slider id="reactivity" default="1.00" min="0.10" max="3.00" step="0.01" label="Reactivity" />
+    <slider id="jitter" default="0.20" min="0.0" max="1.0" step="0.01" label="Band Randomness" />
+    <slider id="speed" default="1.00" min="0.0" max="5.0" step="0.01" label="Wobble Speed" />
+    <slider id="seed" default="0.0" min="0.0" max="1000.0" step="1.0" label="Seed" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Transparent audio spectrum visualizer
+    // Bars and dots around a horizontal baseline. No background fill.
+
+    // Hash for deterministic jitter
+    float hash11(float n){ return fract(sin(n * 127.1 + 311.7) * 43758.5453); }
+
+    // Smooth rectangle (x-axis) and circle (for dots)
+    float smoothRect(float x, float halfW){
+      return 1.0 - smoothstep(halfW - 1e-4, halfW + 1e-4, abs(x));
+    }
+    float smoothLine(float y, float halfT){
+      return 1.0 - smoothstep(halfT - 1e-4, halfT + 1e-4, abs(y));
+    }
+    float smoothCircle(vec2 p, float r){
+      float d = length(p);
+      return 1.0 - smoothstep(r - 1e-4, r + 1e-4, d);
+    }
+
+    float bandAmp(float i, float N){
+      float base = pow(audio_level, reactivity); // global level with reactivity curve
+      float rnd = (hash11(i + seed) * 2.0 - 1.0) * jitter; // symmetric jitter
+      float wob = 0.5 + 0.5 * sin(acTime * (2.5 * speed) + i * 0.9);
+      float env = 0.85 - 0.35 * abs((i/(N-1.0)) * 2.0 - 1.0); // slight mid emphasis
+      float amp = clamp(base * env * (0.6 + 0.8 * wob + rnd), 0.0, 1.0);
+      return amp;
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+
+      float margin = clamp(left_margin, 0.0, 0.49);
+      float N = float(bar_count);
+      float usableW = 1.0 - 2.0 * margin;
+      float xIn = (uv.x - margin) / max(usableW, 1e-4);
+
+      // Outside drawing area: fully transparent
+      if(xIn &lt; 0.0 || xIn &gt; 1.0){ gl_FragColor = vec4(0.0); return; }
+
+      float i = floor(xIn * N);
+      float cx = margin + (i + 0.5) / N * usableW; // bar center
+      float dx = uv.x - cx;
+
+      float amp = bandAmp(i, N);
+      float h = bar_max_height * amp;
+      float halfW = bar_width * 0.5;
+      float baseline = baseline_y;
+
+      // Coverage accumulation: baseline line + bar + dot
+      float cov = 0.0;
+
+      // Baseline
+      cov = max(cov, smoothLine(uv.y - baseline, line_thickness * 0.5));
+
+      // Vertical bar centered on baseline (extends up and down)
+      // X coverage by width, Y coverage by height symmetrical around baseline
+      float cxCov = smoothRect(dx, halfW);
+      float yTop = baseline + h;
+      float yBot = baseline - h;
+      float yDist = max(0.0, max(uv.y - yTop, yBot - uv.y));
+      float yCov = 1.0 - smoothstep(0.0, 1e-4, yDist);
+      cov = max(cov, cxCov * yCov);
+
+      // Dot between bars: centered halfway to next bar, on baseline
+      float nextCx = margin + (i + 1.0) / N * usableW;
+      float midX = mix(cx, nextCx, 0.5);
+      vec2 dp = vec2(uv.x - midX, uv.y - baseline);
+      cov = max(cov, smoothCircle(dp, dot_size));
+
+      // Final color: premultiplied by coverage, transparent elsewhere
+      vec3 col = color.rgb;
+      float a = cov * alpha;
+      gl_FragColor = vec4(col * a, a);
+    }
+  </shader>
+</effect>

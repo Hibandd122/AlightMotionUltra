@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.parenthelper" name="@am:string/effect_parenthelper_name" desc="@am:string/effect_parenthelper_desc" tags="transform,propAdjust,utility,parenting" thumb="thumb/pulsate.webp" category="other">
+
+    <params>
+        
+        
+
+        <menu id="scaleMode" default="0" style="radio" label="@am:string/effect_param_scale">
+            <menu label="Normal" value="0" />
+            <menu label="Locked" value="1" />
+            <menu label="Weighted" value="2" enableTargets="scaleWeight" />
+        </menu>
+        <menu id="rotateMode" default="0" style="radio" label="@am:string/effect_param_rotation">
+            <menu label="Normal" value="0" />
+            <menu label="Locked" value="1" />
+            <menu label="Weighted" value="2" enableTargets="rotateWeight" />
+        </menu>
+
+        <slider id="scaleWeight" default="1.0" min="-1000.0" max="1000.0" step="0.001" label="@am:string/effect_param_scale_weight" type="percent" ticks="0.5,1.0,1.5,2.0" enabled="false" />
+        <slider id="rotateWeight" default="1.0" min="-1000.0" max="1000.0" step="0.01" label="@am:string/effect_param_rotation_weight" type="percent" ticks="0.5,1.0,1.5,2.0" enabled="false" />
+
+        <menu id="autoRotate" default="0" style="radio" label="@am:string/effect_param_auto_rotate_abbr">
+            <menu label="@am:string/effect_param_off" value="0" />
+            <menu label="@am:string/effect_param_x_axis" value="1" enableTargets="radiusAdjust" />
+            <menu label="@am:string/effect_param_y_axis" value="2" enableTargets="radiusAdjust" />
+        </menu>
+        <slider id="radiusAdjust" default="0.0" min="-1000.0" max="1000.0" step="0.1" label="@am:string/effect_param_radius_adjust" ticks="0" enabled="false" />
+
+    </params>
+
+</effect>

@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.edge_colorize_directional" name="Edge Colorize" desc="Detects edges with a Gaussian pre-blur followed by a Sobel operator, then colors each edge by its gradient direction using four assignable colors (top/right/bottom/left) with rotation, brightness, threshold, background color, and optional 4-tap supersampled smoothing." category="drawingedge" tags="extra" thumb="thumb/Drawing/Edge Colorize.webp" experimental="false">
+
+    <params>
+        
+        <texture id="inputImg" srcType="content" />
+
+        
+        
+        <slider id="edgeSmooth" default="2.50" min="0.0" max="10.0" label="Edge Smooth" step="0.01" />
+        <switch id="subpixelSmooth" default="true" label="Subpixel Smooth" />
+        <slider id="edgeThreshold" default="0.05" min="0.0" max="1.0" label="Edge Threshold" step="0.001" />
+
+        
+        <slider id="brightness" default="1.00" min="0.0" max="5.0" label="Brightness" step="0.01" />
+        
+        <slider id="rotateColors" default="0.0" min="-180.0" max="180.0" label="Rotate Colors" step="0.1" />
+        <color id="bgColor" default="#000000" label="Background" />
+        <color id="colTop" default="#FFD060" label="Top" />
+        <color id="colRight" default="#1A66FF" label="Right" />
+        <color id="colBottom" default="#78909C" label="Bottom" />
+        <color id="colLeft" default="#FF1A1A" label="Left" />
+
+        
+        <slider id="opacity" default="1.0" min="0.0" max="1.0" label="Opacity" step="0.001" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Edge Colorize (Directional)
+        // Port of a Shadertoy-style pre-blur + Sobel edge detector with directional colorization.
+        // Controls: edgeSmooth (pre-blur radius), subpixelSmooth, edgeThreshold, brightness, rotateColors, 4 directional colors, bgColor, opacity.
+
+        float luminance(vec3 c){
+            return dot(c, vec3(0.2126, 0.7152, 0.0722));
+        }
+
+        // Sample source at a given UV
+        vec3 sampleSrc(vec2 uv){
+            return texture2DCv(inputImg.texture, uv).rgb;
+        }
+
+        // 3x3 Gaussian blur luminance with adjustable radius (in UV space scaled by pixel size)
+        float getBlurredLuminance(vec2 uv, vec2 texel, float radius){
+            // Gaussian-like kernel (1 2 1; 2 4 2; 1 2 1), weight 16
+            // We keep a slight normalization factor to mimic the Shadertoy reference
+            const mat3 k = mat3(
+                1.0, 2.0, 1.0,
+                2.0, 4.0, 2.0,
+                1.0, 2.0, 1.0
+            );
+            const float w = 16.0;
+
+            float acc = 0.0;
+            for(int j=-1; j&lt;=1; ++j){
+                for(int i=-1; i&lt;=1; ++i){
+                    vec2 off = vec2(float(i), float(j)) * texel * radius;
+                    vec3 c = sampleSrc(uv + off);
+                    acc += luminance(c) * k[j+1][i+1];
+                }
+            }
+            return acc / w;
+        }
+
+        void sobelOnBlur(vec2 uv, vec2 texel, float radius, out float gx, out float gy){
+            // Precompute blurred luminance over 3x3 neighborhood
+            float lum[9];
+            int idx = 0;
+            for(int j=-1; j&lt;=1; ++j){
+                for(int i=-1; i&lt;=1; ++i){
+                    vec2 off = vec2(float(i), float(j)) * texel;
+                    lum[idx++] = getBlurredLuminance(uv + off, texel, radius);
+                }
+            }
+            // Sobel kernels
+            const mat3 sx = mat3(-1.0, 0.0, 1.0,
+                                 -2.0, 0.0, 2.0,
+                                 -1.0, 0.0, 1.0);
+            const mat3 sy = mat3(-1.0, -2.0, -1.0,
+                                  0.0,  0.0,  0.0,
+                                  1.0,  2.0,  1.0);
+            gx = 0.0; gy = 0.0;
+            // Map 1D array back into 3x3 indexing [x][y]
+            for(int j2=0; j2&lt;3; ++j2){
+                for(int i2=0; i2&lt;3; ++i2){
+                    float L = lum[j2*3 + i2];
+                    gx += L * sx[i2][j2];
+                    gy += L * sy[i2][j2];
+                }
+            }
+        }
+
+        // Rotate a 2D vector by angle (radians)
+        vec2 rotate(vec2 v, float a){
+            float s = sin(a), c = cos(a);
+            return mat2(c, -s, s, c) * v;
+        }
+
+        vec3 directionalColor(vec2 grad, float mag, float th, float angle){
+            if(mag &lt;= th) return bgColor.rgb; // below threshold -&gt; background
+
+            // Normalize gradient
+            vec2 g = grad / max(1e-6, mag);
+
+            // Cardinal directions (Up, Right, Down, Left), rotated by angle
+            vec2 up    = rotate(vec2(0.0, -1.0), angle);
+            vec2 right = rotate(vec2(1.0,  0.0), angle);
+            vec2 down  = rotate(vec2(0.0,  1.0), angle);
+            vec2 left  = rotate(vec2(-1.0, 0.0), angle);
+
+            // Weights by directional agreement; exponent sharpens selection
+            float e = 3.0;
+            float wUp    = pow(max(0.0, dot(g, up)),    e);
+            float wRight = pow(max(0.0, dot(g, right)), e);
+            float wDown  = pow(max(0.0, dot(g, down)),  e);
+            float wLeft  = pow(max(0.0, dot(g, left)),  e);
+
+            float wSum = max(1e-6, wUp + wRight + wDown + wLeft);
+            vec3 mixCol = (colTop.rgb    * wUp +
+                           colRight.rgb  * wRight +
+                           colBottom.rgb * wDown +
+                           colLeft.rgb   * wLeft) / wSum;
+
+            return mixCol * mag * brightness;
+        }
+
+        vec3 evalEdgeColor(vec2 uv, vec2 texel){
+            vec4 src4 = texture2DCv(inputImg.texture, uv);
+            vec3 baseCol = bgColor.rgb;
+            float gx, gy;
+            sobelOnBlur(uv, texel, edgeSmooth, gx, gy);
+            float mag = length(vec2(gx, gy));
+
+            float th = edgeThreshold;
+            if(subpixelSmooth){
+                float soft = smoothstep(th - 0.02, th + 0.02, mag);
+                float ang = radians(rotateColors);
+                vec3 col = directionalColor(vec2(gx, gy), max(th, mag*soft), th, ang);
+                return mix(baseCol, col, soft);
+            } else {
+                float ang = radians(rotateColors);
+                vec3 col = directionalColor(vec2(gx, gy), mag, th, ang);
+                float mask = step(th, mag);
+                return mix(baseCol, col, mask);
+            }
+        }
+
+        void main(){
+            // Aspect-correct UVs
+            vec2 res = acScreenSize;
+            vec2 uv = acScreenNorm;
+            vec2 texel = 1.0 / res;
+
+            vec3 color;
+            if(subpixelSmooth){
+                // 4-tap supersample around pixel center for extra anti-aliasing
+                vec2 o = 0.5 * texel;
+                vec3 c0 = evalEdgeColor(uv + vec2(-o.x, -o.y), texel);
+                vec3 c1 = evalEdgeColor(uv + vec2( o.x, -o.y), texel);
+                vec3 c2 = evalEdgeColor(uv + vec2(-o.x,  o.y), texel);
+                vec3 c3 = evalEdgeColor(uv + vec2( o.x,  o.y), texel);
+                color = (c0 + c1 + c2 + c3) * 0.25;
+            } else {
+                color = evalEdgeColor(uv, texel);
+            }
+
+            vec4 src4m = texture2DCv(inputImg.texture, uv);
+            float aOut = src4m.a * opacity;
+            gl_FragColor = vec4(color, 1.0) * aOut;
+        }
+    </shader>
+</effect>

@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.denoise_sharpen" name="Denoise + Sharpen" desc="Edge-preserving 5x5 bilateral filter denoises the image, then an unsharp mask adds back the detail difference so noise is not amplified. View modes show the denoised, original, or final result." category="blur" tags="denoise,bilateral,sharpen,unsharp,detail" thumb="thumb/Blur and Sharpen/Denoise + Sharpen.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="noiseStrength" default="0.15" min="0.01" max="100.0" step="0.005" label="Noise Reduction Strength" />
+
+    
+    <slider id="sharpenStrength" default="2.0" min="0.0" max="100.0" step="0.05" label="Sharpen Strength" />
+
+    
+    <menu id="viewMode" default="2" style="radio" label="View">
+      <menu label="Denoised" value="0" />
+      <menu label="Original" value="1" />
+      <menu label="Final" value="2" />
+    </menu>
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Advanced Denoise + Sharpen (Bilateral + Unsharp)
+    // Port adapted to Alight Motion shader API
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec2 texel = 1.0 / getTexSize(inputImg.size);
+
+      vec3 centerColor = texture2DCv(inputImg.texture, uv).rgb;
+
+      // Bilateral 5x5
+      vec3 accum = vec3(0.0);
+      float wsum = 0.0;
+      for(int j=-2;j&lt;=2;j++){
+        for(int i=-2;i&lt;=2;i++){
+          vec2 off = vec2(float(i), float(j));
+          vec3 nc = texture2DCv(inputImg.texture, uv + off * texel).rgb;
+          float spatial = exp(-(off.x*off.x + off.y*off.y) / 8.0);
+          float cd = length(centerColor - nc);
+          float range = exp(-(cd*cd) / (2.0 * noiseStrength * noiseStrength + 1e-6));
+          float w = spatial * range;
+          accum += nc * w;
+          wsum += w;
+        }
+      }
+
+      vec3 denoised = accum / max(wsum, 1e-6);
+
+      // Unsharp mask using denoised as base to avoid boosting noise
+      vec3 detail = centerColor - denoised;
+      vec3 finalSharpened = centerColor + detail * sharpenStrength;
+
+      // View selection
+      vec3 outRGB = finalSharpened;
+      if(int(viewMode)==0) outRGB = denoised;
+      else if(int(viewMode)==1) outRGB = centerColor;
+
+      float a = texture2DCv(inputImg.texture, uv).a * alpha;
+      gl_FragColor = vec4(clamp(outRGB, 0.0, 1.0), 1.0) * a;
+    }
+  </shader>
+
+</effect>

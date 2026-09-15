@@ -1,0 +1,181 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cornerpin3" name="Corner Pin (Beta)" desc="Warps the layer onto an arbitrary quadrilateral using inverse bilinear interpolation, with draggable offsets for each of the four corners plus overall scale and stretch. Experimental; corner handles are offsets from preset positions." category="warp" tags="other" thumb="thumb/Move and Transform/Corner Pin (Beta).webp" experimental="true">
+
+    <params>
+        
+        
+        
+        
+        <point id="TL" label="Top Left" default="0, 0" step="0.005" />
+        <point id="TR" label="Top Right" default="0, 0" step="0.005" />
+        <point id="BR" label="Bottom Left" default="0, 0" step="0.005" />
+        <point id="BL" label="Bottom Right" default="0, 0" step="0.005" />
+        
+        <slider id="scale" default="0.75" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        
+        
+        
+        
+        
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+         #define CHESS_SCALE 3.0
+         #define RND_OPACITY false
+         #define USE_CHANNEL0 true
+         
+         
+         float ccross( in vec2 a, in vec2 b ) { return a.x*b.y - a.y*b.x; }
+         
+         vec2 invBilinear( vec2 p, vec2 a, vec2 b, vec2 c, vec2 d )
+         {
+             vec2 e = b-a;
+             vec2 f = d-a;
+             vec2 g = a-b+c-d;
+             vec2 h = p-a;
+                 
+             float k2 = ccross( g, f );
+             float k1 = ccross( e, f ) + ccross( h, g );
+             float k0 = ccross( h, e );
+             
+             float w = k1*k1 - 4.0*k0*k2;
+             
+             if( w&lt;0.0 ) return vec2(-1.0);
+         
+             w = sqrt( w );
+             
+             float v1 = (-k1 - w)/(2.0*k2);
+             float v2 = (-k1 + w)/(2.0*k2);
+             float u1 = (h.x - f.x*v1)/(e.x + g.x*v1);
+             float u2 = (h.x - f.x*v2)/(e.x + g.x*v2);
+             bool  b1 = v1&gt;0.0 &amp;&amp; v1&lt;1.0 &amp;&amp; u1&gt;0.0 &amp;&amp; u1&lt;1.0;
+             bool  b2 = v2&gt;0.0 &amp;&amp; v2&lt;1.0 &amp;&amp; u2&gt;0.0 &amp;&amp; u2&lt;1.0;
+             
+             vec2 res = vec2(-1.0);
+         
+             if(  b1 &amp;&amp; !b2 ) res = vec2( u1, v1 );
+             if( !b1 &amp;&amp;  b2 ) res = vec2( u2, v2 );
+             
+             return res;
+         }
+         
+         float sdSegment( in vec2 p, in vec2 a, in vec2 b )
+         {
+         	vec2 pa = p - a;
+         	vec2 ba = b - a;
+         	float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+         	return length( pa - ba*h );
+         }
+         
+         // random
+         vec3  hash3( float n ) { return fract(sin(vec3(n,n+1.0,n+2.0))*43758.5453123); }
+         
+         // fork :: https://www.shadertoy.com/view/4tXGWN
+         vec2 center( vec2 v )
+         {
+            // v = v * 2.0 - 1.0;
+            // v *= (-scale * 0.5 + 0.5) * 2.0;
+            // v = v * 0.5 + 0.5;
+            
+             v = ( v - 0.5 ) * 2.0;
+             
+             v.x *= (acScreenSize.x/acScreenSize.y); 
+             // v.x *= vec2(acScreenSize.x/acScreenSize.y); 
+             // v.x *= ASPECT; 
+             return v;    
+         }    
+         
+         bool closest( vec2 a , vec2 b , vec2 c , vec2 d , vec2 mou  )
+         {
+            return distance(a,mou)&lt;distance(b,mou) &amp;&amp; distance(a,mou)&lt;distance(c,mou) &amp;&amp; distance(a,mou)&lt;distance(d,mou);
+         }    
+         
+         vec3 rcolor;
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        
+        vec3 iMouse = vec3(BL.x+0.670, BL.y+0.330, 0.0)*200.0;
+        // iMouse.x += 1.390;
+        // iMouse.y -= 0.601;
+        
+        // vec3 iMouse = (MOUSEE*10.0);
+        // vec3 iMouse = (MOUSEE*0.1);
+        // vec3 iMouse = vec3(-1.0, -1.0, 0.5);
+        
+        vec2 umefx;
+        // umefx = acScreenNorm.st; 
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        
+        umefx.x = 1.-umefx.x; 
+        umefx.y = 1.-umefx.y; 
+        // umefx /= 0.75;
+        umefx /= scale;
+        // umefx *= rot2m((0.0+angle)*0.0174533);
+        umefx += vec2((635.0), (-700.0))*vec2(-1.,1.)/500.;
+        // umefx += vec2((635.0-position.x), (-700.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+             vec2 p = umefx;
+         
+             vec3 col = vec3( 0.0 );
+                  vec2 a = vec2(BR.x+0.730, BR.y-0.905);
+                  // vec2 a = BR;
+                  vec2 b = vec2(0.0,0.0);    
+                  vec2 c = vec2(TR.x-0.600, TR.y+0.765);
+                  // vec2 c = TR;
+                  vec2 d = vec2(TL.x+0.725, TL.y+0.765);
+                  // vec2 d = TL;
+             
+             // vec2 mou;
+             // mou = p;  
+             vec2 mou = iMouse.xy / iResolution.xy; 
+             mou = center( mou );  
+                 
+             if( closest( a,b,c,d,mou ) ){ a = mou; }
+             if( closest( b,a,c,d,mou ) ){ b = mou; }
+             if( closest( c,b,a,d,mou ) ){ c = mou; }
+             if( closest( d,b,c,a,mou ) ){ d = mou; }
+         
+             vec2 uv = invBilinear( p, a, b, c, d );
+             
+             fragColor = texture2DCv( inputImg.texture , uv );
+        
+    	    vec4 factor = mix(texColorX,fragColor,1.0);
+            
+    	gl_FragColor = factor;
+    	
+    }
+
+
+    </shader>
+
+</effect>

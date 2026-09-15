@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.glitchscatter" name="Glitch Scatter" desc="Generates blocky FBM glitch noise and thresholds it into hard-edged scatter shapes rendered through a two-color gradient (background/foreground). Amplitude, glitch FPS and Mask complexity shape the noise; progress/speed animate it." category="procedural" tags="distort" thumb="thumb/Procedural/Glitch Scatter.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        
+        <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <slider id="PAMP" label="Amplitude" default="0.5" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="PFPS" label="FramePer Second" default="10" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="MM" label="Mask" default="1" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <menu id="blendMode" style="radio" default="3">
+            <menu label="NORMAL" value="0" />
+            <menu label="LAYER" value="3" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        
+        <color id="color1" default="#00000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+         float rand(vec2 p)
+         {
+             float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+             float t = floor(iTime * 20.) / PFPS; // glitch FPS
+             //t = exp(t);
+             return fract(sin(dot(p, vec2(t * 12.9898, t * 78.233))) * 43758.5453);
+         }
+         
+         float noise(vec2 uv, float blockiness)
+         {   
+             vec2 lv = fract(uv);
+             vec2 id = floor(uv);
+             
+             float n1 = rand(id);
+             float n2 = rand(id+vec2(1,0));
+             float n3 = rand(id+vec2(0,1));
+             float n4 = rand(id+vec2(1,1));
+             
+             vec2 u = smoothstep(0.0, 1.0 + blockiness, lv);
+         
+             return mix(mix(n1, n2, u.x), mix(n3, n4, u.x), u.y);
+         }
+         
+         float fbm(vec2 uv, int count, float blockiness, float complexity)
+         {
+             float val = 0.0;
+             float amp = PAMP;
+             
+             while(count != 0)
+             {
+                 float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+             	val += amp * noise(uv + (rand(ceil(uv * 3.) / 3.) * 2. + (float(floor(iTime * 20.) / 10.)/float(count)) - 1.), blockiness);
+                 amp *= 0.5;
+                 uv *= complexity;    
+                 count--;
+             }
+             
+             return val;
+         }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec3 iMouse = vec3(0.5, 0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+        
+        vec2 umefx;
+        // umefx = acScreenNorm.st; 
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        
+        umefx /= scale;
+        umefx *= rot2m((0.0+angle)*0.0174533);
+        umefx += vec2((-250.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+             vec2 uv = umefx;
+             // vec2 uv = fragCoord/iResolution.xy;
+             vec2 uv2 = uv;
+             
+             uv *= 5.0;
+             //uv.x *= noise((ceil(uv * 5.) / 5.) * 0.3, 3.0); // should i?
+             // uv.x *= fbm(uv, int(FF), BB, MM);
+             uv.x *= fbm(uv, 2, 3.0, 1.0);
+             
+             float noiseVal = (smoothstep(0.5, 1.0, fbm(uv, 2, 3.0, MM))); // take the noise
+             // float noiseVal = (smoothstep(0.5, 1.0, fbm(uv, int(FF), BB, MM))); // take the noise
+             // float noiseVal = (smoothstep(0.5, 1.0, fbm(uv, 2, 3.0, 1.5))); // take the noise
+         
+             vec3 col = vec3(texture2DCv(inputImg.texture, vec2(uv2.x + noiseVal * 0.05, uv2.y)).r,
+                            texture2DCv(inputImg.texture, vec2(uv2.x - noiseVal * 0.05, uv2.y)).g,
+             // vec3 col = vec3(texture2DCv(inputImg.texture, vec2(uv2.x + noiseVal * 0.05, uv2.y)).r,
+                            // texture2DCv(inputImg.texture, vec2(uv2.x - noiseVal * 0.05, uv2.y)).g,
+                            texture2DCv(inputImg.texture, vec2(uv2.x, uv2.y)).b); // adjust amplitude
+             col = vec3(1.0, 1.0, 1.0)*smoothstep(0.2, 0.3, noiseVal);
+         
+             // Output to screen
+             fragColor = vec4(col,1.0);
+        
+    	    vec4 factor;
+    	     // = mix(texColorX,fragColor,1.0);
+    	   const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            float luminance = dot(fragColor.rgb, luminanceWeighting);
+            vec4 gradmap = mix(color1,color2,luminance)*fragColor.a;
+    	    // if(GRADMAP) { 
+    	    factor = mix(texColorX,gradmap,1.0); 
+    	    // }
+    	    
+    	    // vec4 xbuffer = texture2DCv(buff1.texture, acScreenNorm.st);
+
+        vec4 resultfinal;
+          if( blendMode==0 ) { resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

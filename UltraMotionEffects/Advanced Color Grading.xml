@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.colorgrade" name="Advanced Color Grading" desc="Three-way color grade that tints shadows, midtones, and highlights separately, plus exposure, contrast, saturation, vibrance, temperature/tint white balance, film grain, vignette, and fade." category="colorlight" tags="color,grade,cinematic,three-way,vignette,grain" thumb="thumb/Color/Advanced Color Grading.webp">
+
+    <params>
+        
+        
+        <slider id="EXPOSURE" label="Exposure" default="0.0" min="-2.0" max="2.0" step="0.1" type="float" />
+        <slider id="CONTRAST" label="Contrast" default="1.0" min="0.0" max="2.0" step="0.1" type="float" />
+        <slider id="SATURATION" label="Saturation" default="1.0" min="0.0" max="2.0" step="0.1" type="float" />
+        <slider id="VIBRANCE" label="Vibrance" default="0.0" min="-1.0" max="1.0" step="0.1" type="float" />
+        
+        
+        
+        <color id="SHADOWS_COLOR" label="Shadows Tint" default="#203060" alpha="false" />
+        <slider id="SHADOWS_STRENGTH" label="Shadows Strength" default="0.3" min="0.0" max="1.0" step="0.01" type="percent" />
+        <color id="MIDTONES_COLOR" label="Midtones Tint" default="#CCA080" alpha="false" />
+        <slider id="MIDTONES_STRENGTH" label="Midtones Strength" default="0.3" min="0.0" max="1.0" step="0.01" type="percent" />
+        <color id="HIGHLIGHTS_COLOR" label="Highlights Tint" default="#FFF8E0" alpha="false" />
+        <slider id="HIGHLIGHTS_STRENGTH" label="Highlights Strength" default="0.3" min="0.0" max="1.0" step="0.01" type="percent" />
+        
+        
+        
+        <slider id="TEMPERATURE" label="Temperature" default="0.0" min="-1.0" max="1.0" step="0.1" type="float" />
+        <slider id="TINT" label="Tint" default="0.0" min="-1.0" max="1.0" step="0.1" type="float" />
+        
+        
+        
+        <slider id="GRAIN" label="Film Grain" default="0.1" min="0.0" max="0.5" step="0.01" type="percent" />
+        <slider id="VIGNETTE" label="Vignette" default="0.2" min="0.0" max="1.0" step="0.01" type="percent" />
+        <slider id="FADE" label="Fade" default="0.05" min="0.0" max="0.5" step="0.01" type="percent" />
+        
+        <texture id="inputImg" srcType="content" />
+    </params>
+
+    <shader type="fragment" precision="high">
+    // Utility functions
+    vec3 rgb2hsv(vec3 c) {
+        vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+        vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+        vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+        
+        float d = q.x - min(q.w, q.y);
+        float e = 1.0e-10;
+        return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+    }
+
+    vec3 hsv2rgb(vec3 c) {
+        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    }
+
+    // Random function for grain
+    float random(vec2 st) {
+        return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+    }
+
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 color = texture2DCv(inputImg.texture, uv);
+        
+        // Apply temperature and tint
+        vec3 rgb = color.rgb;
+        if (TEMPERATURE != 0.0) {
+            float t = TEMPERATURE * 0.05;
+            rgb.r += t;
+            rgb.b -= t;
+        }
+        if (TINT != 0.0) {
+            float t = TINT * 0.05;
+            rgb.g += t;
+        }
+        
+        // Apply exposure
+        rgb *= pow(2.0, EXPOSURE);
+        
+        // Split into shadows, midtones, and highlights
+        float luminance = dot(rgb, vec3(0.299, 0.587, 0.114));
+        float shadowsMask = 1.0 - smoothstep(0.0, 0.5, luminance);
+        float highlightsMask = smoothstep(0.5, 1.0, luminance);
+        float midtonesMask = 1.0 - shadowsMask - highlightsMask;
+        
+        // Apply color wheel tints
+        vec3 shadowsColor = mix(vec3(1.0), SHADOWS_COLOR.rgb, SHADOWS_STRENGTH);
+        vec3 midtonesColor = mix(vec3(1.0), MIDTONES_COLOR.rgb, MIDTONES_STRENGTH);
+        vec3 highlightsColor = mix(vec3(1.0), HIGHLIGHTS_COLOR.rgb, HIGHLIGHTS_STRENGTH);
+        
+        rgb = rgb * shadowsColor * shadowsMask + 
+              rgb * midtonesColor * midtonesMask + 
+              rgb * highlightsColor * highlightsMask;
+        
+        // Apply contrast
+        rgb = mix(vec3(0.5), rgb, CONTRAST);
+        
+        // Convert to HSV for saturation and vibrance
+        vec3 hsv = rgb2hsv(rgb);
+        
+        // Apply saturation
+        hsv.y *= SATURATION;
+        
+        // Apply vibrance (saturation that protects skin tones)
+        if (VIBRANCE != 0.0) {
+            float sat = hsv.y;
+            hsv.y = mix(sat, pow(sat, 0.25), VIBRANCE);
+        }
+        
+        // Convert back to RGB
+        rgb = hsv2rgb(hsv);
+        
+        // Apply film grain
+        if (GRAIN &gt; 0.0) {
+            float grain = random(uv * acTime) * 2.0 - 1.0;
+            rgb += grain * GRAIN;
+        }
+        
+        // Apply vignette
+        if (VIGNETTE &gt; 0.0) {
+            vec2 center = uv - 0.5;
+            float vignette = 1.0 - dot(center, center) * 1.5 * VIGNETTE;
+            rgb *= clamp(vignette, 0.0, 1.0);
+        }
+        
+        // Apply fade
+        if (FADE &gt; 0.0) {
+            rgb = mix(rgb, vec3(0.5, 0.5, 0.5), FADE);
+        }
+        
+        gl_FragColor = vec4(rgb, color.a);
+    }
+    </shader>
+</effect>

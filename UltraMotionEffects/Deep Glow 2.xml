@@ -1,0 +1,306 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.full_image_soft_glow_mp" name="Deep Glow 2" desc="Multi-pass glow: thresholds the image in linear light, blurs it at three increasing radii with downsampled separable Gaussians, then recombines the layers with exposure, soft-clip knee, tail weighting, tint and Add/Screen/Lighten blending. Includes an optional drop shadow derived from the widest blur's alpha, quality levels, and dither." category="colorlight" tags="glow,bloom,soft,gaussian,additive,multipass" thumb="thumb/Color/Deep Glow 2.webp" overdraw="true" max-overdraw="1.5">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <texture id="downImg" srcType="buffer" downsample="2" />
+    <texture id="h1" srcType="buffer" downsample="2" />
+    <texture id="v1" srcType="buffer" downsample="2" />
+    <texture id="h2" srcType="buffer" downsample="2" />
+    <texture id="v2" srcType="buffer" downsample="2" />
+    <texture id="h3" srcType="buffer" downsample="2" />
+    <texture id="v3" srcType="buffer" downsample="2" />
+
+    
+    <slider id="radius" default="50.0" min="0.5" max="200.0" step="0.1" label="Radius (px)" />
+    <slider id="exposure" default="0.30" min="0.0" max="10.0" step="0.01" label="Exposure" />
+    <slider id="softClipKnee" default="5.0" min="0.1" max="100.0" step="0.01" label="Soft Clip Knee" />
+    <slider id="spread" default="1.2" min="0.5" max="100.0" step="0.05" label="Spread" />
+    <slider id="glowTail" default="1.10" min="0.0" max="100.0" step="0.01" label="Tail Weight" />
+    <slider id="glowOcclusion" default="3.0" min="0.0" max="100.0" step="0.01" label="Glow Coverage" />
+
+    
+    <slider id="threshold" default="0.0" min="0.0" max="1.0" step="0.001" label="Threshold" />
+    <slider id="thresholdSmooth" default="0.15" min="0.0" max="1.0" step="0.001" label="Threshold Smooth" />
+    <slider id="thresholdGamma" default="1.0" min="0.2" max="3.0" step="0.01" label="Threshold Gamma" />
+
+    
+    <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+      <menu label="Add" value="1" />
+      <menu label="Screen" value="2" />
+      <menu label="Lighten" value="3" />
+    </menu>
+
+    
+    <color id="tint" default="#FFFFFF" label="Tint" />
+    <slider id="tintStrength" default="0.5" min="0.0" max="1.0" step="0.01" label="Tint Strength" />
+
+    
+    <switch id="sshadow" default="false" label="Shadow" />
+    <slider id="alphaa" default="1.25" min="0.0" max="2.0" step="0.01" label="Shadow Strength" ticks="0,1" snap="0,1" type="percent" />
+
+    <color id="shadowColor" default="#000000" label="Shadow Color" alpha="false" />
+    <slider id="shadowAlpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" />
+    <slider id="direction" default="135.0" min="-3600" max="3600" step="0.5" type="angle" label="Direction" />
+    <slider id="distance" default="5.0" min="0.0" max="300.0" step="0.1" label="Distance" />
+    <slider id="softness" default="8.0" min="0.0" max="300.0" step="0.1" label="Softness" />
+    <switch id="shadowOnly" default="false" label="Shadow Only" />
+
+    
+
+    
+    <menu id="quality" style="radio" default="2" label="Quality">
+      <menu label="Low" value="1" />
+      <menu label="Medium" value="2" />
+      <menu label="High" value="3" />
+    </menu>
+
+    
+    <switch id="glowOnly" default="false" label="Glow Only" />
+    <slider id="ditherAmount" default="0.015" min="0.0" max="0.05" step="0.001" label="Dither" />
+  </params>
+
+  <passes>
+    <pass target="downImg" />
+    <pass target="h1" />
+    <pass target="v1" />
+    <pass target="h2" />
+    <pass target="v2" />
+    <pass target="h3" />
+    <pass target="v3" />
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Multi-pass Full Image Soft Glow + Drop Shadow (no extra shadow buffer)
+    // Pass 0: downsample source to downImg
+    // Pass 1-2: blur radius r1 (H then V)
+    // Pass 3-4: blur radius r2 (H then V)
+    // Pass 5-6: blur radius r3 (H then V)
+    // Pass 7: composite (upsample implicitly by sampling buffers at full-res UV)
+
+    const float PI = 3.14159265358979323846;
+
+    // sRGB &lt;-&gt; Linear helpers for more natural glow blending
+    vec3 srgbToLinear(vec3 srgb){
+      vec3 cut = step(vec3(0.04045), srgb);
+      vec3 low = srgb / 12.92;
+      vec3 high = pow((srgb + 0.055) / 1.055, vec3(2.4));
+      return mix(low, high, cut);
+    }
+    vec3 linearToSrgb(vec3 lin){
+      vec3 cut = step(vec3(0.0031308), lin);
+      vec3 low = lin * 12.92;
+      vec3 high = 1.055 * pow(lin, vec3(1.0/2.4)) - 0.055;
+      return mix(low, high, cut);
+    }
+
+    // Compute blur tap using incremental Gaussian as in gaussianblur.xml
+    vec4 blurInternal(sampler2D tex, vec2 texOffset, vec2 st, float numBlurPixelsPerSide)
+    {
+      if(numBlurPixelsPerSide &lt;= 0.0) return texture2DCv(tex, st);
+
+      highp vec3 incrementalGaussian;
+      float adjSigma = numBlurPixelsPerSide / 2.14596602; // inverse of cutoff relationship
+      incrementalGaussian.x = 1.0 / (sqrt(2.0 * PI) * max(adjSigma, 1e-4));
+      incrementalGaussian.y = exp(-0.5 / (max(adjSigma, 1e-4) * max(adjSigma, 1e-4)));
+      incrementalGaussian.z = incrementalGaussian.y * incrementalGaussian.y;
+
+      vec4 avgValue = texture2DCv(tex, st).rgba * incrementalGaussian.x;
+      highp float coefficientSum = incrementalGaussian.x;
+
+      // two-sample per loop step optimization
+      for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+        if (i &gt; numBlurPixelsPerSide) break;
+        float offset0 = i;
+        float offset1 = i + 1.0;
+
+        incrementalGaussian.xy *= incrementalGaussian.yz;
+        coefficientSum += (2.0 * incrementalGaussian.x);
+        float weight0 = incrementalGaussian.x;
+        incrementalGaussian.xy *= incrementalGaussian.yz;
+        coefficientSum += (2.0 * incrementalGaussian.x);
+        float weight1 = incrementalGaussian.x;
+        float weightL = weight0 + weight1;
+        float offsetL = (offset0*weight0 + offset1*weight1) / max(weightL, 1e-6);
+        vec2 stL = st - offsetL * texOffset;
+        vec2 stR = st + offsetL * texOffset;
+        avgValue += texture2DCv(tex, stL) * weightL;
+        avgValue += texture2DCv(tex, stR) * weightL;
+      }
+      return avgValue / max(coefficientSum, 1e-6);
+    }
+
+    float tapsForQualityF(float q){
+      return (q &lt; 1.5) ? 8.0 : ((q &lt; 2.5) ? 14.0 : 20.0);
+    }
+
+    // Luminance for thresholding
+    float luminance(vec3 c){ return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+    void main(){
+      float taps = tapsForQualityF(float(quality));
+
+      // Base radii in pixels at full res. We blur on downsampled buffers, so scale radii down.
+      float r1 = radius;
+      float r2 = radius * (1.8 + spread);
+      float r3 = radius * (3.5 + 2.0*spread);
+
+      // Sampling UV
+      vec2 uv = acScreenNorm;
+
+      if (acPass == 0) {
+        // Downsample + build glow source with threshold/mask and gamma handling
+        vec4 src4 = texture2DCv(inputImg.texture, uv);
+        vec3 srcRGB = src4.rgb;
+        // Threshold in linear light for better isolation of bright cores
+        float lum = luminance(srgbToLinear(srcRGB));
+        lum = pow(max(lum, 0.0), thresholdGamma);
+        float t = (thresholdSmooth &lt;= 0.0) ? step(threshold, lum)
+                                          : smoothstep(threshold - thresholdSmooth, threshold + thresholdSmooth, lum);
+        // Mask removed
+        vec3 glowSrc = srcRGB * t;
+        // Aspect ratio scale on Y if desired
+        glowSrc *= 1.0;
+        // Store source alpha in A for shadow masking
+        gl_FragColor = vec4(glowSrc, src4.a);
+        return;
+      }
+
+      // Horizontal/Vertical blur per pass
+      if (acPass == 1) {
+        // r1 horizontal on downImg -&gt; h1
+        vec2 to = vec2(1.0 / getTexSize(downImg.size).x, 0.0);
+        float kernelSize = r1 * 0.5 * (taps/10.0); // empirical scaling
+        gl_FragColor = blurInternal(downImg.texture, to, uv, kernelSize);
+        return;
+      }
+      if (acPass == 2) {
+        // r1 vertical h1 -&gt; v1
+        vec2 to = vec2(0.0, 1.0 / getTexSize(h1.size).y);
+        float kernelSize = r1 * 0.5 * (taps/10.0);
+        gl_FragColor = blurInternal(h1.texture, to, uv, kernelSize);
+        return;
+      }
+      if (acPass == 3) {
+        // r2 horizontal on downImg -&gt; h2
+        vec2 to = vec2(1.0 / getTexSize(downImg.size).x, 0.0);
+        float kernelSize = r2 * 0.5 * (taps/10.0);
+        gl_FragColor = blurInternal(downImg.texture, to, uv, kernelSize);
+        return;
+      }
+      if (acPass == 4) {
+        // r2 vertical h2 -&gt; v2
+        vec2 to = vec2(0.0, 1.0 / getTexSize(h2.size).y);
+        float kernelSize = r2 * 0.5 * (taps/10.0);
+        gl_FragColor = blurInternal(h2.texture, to, uv, kernelSize);
+        return;
+      }
+      if (acPass == 5) {
+        // r3 horizontal on downImg -&gt; h3
+        vec2 to = vec2(1.0 / getTexSize(downImg.size).x, 0.0);
+        float kernelSize = r3 * 0.5 * (taps/10.0);
+        gl_FragColor = blurInternal(downImg.texture, to, uv, kernelSize);
+        return;
+      }
+      if (acPass == 6) {
+        // r3 vertical h3 -&gt; v3
+        vec2 to = vec2(0.0, 1.0 / getTexSize(h3.size).y);
+        float kernelSize = r3 * 0.5 * (taps/10.0);
+        gl_FragColor = blurInternal(h3.texture, to, uv, kernelSize);
+        return;
+      }
+
+      // Final composite (pass 7)
+
+      // Final composite at full res: sample downsampled, blurred results using same UV
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      vec3 b1 = texture2DCv(v1.texture, uv).rgb;
+      vec3 b2 = texture2DCv(v2.texture, uv).rgb;
+      vec4 b3s = texture2DCv(v3.texture, uv);
+      vec3 b3 = b3s.rgb;
+
+      // Combine the blurred results with exposure and tint
+      float w2 = 0.6 * glowTail;
+      float w3 = 0.3 * glowTail;
+      vec3 glowLin = srgbToLinear(b1) + srgbToLinear(b2) * w2 + srgbToLinear(b3) * w3;
+      glowLin *= max(exposure, 0.0);
+      glowLin = 1.0 - exp(-glowLin * softClipKnee);
+      vec3 glowBase = linearToSrgb(glowLin);
+      vec3 glow = mix(glowBase, glowBase * tint.rgb, clamp(tintStrength, 0.0, 1.0));
+      float glowA = clamp(b3s.a * glowOcclusion, 0.0, 1.0);
+
+      // Base starts as original
+      vec4 base = src;
+
+      // Drop shadow (optional) using v3 blurred alpha
+      if (sshadow) {
+        vec2 imgSize = getTexSize(inputImg.size);
+        float px = (1.0/imgSize.x);
+        float py = (1.0/imgSize.y);
+        float ang = radians(direction);
+        vec2 offs = vec2(cos(ang), sin(ang)) * distance;
+        vec2 shadowUV = uv + offs * vec2(px, py);
+
+        float sscale = max(softness, 1.0);
+        vec2 spread = vec2(px, py) * sscale * 0.5;
+
+        float a0 = texture2DCv(v3.texture, shadowUV).a;
+        float a1 = texture2DCv(v3.texture, shadowUV + vec2(spread.x, 0.0)).a;
+        float a2 = texture2DCv(v3.texture, shadowUV - vec2(spread.x, 0.0)).a;
+        float a3 = texture2DCv(v3.texture, shadowUV + vec2(0.0, spread.y)).a;
+        float a4 = texture2DCv(v3.texture, shadowUV - vec2(0.0, spread.y)).a;
+        float a5 = texture2DCv(v3.texture, shadowUV + vec2(spread.x, spread.y)).a;
+        float a6 = texture2DCv(v3.texture, shadowUV + vec2(-spread.x, spread.y)).a;
+        float a7 = texture2DCv(v3.texture, shadowUV + vec2(spread.x, -spread.y)).a;
+        float a8 = texture2DCv(v3.texture, shadowUV + vec2(-spread.x, -spread.y)).a;
+        float shadowA = (a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7 + a8) / 9.0;
+        shadowA = clamp(shadowA * 1.8, 0.0, 1.0);
+        shadowA = 1.0 - pow(max(0.0, 1.0 - shadowA), 0.45);
+
+        float alphaEff = clamp(shadowAlpha * alphaa, 0.0, 1.0);
+        vec4 outColor = vec4(shadowColor.rgb, clamp(shadowA * alphaEff, 0.0, 1.0));
+
+        if (shadowOnly) {
+          gl_FragColor = outColor;
+          return;
+        }
+
+        float behindMask = 1.0 - step(0.001, base.a);
+        base = base + outColor * behindMask;
+      }
+
+      // Blend glow with chosen blend mode, using shadowed base as source
+      vec3 srcLin = srgbToLinear(base.rgb);
+      vec3 compLin;
+      float bmf = float(blendMode);
+      if (bmf &lt; 1.5) {
+        compLin = srcLin + srgbToLinear(glow);
+      } else if (bmf &lt; 2.5) {
+        vec3 compS = 1.0 - (1.0 - base.rgb) * (1.0 - clamp(glow, 0.0, 100.0));
+        compLin = srgbToLinear(compS);
+      } else {
+        compLin = max(srcLin, srgbToLinear(glow));
+      }
+      vec3 finalColor = linearToSrgb(compLin);
+      vec2 imgPx = getTexSize(inputImg.size) * uv;
+      vec2 ip = floor(imgPx);
+      float n1 = fract(sin(dot(ip, vec2(12.9898,78.233))) * 43758.5453);
+      float n2 = fract(sin(dot(ip, vec2(24.1230,17.3210))) * 12345.6789);
+      float n3 = fract(sin(dot(ip, vec2(93.9890,67.3450))) * 98765.4321);
+      vec3 dn = vec3(n1, n2, n3) - 0.5;
+      finalColor = clamp(finalColor + dn * ditherAmount, 0.0, 1.0);
+
+      if (glowOnly) {
+        finalColor = glow;
+        gl_FragColor = vec4(finalColor, glowA);
+        return;
+      }
+
+      float finalAlpha = clamp(base.a + glowA, 0.0, 1.0);
+      gl_FragColor = vec4(finalColor, finalAlpha);
+    }
+  </shader>
+</effect>

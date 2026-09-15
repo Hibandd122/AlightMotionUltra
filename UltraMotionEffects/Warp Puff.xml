@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_warppuff" name="Warp Puff" desc="Distorts the layer along its own smoothed luminance gradient, puffing bright areas outward or shriveling them inward. Amount, smoothness, warp-direction rotation, wrap mode, and blend controls." category="warp" tags="warp,puff,distortion,luminance,gradient" thumb="thumb/Distort and Warp/Warp Puff.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="amount" default="0.2" min="-2.0" max="2.0" step="0.01" label="Amount" />
+        <slider id="smoothness" default="0.5" min="0.0" max="2.0" step="0.01" label="Smoothness" />
+        <slider id="rotateWarpDir" default="0.0" min="-180.0" max="180.0" step="0.1" label="Rotate Warp Dir" />
+        <switch id="puff" default="true" label="Puff (vs Shrivel)" />
+        
+        
+        <slider id="wrapMode" default="2" min="0" max="2" step="1" snap="1" label="Wrap Mode (0:No, 1:Tile, 2:Reflect)" />
+        <switch id="followLayer" default="true" label="Follow Layer" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // S_WarpPuff implementation for Alight Motion
+        
+        #define PI 3.14159265359
+
+        float getLuma(vec3 color) {
+            return dot(color, vec3(0.299, 0.587, 0.114));
+        }
+
+        // Helper: Sample the "Lens" with smoothness
+        float getSmoothLuma(AC_ImageInfo img, vec2 uv, float smoothVal) {
+            float luma = 0.0;
+            float samples = 0.0;
+            float blurRadius = smoothVal * 0.01; // Scale factor for Alight Motion
+            
+            for(float x = -1.0; x &lt;= 1.0; x++) {
+                for(float y = -1.0; y &lt;= 1.0; y++) {
+                    vec2 offset = vec2(x, y) * blurRadius;
+                    luma += getLuma(texture2DCv(img.texture, uv + offset).rgb);
+                    samples++;
+                }
+            }
+            return luma / samples;
+        }
+
+        vec2 applyWrap(vec2 uv, int mode) {
+            if (mode == 1) return fract(uv); 
+            if (mode == 2) return abs(mod(uv - 1.0, 2.0) - 1.0); 
+            return uv;
+        }
+
+        vec2 rotate(vec2 v, float a) {
+            float s = sin(a), c = cos(a);
+            return vec2(v.x * c - v.y * s, v.x * s + v.y * c);
+        }
+
+        void main() {
+            vec2 luv = acLayerNorm.xy;
+            vec2 suv = acScreenNorm.xy;
+            
+            vec2 uv;
+            vec2 aspect;
+            if(followLayer) {
+                uv = luv;
+                aspect = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            } else {
+                uv = suv;
+                aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+            }
+            
+            // 1. Calculate Gradient
+            float delta = 0.005;
+            float l  = getSmoothLuma(inputImg, uv, smoothness);
+            float lx = getSmoothLuma(inputImg, uv + vec2(delta, 0.0), smoothness);
+            float ly = getSmoothLuma(inputImg, uv + vec2(0.0, delta), smoothness);
+            
+            vec2 gradient = vec2(lx - l, ly - l);
+            
+            // 2. Adjust for Aspect Ratio
+            gradient.x *= aspect.x;
+            
+            // 3. Rotate the Warp Direction
+            if (rotateWarpDir != 0.0) {
+                gradient = rotate(gradient, rotateWarpDir * (PI / 180.0));
+            }
+            
+            // 4. Calculate Displacement
+            float dirMult = puff ? -1.0 : 1.0;
+            vec2 displacement = gradient * amount * dirMult;
+            
+            // 5. Apply Warp
+            // Note: Displacement is in aspect-corrected space, we need to un-correct it for UV addition
+            displacement.x /= aspect.x;
+            vec2 warpedUV = uv + displacement;
+            
+            // 6. Wrap and Sample final color
+            warpedUV = applyWrap(warpedUV, int(wrapMode));
+            vec4 color = texture2DCv(inputImg.texture, warpedUV);
+            
+            vec4 base = texture2DCv(inputImg.texture, suv);
+            gl_FragColor = mix(base, color, blend);
+        }
+    </shader>
+
+</effect>

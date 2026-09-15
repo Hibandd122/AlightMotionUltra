@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_dissolveshake" name="Dissolve Shake" desc="Combines a script-driven layer shake (random and sine wave motion per X/Y/zoom/tilt axis with optional multi-sample motion blur and wrap modes) with a per-pixel noise dissolve that cuts out the layer's alpha by a threshold." auto-transform="true" category="warp" tags="transform,auto,shake,dissolve,glitch" thumb="thumb/Move and Transform/Dissolve Shake (2).webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    
+    
+    <slider id="dissolvePercent" default="0.0" min="0.0" max="1.0" step="0.005" label="Dissolve Percent" />
+    <slider id="dissolveSpeed" default="3.0" min="0.0" max="10.0" step="0.1" label="Dissolve Speed" />
+
+    
+    <slider id="amplitude" default="3.0" min="-1000.0" max="1000.0" step="0.01" label="Amplitude" />
+    <slider id="frequency" default="10.0" min="-30.0" max="30.0" step="0.01" label="Frequency" />
+    <slider id="seed" default="0.0" min="0.0" max="10000.0" step="1.0" label="Seed" />
+    
+    
+    <switch id="motionBlur" default="true" label="Motion Blur" />
+    <slider id="mbLength" default="0.5" min="0.0" max="10.0" step="0.1" label="Mo Blur Length" />
+
+    
+    <menu id="wrapX" default="1" style="dropdown" label="Wrap X">
+      <menu label="None" value="0" />
+      <menu label="Reflect" value="1" />
+      <menu label="Clamp" value="2" />
+    </menu>
+    <menu id="wrapY" default="1" style="dropdown" label="Wrap Y">
+      <menu label="None" value="0" />
+      <menu label="Reflect" value="1" />
+      <menu label="Clamp" value="2" />
+    </menu>
+
+    
+    <slider id="xRandAmp" default="192.0" min="-2000.0" max="2000.0" step="0.1" label="X Rand Amp" />
+    <slider id="xRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="X Rand Freq" />
+    <slider id="xWaveAmp" default="0.0" min="-2000.0" max="2000.0" step="0.1" label="X Wave Amp" />
+    <slider id="xWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="X Wave Freq" />
+    <slider id="xPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="X Phase" />
+
+    
+    <slider id="yRandAmp" default="96.0" min="-2000.0" max="2000.0" step="0.1" label="Y Rand Amp" />
+    <slider id="yRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="Y Rand Freq" />
+    <slider id="yWaveAmp" default="0.0" min="-2000.0" max="2000.0" step="0.1" label="Y Wave Amp" />
+    <slider id="yWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="Y Wave Freq" />
+    <slider id="yPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="Y Phase" />
+
+    
+    <slider id="zRandAmp" default="0.0" min="-10.0" max="10.0" step="0.001" label="Z Rand Amp" />
+    <slider id="zRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="Z Rand Freq" />
+    <slider id="zWaveAmp" default="0.0" min="-10.0" max="10.0" step="0.001" label="Z Wave Amp" />
+    <slider id="zWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="Z Wave Freq" />
+    <slider id="zPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="Z Phase" />
+
+    
+    <slider id="tRandAmp" default="0.0" min="-360.0" max="360.0" step="0.01" label="Tilt Rand Amp" type="angle" />
+    <slider id="tRandFreq" default="1.0" min="-30.0" max="30.0" step="0.01" label="Tilt Rand Freq" />
+    <slider id="tWaveAmp" default="0.0" min="-360.0" max="360.0" step="0.01" label="Tilt Wave Amp" type="angle" />
+    <slider id="tWaveFreq" default="0.5" min="-30.0" max="30.0" step="0.01" label="Tilt Wave Freq" />
+    <slider id="tPhase" default="0.0" min="-10.0" max="10.0" step="0.01" label="Tilt Phase" />
+  </params>
+
+  
+
+  <shader type="fragment" precision="high">
+    float rand(vec2 co) {
+        return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+    }
+
+    void main() {
+        vec4 texColor = texture2DCv(inputImg.texture, acScreenNorm);
+        
+        // Use floor(acScreenNorm * acScreenSize) for per-pixel noise unaffected by zoom if needed, 
+        // or just acScreenNorm for relative grain.
+        vec2 st = acScreenNorm;
+        
+        // Animate dissolve seed over time using dissolveSpeed
+        float t = seed + acTime * dissolveSpeed;
+        
+        // Large scale multiplier for noise to avoid patterns
+        float r = rand(st * (1.0 + t * 0.1) + vec2(t * 1.33, t * 0.77));
+        
+        // Dissolve alpha cutout
+        float alpha = step(dissolvePercent, r);
+        
+        gl_FragColor = texColor * alpha;
+    }
+  </shader>
+
+</effect>

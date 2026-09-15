@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vhs_scanline" name="VHS Scanline" desc="VHS-style overlay: angled scrolling scanlines, procedural grain, a probability-gated glitch offset, and a horizontal noise band with static, warp, and RGB chroma split. Blend controls how strongly the overlay mixes with the source." category="other" tags="vhs,scanline,glitch,grain" thumb="thumb/Stylize/VHS Scanline.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="blendFactor" default="0.10" min="0.0" max="1.0" step="0.001" label="Blend" type="percent" />
+        <slider id="scanlineHeight" default="17.0" min="1.0" max="200.0" step="0.1" label="Scanline Height (px)" />
+        <slider id="scanlineIntensity" default="1.25" min="0.0" max="5.0" step="0.01" label="Scanline Intensity" />
+        <slider id="scrollSpeed" default="16.0" min="-200.0" max="200.0" step="1.0" label="Scroll Speed" />
+        <slider id="scanAngle" default="0.0" min="-180.0" max="180.0" step="0.1" label="Scanline Angle" />
+        <color id="scanColor" default="#FFFFFFFF" label="Scanline Color" alpha="false" />
+        <slider id="progress" default="0.0" min="0.0" max="1000.0" step="1.0" label="Progress" />
+
+        
+        <slider id="grainIntensity" default="0.0" min="0.0" max="1.0" step="0.001" label="Grain" />
+        <slider id="grainTimeScale" default="0.1" min="0.0" max="5.0" step="0.001" label="Grain Time Scale" />
+
+        
+        <slider id="glitchProbability" default="0.0" min="0.0" max="1.0" step="0.001" label="Glitch Probability" />
+        <slider id="glitchIntensityX" default="0.001" min="0.0" max="0.05" step="0.0001" label="Glitch X" />
+        <slider id="glitchIntensityY" default="0.003" min="0.0" max="0.05" step="0.0001" label="Glitch Y" />
+        <slider id="glitchPhase" default="0.0" min="0.0" max="1.0" step="0.001" label="Glitch Phase" />
+
+        
+        <slider id="bandSpeed" default="0.0" min="-10.0" max="10.0" step="0.001" label="Band Speed" />
+        <slider id="bandHeight" default="0.01" min="0.0" max="0.5" step="0.0001" label="Band Height" />
+        <slider id="bandIntensity" default="0.2" min="0.0" max="1.0" step="0.001" label="Band Intensity" />
+        <slider id="bandChoppiness" default="0.2" min="0.0" max="1.0" step="0.001" label="Band Choppiness" />
+        <slider id="staticAmount" default="0.02" min="0.0" max="1.0" step="0.001" label="Static Amount" />
+        <slider id="warpFactor" default="0.005" min="0.0" max="0.1" step="0.0001" label="Warp Factor" />
+        <slider id="chromaAmount" default="0.9" min="0.0" max="5.0" step="0.001" label="Chroma Amount" />
+        <slider id="bandPos" default="0.0" min="0.0" max="1.0" step="0.001" label="Band Position" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        float hash12(vec2 p) {
+            return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453);
+        }
+
+        void main() {
+            vec2 res = acScreenSize;
+            vec2 uv  = acScreenNorm;
+
+            // ---- Scanline with angle ----
+            float ang = radians(scanAngle);
+            vec2 dir = vec2(cos(ang), sin(ang));
+            float scanCoord = dot(uv * res, dir);
+
+            float scanline = sin((scanCoord - progress * scrollSpeed) / max(scanlineHeight, 1.0));
+            vec3 vhsColor = scanColor.rgb * scanline * scanlineIntensity;
+
+            // Grain
+            vec2 grainSeed = vec2(12.9898, 78.233) + progress * grainTimeScale;
+            float grain = fract(sin(dot((uv * res) * uv, grainSeed)) * 43758.5453);
+            vhsColor += vec3(grain) * grainIntensity;
+
+            // Glitch
+            vec2 tuv = uv;
+            if (glitchPhase &lt; glitchProbability) {
+                float gx = (fract(sin(progress * 12.9898) * 43758.5453) - 0.5) * glitchIntensityX;
+                float gy = (fract(cos(progress * 78.233) * 43758.5453) - 0.5) * glitchIntensityY;
+                tuv += vec2(gx, gy);
+            }
+
+            // Vertical band
+            float bandNoise = hash12(uv * res);
+            vec3 chromaColor = texture2DCv(inputImg.texture, tuv).rgb;
+
+            if (abs(uv.y - bandPos) &lt; bandHeight) {
+                float rs = bandNoise * bandChoppiness;
+                vhsColor += vec3(rs) * staticAmount;
+
+                tuv.x += sin(uv.y * res.y * 10.0 + rs) * warpFactor;
+
+                chromaColor = vec3(
+                    texture2DCv(inputImg.texture, tuv + vec2(chromaAmount * rs, 0.0)).r,
+                    texture2DCv(inputImg.texture, tuv).g,
+                    texture2DCv(inputImg.texture, tuv - vec2(chromaAmount * rs, 0.0)).b
+                );
+
+                vhsColor = mix(vhsColor, chromaColor, bandIntensity * (1.0 - rs));
+            }
+
+            vec3 originalColor = texture2DCv(inputImg.texture, tuv).rgb;
+            gl_FragColor = vec4(mix(originalColor, vhsColor, blendFactor), 1.0);
+        }
+
+    </shader>
+
+</effect>

@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.halftone_dots" name="Halftone Dots" desc="Replaces the layer with a two-color halftone dot screen: a rotated sine grid is thresholded against source luminance, so source color is discarded and only the two chosen colors remain. Controls cover dot frequency, angle, relative width, edge sharpness, brightness bias, black or white dots, a 3x3 source smoothing pass, pattern shift and output alpha." category="drawingedge" tags="halftone,dots,screen,print,stylize" thumb="thumb/Stylize/Halftone Dots.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <menu id="dotsMode" default="0" style="dropdown" label="Dots">
+      <menu label="Black" value="0" />
+      <menu label="White" value="1" />
+    </menu>
+    <slider id="dotsFrequency" default="45.0" min="0.5" max="200.0" step="0.1" label="Dots Frequency" />
+    <slider id="dotsAngle" default="33.0" min="-180.0" max="180.0" step="0.1" label="Dots Angle" />
+    <slider id="dotsRelWidth" default="1.0" min="0.1" max="5.0" step="0.01" label="Dots Rel Width" />
+    <slider id="dotsSharpness" default="4.0" min="0.0" max="20.0" step="0.1" label="Dots Sharpness" />
+    <slider id="dotsLighten" default="0.0" min="-1.0" max="1.0" step="0.01" label="Dots Lighten" />
+
+    
+    <slider id="smoothSource" default="0.0" min="0.0" max="2.0" step="0.01" label="Smooth Source" />
+
+    
+    <color id="color1" default="#FFFFFFFF" label="Light Color" alpha="false" />
+    <color id="color0" default="#FF000000" label="Dark Color" alpha="false" />
+
+    
+    <slider id="shiftX" default="0.0" min="-500.0" max="500.0" step="0.1" label="Dots Shift X" />
+    <slider id="shiftY" default="0.0" min="-500.0" max="500.0" step="0.1" label="Dots Shift Y" />
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Halftone / Dot Screen (ported from Shadertoy and adapted for Alight Motion)
+    // Ruofei Du references: https://www.shadertoy.com/view/4sBBDK, https://www.shadertoy.com/view/lsSfWV
+
+    const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+
+    float greyScale(vec3 c){ return dot(c, LUMA); }
+
+    mat2 rot(float a){ float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+    // Simple 3x3 box smooth of luminance controlled by smoothSource
+    float smoothLum(vec2 uv){
+      if(smoothSource &lt;= 0.0) return greyScale(texture2DCv(inputImg.texture, uv).rgb);
+      vec2 texel = 1.0 / getTexSize(inputImg.size);
+      float r = clamp(smoothSource, 0.0, 2.0);
+      vec2 o = texel * r;
+      float acc = 0.0; float w = 0.0;
+      for(int j=-1;j&lt;=1;j++){
+        for(int i=-1;i&lt;=1;i++){
+          float ww = (i==0 &amp;&amp; j==0) ? 2.0 : 1.0;
+          acc += greyScale(texture2DCv(inputImg.texture, uv + vec2(i,j)*o).rgb) * ww;
+          w += ww;
+        }
+      }
+      return acc / max(w, 1.0);
+    }
+
+    // Dot screen pattern (returns roughly -4..+4 like the Shadertoy version*4)
+    float dotScreen(vec2 uv, float angle, float scale, float relWidth){
+      // shift in pixels -&gt; UV
+      vec2 shiftPx = vec2(shiftX, -shiftY);
+      vec2 uvShift = uv + shiftPx / acScreenSize;
+      // pixel space centered
+      vec2 p = (uvShift - 0.5) * acScreenSize;
+      // anisotropic scaling
+      vec2 q = rot(angle) * p;
+      q.x *= relWidth;
+      q *= scale;
+      return (sin(q.x) * sin(q.y)) * 4.0;
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      float grey = smoothLum(uv);
+
+      // Map UI parameters
+      float ang = radians(dotsAngle);
+      // Frequency maps to scale (empirical mapping for useful range)
+      // Higher frequency -&gt; denser dots -&gt; larger multiplier
+      float scale = dotsFrequency * 0.06; // tuneable mapping
+
+      float pat = dotScreen(uv, ang, scale, dotsRelWidth);
+
+      // Original Shadertoy combination
+      float v = grey * 10.0 - 5.0 + pat + dotsLighten;
+
+      // Convert to 0..1 mask with adjustable sharpness
+      float s = max(dotsSharpness, 0.0001);
+      float m = smoothstep(-s, s, v);
+
+      // Dots mode: 0 -&gt; Black dots, 1 -&gt; White dots (swap mask)
+      if(int(dotsMode)==1) m = 1.0 - m;
+
+      // Map mask to two colors
+      vec3 c0 = color0.rgb;
+      vec3 c1 = color1.rgb;
+      vec3 halftone = mix(c0, c1, m);
+
+      // Preserve original alpha and allow overall alpha control
+      float a = src.a * alpha;
+      gl_FragColor = vec4(halftone, 1.0) * a;
+    }
+  </shader>
+
+</effect>

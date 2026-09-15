@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.block_glitch" name="Block Glitch" desc="Randomly offsets rectangular blocks of the layer or the composition behind it, with time-stepped random block sizes, a threshold controlling how many blocks glitch, a sine fade between glitch steps, and adjustable speed, strength and block scale." category="procedural" thumb="thumb/Distort and Warp/Block Glitch.webp" tags="glitch,blocks,distort,smooth" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <texture id="comp" srcType="comp" />
+
+    
+    <menu id="contentSrc" style="dropdown" default="0" label="Content Source">
+      <menu label="Current Layer" value="0" />
+      <menu label="Composition (behind)" value="1" />
+    </menu>
+
+    
+    <slider id="speed" default="10.0" min="0.0" max="100.0" step="0.1" label="Speed" />
+    <slider id="blockWidthScale" default="0.20" min="0.01" max="10.0" step="0.01" label="Block Width Scale" />
+    <slider id="blockHeightScale" default="1.50" min="0.01" max="10.0" step="0.01" label="Block Height Scale" />
+    <slider id="strengthPix" default="50.0" min="0.0" max="500.0" step="1.0" label="Strength (px)" />
+    <slider id="thresholdLevel" default="0.90" min="0.0" max="1.0" step="0.01" label="Block Threshold" type="percent" />
+    <switch id="cropEdges" default="true" label="Crop Edges" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec2 getResolution(){ vec2 s=getTexSize(comp.size); if(s.x&lt;=0.0||s.y&lt;=0.0) s=getTexSize(inputImg.size); if(s.x&lt;=0.0||s.y&lt;=0.0) s=vec2(1920.0,1080.0); return s; }
+    float fractf(float x){ return fract(x); }
+    vec3 hash33(vec3 p3){ p3=fract(p3*vec3(.1031,.1030,.0973)); p3+=dot(p3,p3.yxz+33.33); return fract((p3.xxy+p3.yxx)*p3.zyx); }
+    vec2 hash21(float p){ vec3 p3=fract(vec3(p)*vec3(.1031,.1030,.0973)); p3+=dot(p3,p3.yzx+33.33); return fract((p3.xx+p3.yz)*p3.zy); }
+
+    vec4 sampleContent(vec2 uv01){ if(contentSrc==1) return texture2DCv(comp.texture, uv01); return texture2DCv(inputImg.texture, uv01); }
+
+    void main(){
+      vec2 iResolution=getResolution();
+      vec2 uv=acScreenNorm;
+      float t=floor(acTime*speed);
+      vec2 randomValues=hash21(t);
+      vec2 randomScale=randomValues*100.0+50.0;
+      vec2 lod=(iResolution/randomScale)*vec2(blockWidthScale,blockHeightScale);
+      vec2 p=floor(uv*lod);
+      vec3 rng=hash33(vec3(p,t));
+      vec2 offset=(rng.xy-0.5)*2.0;
+      float fade=sin(fractf(acTime*speed)*3.14);
+      float th=step(thresholdLevel,rng.z);
+      vec2 strength=vec2(strengthPix)/iResolution;
+      vec2 glitchUV=uv+offset*th*fade*strength;
+      vec4 col=sampleContent(glitchUV);
+      if(cropEdges){ col.rgb*=step(0.0,glitchUV.x)*step(glitchUV.x,1.0)*step(0.0,glitchUV.y)*step(glitchUV.y,1.0); }
+      gl_FragColor=col;
+    }
+  </shader>
+
+</effect>

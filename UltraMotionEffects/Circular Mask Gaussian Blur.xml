@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.circular_mask_blur" name="Circular Mask Gaussian Blur" desc="Applies Gaussian blur inside a circular mask with center, radius, and feather" category="blur" tags="blur,circle,mask,gaussian" thumb="thumb/Blur and Sharpen/Circular Mask Gaussian Blur.webp" overdraw="true" max-overdraw="1.5">
+
+  
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <texture id="imgH" srcType="buffer" />
+    <texture id="imgV" srcType="buffer" />
+
+    
+    <point id="center" default="0.5,0.5" label="@string/center" />
+    <slider id="radiusPx" default="200.0" min="1.0" max="5000.0" step="1.0" label="@string/radius" />
+    <slider id="featherPx" default="40.0" min="0.0" max="2000.0" step="1.0" label="@string/feather" />
+    <switch id="invert" default="false" label="@string/invert" />
+
+    
+    <slider id="blurRadius" default="18.0" min="0.0" max="200.0" step="0.5" label="@string/blur_radius" />
+    <slider id="intensity" default="1.0" min="0.0" max="1.0" step="0.01" label="@string/intensity" />
+
+    
+    <menu id="blendMode" style="dropdown" default="0" label="@string/blendmode">
+      <menu label="@string/bm_normal" value="0" />
+      <menu label="@string/bm_screen" value="1" />
+      <menu label="@string/bm_overlay" value="2" />
+    </menu>
+    
+  </params>
+
+  <passes>
+    <pass target="imgH" />
+    <pass target="imgV" />
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Circular Mask Gaussian Blur
+    // Pass 0: Horizontal blur of input
+    // Pass 1: Vertical blur of imgH
+    // Pass 2: Composite using circular mask with feather
+
+    // Convert center: accept either normalized (0..1) or pixels (&gt;2)
+    vec2 normCenter(vec2 c){
+      if(c.x &gt; 2.0 || c.y &gt; 2.0){
+        return c / acScreenSize; // px -&gt; norm
+      }
+      return c;
+    }
+
+    vec4 blur1D(sampler2D tex, vec2 uv, vec2 dirPx, float radiusPx){
+      float sigma = max(radiusPx, 1e-4) / 2.14596602;
+      const float PIc = 3.14159265;
+      vec3 incG; incG.x = 1.0/(sqrt(2.0*PIc)*max(sigma,1e-4)); incG.y = exp(-0.5/(sigma*sigma)); incG.z = incG.y*incG.y;
+      vec4 acc = texture2DCv(tex, uv) * incG.x; float wsum = incG.x;
+      for(float i=1.0;i&lt;=128.0;i+=2.0){
+        float o0=i, o1=i+1.0; incG.xy *= incG.yz; float w0=incG.x; incG.xy *= incG.yz; float w1=incG.x;
+        float w = w0+w1; float off=(o0*w0 + o1*w1)/max(w,1e-6);
+        vec2 ofs = dirPx * off;
+        acc += texture2DCv(tex, uv - ofs) * w;
+        acc += texture2DCv(tex, uv + ofs) * w;
+        wsum += 2.0*w;
+        if(i&gt;radiusPx) break;
+      }
+      return acc / max(wsum,1e-6);
+    }
+
+    vec3 blend_screen(vec3 a, vec3 b){ return 1.0 - (1.0-a)*(1.0-b); }
+    vec3 blend_overlay(vec3 base, vec3 over){ return mix(2.0*base*over, 1.0 - 2.0*(1.0-base)*(1.0-over), step(0.5, base)); }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec2 px = 1.0 / inputImg.size;
+
+      if(acPass==0){
+        gl_FragColor = blur1D(inputImg.texture, uv, vec2(px.x, 0.0), blurRadius);
+        return;
+      }
+      if(acPass==1){
+        gl_FragColor = blur1D(imgH.texture, uv, vec2(0.0, px.y), blurRadius);
+        return;
+      }
+
+      // Final composite with circular mask
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      vec3 blurRGB = texture2DCv(imgV.texture, uv).rgb;
+
+      vec2 cN = normCenter(center);
+      // Convert radius and feather from px to normalized (approx using screen X)
+      float r = radiusPx / max(acScreenSize.x, 1.0);
+      float f = max(featherPx, 0.0) / max(acScreenSize.x, 1.0);
+
+      float dist = length(uv - cN);
+      float edge0 = r - 0.5*f;
+      float edge1 = r + 0.5*f;
+      float mask = smoothstep(edge1, edge0, dist); // 1 inside, 0 outside with feather
+      if(invert){ mask = 1.0 - mask; }
+
+      float k = clamp(intensity * mask, 0.0, 1.0);
+      vec3 mixed = mix(src.rgb, blurRGB, k);
+
+      if(blendMode==1){ mixed = blend_screen(src.rgb, mixed); }
+      else if(blendMode==2){ mixed = blend_overlay(src.rgb, mixed); }
+
+      gl_FragColor = vec4(mixed, src.a);
+    }
+  </shader>
+</effect>

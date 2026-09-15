@@ -1,0 +1,156 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bevel_light_sweep" name="Bevel + Light Sweep" desc="Alpha-edge lighting: builds an inner bevel from the layer's alpha gradient, adds a static directional light-sweep beam, plus rim and inner light bands sampled inward from the edge. Each light has width, intensity, color, and Add/Screen blending controls." category="drawingedge" tags="bevel,light,sweep,inner,glow" thumb="thumb/Light and Glow/Bevel + Light Sweep.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <point id="center" default="960,540" label="Center" />
+    <slider id="directionDeg" default="-30.0" min="-180.0" max="180.0" step="0.1" label="Direction (deg)" />
+
+    
+    <menu id="shape" default="0" style="dropdown" label="Shape">
+      <menu label="Sharp" value="0" />
+    </menu>
+    <slider id="edgeThickness" default="4.0" min="0.0" max="2000.0" step="0.1" label="Edge Thickness" />
+    <slider id="edgeIntensity" default="50.0" min="0.0" max="2000.0" step="0.5" label="Edge Intensity" />
+
+    
+    <slider id="widthPx" default="50.0" min="1.0" max="400.0" step="1.0" label="Width (px)" />
+    <slider id="sweepIntensity" default="25.0" min="0.0" max="200.0" step="0.5" label="Sweep Intensity" />
+    <color id="lightColor" default="#FFFFFFFF" label="Light Color" alpha="false" />
+    <menu id="lightReception" default="0" style="dropdown" label="Light Reception">
+      <menu label="Add" value="0" />
+      <menu label="Screen" value="1" />
+    </menu>
+
+    
+    <slider id="rimWidthPx" default="6.0" min="1.0" max="100.0" step="0.5" label="Rim Width (px)" />
+    <slider id="rimIntensity" default="35.0" min="0.0" max="400.0" step="0.5" label="Rim Intensity" />
+    <color id="rimColor" default="#FFFFFFFF" label="Rim Color" alpha="false" />
+    <menu id="rimReception" default="0" style="dropdown" label="Rim Reception">
+      <menu label="Add" value="0" />
+      <menu label="Screen" value="1" />
+    </menu>
+    <slider id="rimAngleDeg" default="0.0" min="-180.0" max="180.0" step="0.5" type="angle" label="Rim Angle (deg)" />
+
+    
+    <slider id="innerWidthPx" default="20.0" min="1.0" max="400.0" step="1.0" label="Inner Width (px)" />
+    <slider id="innerIntensity" default="20.0" min="0.0" max="400.0" step="0.5" label="Inner Intensity" />
+    <color id="innerColor" default="#FFFFFFFF" label="Inner Color" alpha="false" />
+    <menu id="innerReception" default="1" style="dropdown" label="Inner Reception">
+      <menu label="Add" value="0" />
+      <menu label="Screen" value="1" />
+    </menu>
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Bevel + Light Sweep (official-style AM shader)
+    // - Only AM builtins; no dynamic loops/derivatives
+
+    const float PI = 3.141592653589793;
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      vec4 src = texture2DCv(inputImg.texture, uv);
+
+      // Texture texel size
+      vec2 texel = 1.0 / getTexSize(inputImg.size);
+
+      // Alpha gradient (Sobel-lite, 4 taps)
+      float a_t = texture2DCv(inputImg.texture, uv + vec2(0.0,  texel.y)).a;
+      float a_b = texture2DCv(inputImg.texture, uv + vec2(0.0, -texel.y)).a;
+      float a_r = texture2DCv(inputImg.texture, uv + vec2( texel.x, 0.0)).a;
+      float a_l = texture2DCv(inputImg.texture, uv + vec2(-texel.x, 0.0)).a;
+      vec2 grad = vec2(a_r - a_l, a_t - a_b);
+      float edgeStrength = length(grad);
+
+      // Bevel lighting with a fixed light from top-left (135deg)
+      float bevelAngle = radians(135.0);
+      vec2 lightDir = normalize(vec2(cos(bevelAngle), sin(bevelAngle)));
+      float lighting = dot(normalize(grad + 1e-6), lightDir);
+
+      // Edge thickness: map px -&gt; threshold in gradient domain
+      float thickness = edgeThickness * 0.01; // empirical mapping
+      float bevelMask = smoothstep(0.0, thickness + 1e-6, edgeStrength);
+
+      float softness = 0.5;
+      float powExp = 1.0 + (1.0 - softness) * 4.0;
+      float highlight = pow(max(0.0,  lighting), powExp);
+      float shadow    = pow(max(0.0, -lighting), powExp);
+
+      float edgeGain = edgeIntensity / 100.0;
+      vec3 beveled = src.rgb;
+      beveled = mix(beveled, vec3(1.0), highlight * bevelMask * edgeGain);
+      beveled = mix(beveled, vec3(0.0), shadow    * bevelMask * edgeGain);
+
+      // Sweep line setup (static; no auto animation)
+      vec2 centerPx = center; // in pixels
+      vec2 centerUV = centerPx / acScreenSize; // normalize
+      vec2 p = uv - centerUV;
+      // aspect compensation
+      p.x *= acScreenSize.x / max(acScreenSize.y, 1.0);
+      float ang = radians(directionDeg);
+      vec2 dir = vec2(cos(ang), sin(ang));
+      vec2 nrm = vec2(-dir.y, dir.x);
+
+      float width = widthPx / max(acScreenSize.y, 1.0); // px -&gt; uv units (y-based)
+      float d = abs(dot(p, nrm));
+
+      // Beam + soft glow
+      float beam = pow(1.0 - smoothstep(0.0, width, d), 8.0);
+      float glow = (1.0 - smoothstep(0.0, width * 5.0, d)) * 0.4;
+      float sweep = (beam + glow) * (sweepIntensity / 25.0);
+
+      // Edge boost when sweep hits edges
+      sweep += bevelMask * beam * 2.0;
+
+      // Light color and reception blend
+      vec3 sweepCol = lightColor.rgb * sweep;
+      vec3 outRGB;
+      if(int(lightReception)==0){
+        // Add
+        outRGB = beveled + sweepCol;
+      } else {
+        // Screen
+        outRGB = 1.0 - (1.0 - beveled) * (1.0 - sweepCol);
+      }
+
+      // Rim Light (inner edge band): sample alpha inward along edge normal
+      vec2 n = normalize(grad + 1e-6);
+      float rimWidth = rimWidthPx / max(acScreenSize.y, 1.0);
+      float rang = radians(rimAngleDeg);
+      vec2 rn = vec2(cos(rang) * n.x - sin(rang) * n.y, sin(rang) * n.x + cos(rang) * n.y);
+      float a_in_rim = texture2DCv(inputImg.texture, uv - rn * rimWidth).a;
+      float rimBand = clamp(src.a - a_in_rim, 0.0, 1.0);
+      // shape the band softly
+      rimBand = smoothstep(0.0, 0.6, rimBand);
+      vec3 rimCol = rimColor.rgb * rimBand * (rimIntensity / 100.0);
+      if(int(rimReception)==0){
+        outRGB += rimCol;
+      } else {
+        outRGB = 1.0 - (1.0 - outRGB) * (1.0 - rimCol);
+      }
+
+      // Inner Light (broader inner glow from edge inward)
+      float innerWidth = innerWidthPx / max(acScreenSize.y, 1.0);
+      float a_in_inner = texture2DCv(inputImg.texture, uv - n * innerWidth).a;
+      float innerBand = clamp(src.a - a_in_inner, 0.0, 1.0);
+      // boost and soften
+      innerBand = 1.0 - exp(-innerBand * 3.0);
+      vec3 innerCol = innerColor.rgb * innerBand * (innerIntensity / 100.0);
+      if(int(innerReception)==0){
+        outRGB += innerCol;
+      } else {
+        outRGB = 1.0 - (1.0 - outRGB) * (1.0 - innerCol);
+      }
+
+      float aOut = src.a * alpha;
+      gl_FragColor = vec4(outRGB, 1.0) * aOut;
+    }
+  </shader>
+
+</effect>

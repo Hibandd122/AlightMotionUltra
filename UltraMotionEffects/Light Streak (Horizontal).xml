@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.brightpass_hblur_add" name="Light Streak (Horizontal)" desc="Horizontal light-streak bloom: a luminance bright-pass is blurred horizontally with an S-curve-weighted kernel (up to 257 taps) and added back over the source. Threshold, radius, kernel width, gains, and gamma controls." category="colorlight" tags="bloom, glow, blur" thumb="thumb/Stylize/Light Streak (Horizontal).webp">
+
+    <params>
+        
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="THRESH" label="Threshold" default="0.00" min="0.0" max="1.0" step="0.001" type="float" />
+
+        
+        <slider id="RADIUS" label="Radius" default="128.0" min="0.0" max="128.0" step="1.0" type="float" />
+        <slider id="SIZEX" label="Kernel Base Size X" default="430.0" min="8.0" max="1024.0" step="1.0" type="float" />
+
+        
+        <slider id="BLUR_GAIN" label="Blur Gain" default="1.0" min="0.0" max="4.0" step="0.01" type="float" />
+        <slider id="BASE_GAIN" label="Base Gain" default="0.36" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="GAMMA" label="Gamma" default="1.0" min="0.2" max="2.2" step="0.01" type="float" />
+    </params>
+
+    <shader type="fragment" precision="high">
+// Bright-pass + Horizontal Blur (SCurve weights) + Add
+
+float SCurve(float x){
+    x = x * 2.0 - 1.0;
+    return -x * abs(x) * 0.5 + x + 0.5;
+}
+
+vec4 BlurH(sampler2D source, vec2 uv, float radius, float sizeX){
+    if (radius &lt; 1.0) return texture2DCv(source, uv);
+    float width = 1.0 / max(sizeX, 1.0);
+    vec3 C = vec3(0.0);
+    float divisor = 0.0;
+    const int MAX_R = 128;
+    float rad = clamp(radius, 0.0, float(MAX_R));
+    for (int i = -MAX_R; i &lt;= MAX_R; i++){
+        float x = float(i);
+        if (abs(x) &gt; rad) continue;
+        float w = SCurve(1.0 - (abs(x) / max(rad, 1e-3)));
+        vec2 o = vec2(x * width, 0.0);
+        C += texture2DCv(source, clamp(uv + o, 0.0, 1.0)).rgb * w;
+        divisor += w;
+    }
+    return vec4(C / max(divisor, 1e-6), 1.0);
+}
+
+void main(){
+    vec2 uv = acScreenNorm;
+    vec3 src = texture2DCv(inputImg.texture, uv).rgb;
+
+    float thresh = THRESH;
+    float b = dot(src, vec3(0.2126, 0.7152, 0.0722));
+    vec3 bright = (b &gt; thresh) ? src : vec3(0.0);
+
+    // Blur only the bright-pass by sampling from a virtual texture: mix via mask
+    // Since we don't have MRT, approximate by blurring src then masking by bright pass ratios.
+    vec4 blurredSrc = BlurH(inputImg.texture, uv, RADIUS, SIZEX);
+    // Preserve color where bright, otherwise zero
+    vec3 blurredBright = blurredSrc.rgb * step(thresh, b);
+
+    vec3 outc = src * BASE_GAIN + blurredBright * BLUR_GAIN;
+    outc = pow(max(outc, 0.0), vec3(GAMMA));
+
+    gl_FragColor = vec4(outc, 1.0);
+}
+    </shader>
+</effect>

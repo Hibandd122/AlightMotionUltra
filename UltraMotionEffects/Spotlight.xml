@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.spotlight" name="Spotlight" desc="Keeps a circular region around a chosen point at full brightness and dims everything outside it, with adjustable radius and edge softness." category="colorlight" thumb="thumb/Light and Glow/Spotlight.webp" tags="drawing,light,spotlight,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Position" />
+        <slider id="radius" default="0.35" min="0.05" max="1.0" label="Radius" />
+        <slider id="softness" default="0.4" min="0.05" max="1.0" label="Softness" />
+        <slider id="dim" default="0.75" min="0.0" max="1.0" label="Dim Outside" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c = src.a&gt;0.0? src.rgb/src.a : src.rgb;
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float r = length(d);
+            float m = smoothstep(radius, radius+softness, r);
+            gl_FragColor = vec4(c*mix(1.0, 1.0-dim, m),1.0)*src.a;
+        }
+    </shader>
+
+</effect>

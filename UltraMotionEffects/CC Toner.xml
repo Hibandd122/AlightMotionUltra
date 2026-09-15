@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cc_toner_v1" name="CC Toner" desc="Three-way color toning that maps shadows, midtones and highlights to separate colors using luminance masks, with per-zone strength/range, Luminance/Color/Overlay blend modes, optional luminance preservation, contrast/saturation/gamma grade, and a zone-preview mode." category="colorlight" tags="toner,color,grade,highlights,midtones,shadows,duotone,tritone,cinematic" thumb="thumb/Color/CC Toner.webp" overdraw="false" dither="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <color id="shadowColor" default="#1A0F00" label="Shadow Color" />
+    <slider id="shadowStrength" default="1.0" min="0.0" max="1.0" step="0.01" label="Shadow Strength" />
+    <slider id="shadowRange" default="0.35" min="0.0" max="0.8" step="0.01" label="Shadow Range" />
+
+    
+    <color id="midColor" default="#4A5240" label="Midtone Color" />
+    <slider id="midStrength" default="1.0" min="0.0" max="1.0" step="0.01" label="Midtone Strength" />
+    <slider id="midRange" default="0.5" min="0.1" max="0.9" step="0.01" label="Midtone Center" />
+    <slider id="midWidth" default="0.25" min="0.05" max="0.5" step="0.01" label="Midtone Width" />
+
+    
+    <color id="highlightColor" default="#FFD27A" label="Highlight Color" />
+    <slider id="highlightStrength" default="1.0" min="0.0" max="1.0" step="0.01" label="Highlight Strength" />
+    <slider id="highlightRange" default="0.65" min="0.2" max="1.0" step="0.01" label="Highlight Range" />
+
+    
+    <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+      <menu label="Luminance" value="1" />
+      <menu label="Color" value="2" />
+      <menu label="Overlay" value="3" />
+    </menu>
+    <slider id="tonerMix" default="1.0" min="0.0" max="1.0" step="0.01" label="Toner Mix" />
+    <switch id="preserveLuminance" default="true" label="Preserve Luminance" />
+
+    
+    <slider id="contrast" default="1.0" min="0.5" max="2.0" step="0.01" label="Contrast" />
+    <slider id="saturation" default="1.0" min="0.0" max="2.0" step="0.01" label="Saturation" />
+    <slider id="gamma" default="1.0" min="0.2" max="3.0" step="0.01" label="Gamma" />
+
+    
+    <slider id="overallStrength" default="1.0" min="0.0" max="1.0" step="0.01" label="Overall Strength" />
+    <switch id="tonerOnly" default="false" label="Toner Only Mode" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+
+    const float PI = 3.14159265358979323846;
+
+    float luminance(vec3 c){
+      return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+
+    vec3 srgbToLinear(vec3 c){
+      vec3 cut = step(vec3(0.04045), c);
+      return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), cut);
+    }
+
+    vec3 linearToSrgb(vec3 c){
+      c = max(c, vec3(0.0));
+      vec3 cut = step(vec3(0.0031308), c);
+      return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, cut);
+    }
+
+    vec3 applyColorGrade(vec3 col, float cont, float sat, float gam){
+      float lum = luminance(col);
+      col = mix(vec3(lum), col, sat);
+      col = (col - 0.5) * cont + 0.5;
+      col = pow(clamp(col, 0.0001, 1.0), vec3(1.0 / max(gam, 0.001)));
+      return clamp(col, 0.0, 1.0);
+    }
+
+    vec3 applyToner(
+      vec3 col,
+      float lum,
+      vec3 shadCol, float shadStr, float shadRange,
+      vec3 midCol,  float midStr,  float midCtr, float midW,
+      vec3 hiCol,   float hiStr,   float hiRange
+    ){
+      float shadowMask    = smoothstep(shadRange, 0.0, lum);
+      float highlightMask = smoothstep(hiRange, 1.0, lum);
+      float midMask       = smoothstep(0.0, midW, lum - (midCtr - midW))
+                          * smoothstep(0.0, midW, (midCtr + midW) - lum);
+
+      vec3 toned = col;
+      toned = mix(toned, shadCol, shadowMask    * shadStr);
+      toned = mix(toned, midCol,  midMask       * midStr);
+      toned = mix(toned, hiCol,   highlightMask * hiStr);
+
+      return toned;
+    }
+
+    vec3 blendOverlay(vec3 base, vec3 blend){
+      vec3 low  = 2.0 * base * blend;
+      vec3 high = 1.0 - 2.0 * (1.0 - base) * (1.0 - blend);
+      return mix(low, high, step(0.5, base));
+    }
+
+    void main(){
+
+      vec2 uv = acScreenNorm;
+
+      vec4 src = texture2DCv(inputImg.texture, uv);
+      vec3 col = src.rgb;
+
+      vec3 colLin = srgbToLinear(col);
+      float lum = luminance(colLin);
+      lum = pow(clamp(lum, 0.0, 1.0), 1.0 / max(gamma, 0.001));
+
+      vec3 toned = applyToner(
+        col,
+        lum,
+        shadowColor.rgb,    shadowStrength,    shadowRange,
+        midColor.rgb,       midStrength,       midRange,    midWidth,
+        highlightColor.rgb, highlightStrength, highlightRange
+      );
+
+      vec3 result;
+      float bmf = float(blendMode);
+
+      if(bmf &lt; 1.5){
+        float tonedLum = luminance(srgbToLinear(toned));
+        result = toned;
+        if(preserveLuminance){
+          float origLum = luminance(colLin);
+          float scale = origLum / max(tonedLum, 0.0001);
+          result = clamp(toned * scale, 0.0, 1.0);
+        }
+      } else if(bmf &lt; 2.5){
+        float origLum = luminance(colLin);
+        vec3 tonedLin = srgbToLinear(toned);
+        float tonedLumV = luminance(tonedLin);
+        vec3 chromaToned = tonedLin / max(tonedLumV, 0.0001);
+        result = linearToSrgb(clamp(chromaToned * origLum, 0.0, 1.0));
+      } else {
+        result = blendOverlay(col, toned);
+      }
+
+      result = mix(result, toned, tonerMix);
+      result = applyColorGrade(result, contrast, saturation, 1.0);
+      result = mix(col, result, overallStrength);
+
+      if(tonerOnly){
+        float lumOnly = luminance(srgbToLinear(col));
+        float shadowM    = smoothstep(shadowRange, 0.0, lumOnly);
+        float highlightM = smoothstep(highlightRange, 1.0, lumOnly);
+        float midM       = smoothstep(0.0, midWidth, lumOnly - (midRange - midWidth))
+                         * smoothstep(0.0, midWidth, (midRange + midWidth) - lumOnly);
+        vec3 zones = shadowM * vec3(0.2, 0.0, 0.8)
+                   + midM    * vec3(0.0, 0.8, 0.2)
+                   + highlightM * vec3(0.9, 0.8, 0.0);
+        gl_FragColor = vec4(clamp(zones, 0.0, 1.0), src.a);
+        return;
+      }
+
+      gl_FragColor = vec4(result, src.a);
+    }
+
+  </shader>
+</effect>

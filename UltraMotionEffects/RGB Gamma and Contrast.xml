@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.rgb_curves_gamma" name="RGB Gamma &amp; Contrast" desc="Applies an independent gamma curve to each RGB channel plus a master contrast control around mid-gray. Not a full curves editor; each channel has a single gamma value." category="colorlight" tags="color, grading" thumb="thumb/Color/RGB Gamma and Contrast.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="redGamma" default="0.98" min="0.2" max="3.0" label="Red Gamma" step="0.01" />
+        <slider id="greenGamma" default="1.07" min="0.2" max="3.0" label="Green Gamma" step="0.01" />
+        <slider id="blueGamma" default="1.10" min="0.2" max="3.0" label="Blue Gamma" step="0.01" />
+        <slider id="masterContrast" default="1.00" min="0.0" max="2.0" label="Master Contrast" step="0.01" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main() {
+            vec4 texColor = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 col = texColor.rgb;
+
+            // Apply Gamma Curve per channel
+            col.r = pow(max(col.r, 0.0), redGamma);
+            col.g = pow(max(col.g, 0.0), greenGamma);
+            col.b = pow(max(col.b, 0.0), blueGamma);
+
+            // Apply Master Contrast
+            col = (col - 0.5) * masterContrast + 0.5;
+
+            // Clamp values
+            col = clamp(col, 0.0, 1.0);
+
+            gl_FragColor = vec4(col, texColor.a);
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra.halftone" name="Halftone" desc="Renders the image as a rotatable grid of dots whose size follows brightness, like comic-book or newsprint printing. Monochrome mode uses selectable ink and paper colors." category="drawingedge" thumb="thumb/Stylize/Halftone.webp" tags="comic,halftone,print,dots,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="size" default="6.0" min="2.0" max="30.0" label="Dot Size" />
+        <slider id="angle" default="45.0" min="0.0" max="360.0" label="Grid Angle" type="angle" />
+        <switch id="colored" default="true" label="Color" />
+        <color id="ink" default="#FF000000" label="Ink Color" alpha="false" />
+        <color id="paper" default="#FFFFFFFF" label="Paper Color" alpha="false" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            float a = radians(angle);
+            mat2 rot = mat2(cos(a),-sin(a),sin(a),cos(a));
+            vec2 px = (acScreenNorm*acScreenSize);
+            vec2 grid = rot*px/size;
+            vec2 cell = fract(grid)-0.5;
+            float d = length(cell);
+            if(colored){
+                vec3 c = src.a&gt;0.0? src.rgb/src.a : src.rgb;
+                float dotv = step(d, sqrt(dot(c,vec3(0.333)))*0.8);
+                gl_FragColor = vec4(c*dotv,1.0)*src.a;
+            } else {
+                float lum = dot(src.rgb, vec3(0.299,0.587,0.114));
+                float r = sqrt(lum)*0.78;
+                float m = smoothstep(r+0.05, r-0.05, d);
+                vec3 col = mix(paper.rgb, ink.rgb, m);
+                gl_FragColor = vec4(col,1.0)*src.a;
+            }
+        }
+    </shader>
+
+</effect>

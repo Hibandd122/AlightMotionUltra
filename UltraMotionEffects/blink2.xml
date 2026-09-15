@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.blink2" name="@am:string/effect_blink_name" desc="@am:string/effect_blink_desc" category="opacity" thumb="thumb/blink.webp" tags="opacity, visibility, auto, propadjust">
+
+    
+        
+            
+            
+            
+        
+    
+
+    <params>
+        <slider id="freq" default="2.0" min="0.1" max="16.0" label="@am:string/effect_param_freq" type="hz" />
+    </params>
+
+    
+
+</effect>

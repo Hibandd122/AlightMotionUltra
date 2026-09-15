@@ -1,0 +1,346 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bccfilmglow" name="Film Glow" desc="Multi-pass film glow: soft-knee luminance threshold extraction followed by inner and outer separable Gaussian blurs, combined with weights and blended via Add, Screen, Soft Light, or Lighten. Includes highlight glow, tint, warmth, halation, diffusion, grain, fade, and soft clip controls." category="colorlight" tags="film,glow,bloom,soft,highlight,diffusion,analog" thumb="thumb/Stylize/Film Glow.webp" overdraw="true" max-overdraw="1.5">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="glowA" srcType="buffer" downsample="2" />
+        <texture id="glowB" srcType="buffer" downsample="2" />
+        <texture id="glowC" srcType="buffer" downsample="2" />
+        <texture id="glowD" srcType="buffer" downsample="2" />
+
+        
+        <slider id="glowAmount" label="Glow Amount" default="0.5" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="glowRadius" label="Glow Radius" default="20.0" min="1.0" max="80.0" step="0.5" type="float" />
+        <slider id="glowSoftness" label="Glow Softness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="glowSpread" label="Glow Spread" default="2.5" min="1.5" max="6.0" step="0.1" type="float" />
+
+        
+        <slider id="threshold" label="Threshold" default="0.5" min="0.0" max="1.0" step="0.005" type="float" />
+        <slider id="softKnee" label="Soft Knee" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="threshGamma" label="Threshold Gamma" default="1.0" min="0.2" max="3.0" step="0.05" type="float" />
+
+        
+        <slider id="hlGlowStr" label="Highlight Glow" default="0.5" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="hlThreshold" label="Highlight Threshold" default="0.7" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hlSaturation" label="Highlight Saturation" default="0.8" min="0.0" max="2.0" step="0.05" type="float" />
+
+        
+        <slider id="innerWeight" label="Inner Glow Weight" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="outerWeight" label="Outer Glow Weight" default="0.5" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="tailWeight" label="Tail Weight" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+
+        
+        <color id="glowTint" label="Glow Tint" default="#FFFFFF" alpha="false" />
+        <slider id="glowTintStr" label="Tint Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="glowWarmth" label="Glow Warmth" default="0.0" min="-0.5" max="0.5" step="0.01" type="float" />
+        <slider id="glowSatBoost" label="Glow Saturation" default="1.0" min="0.0" max="2.0" step="0.05" type="float" />
+        <slider id="colorPreserve" label="Color Preserve" default="0.7" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="halStr" label="Halation" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <color id="halColor" label="Halation Color" default="#FF2200" alpha="false" />
+
+        
+        <slider id="diffAmount" label="Diffusion" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="diffHighlights" label="Diffusion Highlights" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="filmGrain" label="Film Grain" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="filmFade" label="Film Fade" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="filmSaturation" label="Film Saturation" default="1.0" min="0.0" max="2.0" step="0.05" type="float" />
+        <slider id="filmContrast" label="Film Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="filmWarmth" label="Film Warmth" default="0.0" min="-0.5" max="0.5" step="0.01" type="float" />
+
+        
+        <slider id="softClipKnee" label="Soft Clip" default="5.0" min="0.1" max="30.0" step="0.1" type="float" />
+
+        
+        <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+            <menu label="Add" value="1" />
+            <menu label="Screen" value="2" />
+            <menu label="Soft Light" value="3" />
+            <menu label="Lighten" value="4" />
+        </menu>
+
+        
+        <menu id="quality" style="radio" default="2" label="Quality">
+            <menu label="Low" value="1" />
+            <menu label="Medium" value="2" />
+            <menu label="High" value="3" />
+        </menu>
+
+        
+        <switch id="glowOnly" default="false" label="Glow Only" />
+        <slider id="ditherAmt" label="Dither" default="0.008" min="0.0" max="0.03" step="0.001" type="float" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass target="glowA" />
+        <pass target="glowB" />
+        <pass target="glowC" />
+        <pass target="glowD" />
+        <pass />
+    </passes>
+    <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 srgbToLinear(vec3 s) {
+        vec3 lo = s / 12.92;
+        vec3 hi = pow((s + 0.055) / 1.055, vec3(2.4));
+        return mix(lo, hi, step(vec3(0.04045), s));
+    }
+    vec3 linearToSrgb(vec3 l) {
+        vec3 lo = l * 12.92;
+        vec3 hi = 1.055 * pow(max(l, 0.0), vec3(1.0 / 2.4)) - 0.055;
+        return mix(lo, hi, step(vec3(0.0031308), l));
+    }
+    float noiseHash(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+    float getTaps(float q) {
+        if (q &lt; 1.5) return 8.0;
+        if (q &lt; 2.5) return 14.0;
+        return 20.0;
+    }
+    vec4 blurPass(sampler2D tex, vec2 texOff, vec2 st, float numPx) {
+        if (numPx &lt;= 0.0) return texture2DCv(tex, st);
+        float sigma = numPx / 2.14596602;
+        sigma = max(sigma, EPS);
+        highp vec3 ig;
+        ig.x = 1.0 / (sqrt(2.0 * PI) * sigma);
+        ig.y = exp(-0.5 / (sigma * sigma));
+        ig.z = ig.y * ig.y;
+        vec4 avg = texture2DCv(tex, st) * ig.x;
+        float cSum = ig.x;
+        for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+            if (i &gt; numPx) break;
+            ig.xy *= ig.yz;
+            cSum += 2.0 * ig.x;
+            float w0 = ig.x;
+            ig.xy *= ig.yz;
+            cSum += 2.0 * ig.x;
+            float w1 = ig.x;
+            float wL = w0 + w1;
+            float oL = (i * w0 + (i + 1.0) * w1) / max(wL, EPS);
+            avg += texture2DCv(tex, clamp(st - oL * texOff, 0.0, 1.0)) * wL;
+            avg += texture2DCv(tex, clamp(st + oL * texOff, 0.0, 1.0)) * wL;
+        }
+        return avg / max(cSum, EPS);
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float taps = getTaps(float(quality));
+        float r1 = glowRadius * 0.5;
+        float r2 = glowRadius * glowSpread * 0.5;
+
+        // PASS 0 — EXTRACT + THRESHOLD
+        if (acPass == 0) {
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec3 rgb = max(src.rgb, 0.0);
+            vec3 lin = srgbToLinear(rgb);
+            float brightness = lum(lin);
+            brightness = pow(max(brightness, 0.0), threshGamma);
+
+            float knee = max(softKnee, EPS);
+            float edge = brightness - threshold + knee;
+            edge = clamp(edge / (2.0 * knee), 0.0, 1.0);
+            edge *= edge;
+            float mask = max(edge, max(brightness - threshold, 0.0));
+            mask = mask / max(brightness, EPS);
+
+            vec3 extracted = rgb * mask;
+            gl_FragColor = vec4(extracted, src.a);
+            return;
+        }
+
+        // PASS 1 — INNER BLUR H
+        if (acPass == 1) {
+            vec2 to = vec2(1.0 / getTexSize(glowA.size).x, 0.0);
+            float ks = r1 * (taps / 10.0);
+            gl_FragColor = blurPass(glowA.texture, to, uv, ks);
+            return;
+        }
+
+        // PASS 2 — INNER BLUR V
+        if (acPass == 2) {
+            vec2 to = vec2(0.0, 1.0 / getTexSize(glowB.size).y);
+            float ks = r1 * (taps / 10.0);
+            gl_FragColor = blurPass(glowB.texture, to, uv, ks);
+            return;
+        }
+
+        // PASS 3 — OUTER BLUR H (using glowA as source for wider spread)
+        if (acPass == 3) {
+            vec2 to = vec2(1.0 / getTexSize(glowA.size).x, 0.0);
+            float ks = r2 * (taps / 10.0);
+            gl_FragColor = blurPass(glowA.texture, to, uv, ks);
+            return;
+        }
+
+        // PASS 4 — FINAL COMPOSITE
+        vec4 src = texture2DCv(inputImg.texture, uv);
+        vec3 baseRGB = max(src.rgb, 0.0);
+
+        vec3 innerGlow = max(texture2DCv(glowC.texture, uv).rgb, 0.0);
+        vec3 outerGlow = max(texture2DCv(glowD.texture, uv).rgb, 0.0);
+
+        vec3 innerLin = srgbToLinear(innerGlow);
+        vec3 outerLin = srgbToLinear(outerGlow);
+        vec3 baseLin = srgbToLinear(baseRGB);
+        float baseLum = lum(baseLin);
+
+        // Combine glow layers
+        vec3 totalGlow = innerLin * innerWeight + outerLin * outerWeight * tailWeight;
+
+        // Glow softness — blend between inner and combined
+        totalGlow = mix(innerLin * innerWeight, totalGlow, glowSoftness);
+
+        // Highlight glow
+        if (hlGlowStr &gt; EPS) {
+            float hlMask = smoothstep(hlThreshold - 0.1, hlThreshold + 0.1, baseLum);
+            vec3 hlGlow = outerLin * hlMask;
+            if (abs(hlSaturation - 1.0) &gt; EPS) {
+                float hlL = lum(hlGlow);
+                hlGlow = mix(vec3(hlL), hlGlow, hlSaturation);
+            }
+            totalGlow += hlGlow * hlGlowStr * 0.5;
+        }
+
+        // Color preservation
+        if (colorPreserve &gt; EPS) {
+            float glowLum = lum(totalGlow);
+            if (baseLum &gt; EPS &amp;&amp; glowLum &gt; EPS) {
+                vec3 baseColor = baseLin / max(baseLum, EPS);
+                vec3 coloredGlow = baseColor * glowLum;
+                totalGlow = mix(totalGlow, coloredGlow, colorPreserve * 0.5);
+            }
+        }
+
+        // Glow saturation
+        if (abs(glowSatBoost - 1.0) &gt; EPS) {
+            float gL = lum(totalGlow);
+            totalGlow = mix(vec3(gL), totalGlow, glowSatBoost);
+        }
+
+        // Glow warmth
+        if (abs(glowWarmth) &gt; EPS) {
+            float gL = lum(totalGlow);
+            totalGlow.r += glowWarmth * 0.04 * gL;
+            totalGlow.b -= glowWarmth * 0.03 * gL;
+        }
+
+        // Glow tint
+        if (glowTintStr &gt; EPS) {
+            totalGlow = mix(totalGlow, totalGlow * srgbToLinear(glowTint.rgb), glowTintStr);
+        }
+
+        // Halation
+        if (halStr &gt; EPS) {
+            float halLum = lum(outerLin);
+            float halMask = smoothstep(0.2, 0.6, halLum);
+            vec3 halation = outerLin * srgbToLinear(halColor.rgb) * halMask;
+            totalGlow += halation * halStr * 0.5;
+        }
+
+        // Film diffusion
+        if (diffAmount &gt; EPS) {
+            vec3 diffGlow = mix(innerLin, outerLin, 0.5);
+            float diffHL = smoothstep(0.3, 0.8, baseLum);
+            diffGlow *= mix(1.0, diffHL, diffHighlights);
+            totalGlow += diffGlow * diffAmount * 0.3;
+        }
+
+        // Master amount
+        totalGlow *= glowAmount;
+
+        // Soft clip
+        totalGlow = 1.0 - exp(-totalGlow * softClipKnee);
+
+        vec3 glowSRGB = linearToSrgb(max(totalGlow, 0.0));
+
+        // Glow only view
+        if (glowOnly) {
+            gl_FragColor = vec4(clamp(glowSRGB, 0.0, 1.0), 1.0);
+            return;
+        }
+
+        // Composite
+        vec3 comp;
+        float bm = float(blendMode);
+
+        if (bm &lt; 1.5) {
+            comp = baseLin + srgbToLinear(max(glowSRGB, 0.0));
+        } else if (bm &lt; 2.5) {
+            comp = srgbToLinear(1.0 - (1.0 - baseRGB) * (1.0 - clamp(glowSRGB, 0.0, 1.0)));
+        } else if (bm &lt; 3.5) {
+            vec3 gC = clamp(glowSRGB, 0.0, 1.0);
+            vec3 r;
+            r.r = (gC.r&lt;0.5) ? 2.0*baseRGB.r*gC.r+baseRGB.r*baseRGB.r*(1.0-2.0*gC.r) : 2.0*baseRGB.r*(1.0-gC.r)+sqrt(max(baseRGB.r,0.0))*(2.0*gC.r-1.0);
+            r.g = (gC.g&lt;0.5) ? 2.0*baseRGB.g*gC.g+baseRGB.g*baseRGB.g*(1.0-2.0*gC.g) : 2.0*baseRGB.g*(1.0-gC.g)+sqrt(max(baseRGB.g,0.0))*(2.0*gC.g-1.0);
+            r.b = (gC.b&lt;0.5) ? 2.0*baseRGB.b*gC.b+baseRGB.b*baseRGB.b*(1.0-2.0*gC.b) : 2.0*baseRGB.b*(1.0-gC.b)+sqrt(max(baseRGB.b,0.0))*(2.0*gC.b-1.0);
+            comp = srgbToLinear(r);
+        } else {
+            comp = max(baseLin, srgbToLinear(max(glowSRGB, 0.0)));
+        }
+
+        vec3 fin = linearToSrgb(max(comp, 0.0));
+
+        // Film saturation
+        if (abs(filmSaturation - 1.0) &gt; EPS) {
+            float fl = lum(fin);
+            fin = mix(vec3(fl), fin, filmSaturation);
+        }
+
+        // Film contrast
+        if (abs(filmContrast) &gt; 0.5) {
+            float fc = filmContrast / 100.0;
+            float fl = lum(fin);
+            float sCurve = fl + fc * 0.5 * (fl - 0.5) * (1.0 - abs(fl - 0.5) * 2.0);
+            float ratio = sCurve / max(fl, EPS);
+            fin *= ratio;
+        }
+
+        // Film warmth
+        if (abs(filmWarmth) &gt; EPS) {
+            fin.r += filmWarmth * 0.06;
+            fin.b -= filmWarmth * 0.04;
+        }
+
+        // Film fade
+        if (filmFade &gt; EPS) {
+            fin = fin * (1.0 - filmFade * 0.15) + filmFade * 0.1;
+            float fl = lum(fin);
+            fin = mix(fin, vec3(fl), filmFade * 0.2);
+        }
+
+        // Film grain
+        if (filmGrain &gt; EPS) {
+            vec2 px = floor(getTexSize(inputImg.size) * uv);
+            float n = noiseHash(px + acTime * 100.0) * 2.0 - 1.0;
+            float fl = lum(fin);
+            float grainMask = 1.0 - fl * 0.4;
+            fin += n * filmGrain * 0.08 * grainMask;
+        }
+
+        // Dither
+        if (ditherAmt &gt; EPS) {
+            vec2 px = floor(getTexSize(inputImg.size) * uv);
+            float n1 = fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453);
+            float n2 = fract(sin(dot(px, vec2(24.123, 17.321))) * 12345.6789);
+            float n3 = fract(sin(dot(px, vec2(93.989, 67.345))) * 98765.4321);
+            fin += (vec3(n1, n2, n3) - 0.5) * ditherAmt;
+        }
+
+        // Mix
+        fin = mix(baseRGB, fin, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+
+        gl_FragColor = vec4(fin, src.a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

@@ -1,0 +1,105 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.wipe_checker" name="Checkerboard Wipe" desc="Transition that reveals the layer through a grid of growing or shrinking rotated squares (diamonds). Controls include wipe percent, grid angle/frequency/aspect, directional and radial size gradients, edge softness, and an optional fill color for the unrevealed area." category="warp" tags="wipe,checker,grid,transition" thumb="thumb/Transition/Checkerboard Wipe.webp" overdraw="true" max-overdraw="1.5">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="wipe_percent" default="72.0" min="0.0" max="100.0" step="0.1" label="Wipe Percent" type="percent" />
+    <menu id="mode" style="dropdown" default="1" label="Checkers">
+      <menu label="Grow" value="1" />
+      <menu label="Shrink" value="2" />
+    </menu>
+    <slider id="edge_softness" default="0.00" min="0.0" max="0.20" step="0.001" label="Edge Softness" />
+
+    
+    <slider id="angle" default="-45.0" min="-180.0" max="180.0" step="0.01" label="Angle (deg)" />
+    <slider id="frequency" default="6.0" min="1.0" max="40.0" step="0.01" label="Frequency" />
+    <slider id="rel_width" default="1.0" min="0.2" max="3.0" step="0.01" label="Rel Width" />
+    <slider id="rel_width_pre" default="1.0" min="0.2" max="3.0" step="0.01" label="Rel Wid Pre Rot" />
+    <slider id="shift_x" default="960.0" min="-4000.0" max="4000.0" step="1.0" label="Shift X (px)" />
+    <slider id="shift_y" default="540.0" min="-4000.0" max="4000.0" step="1.0" label="Shift Y (px)" />
+
+    
+    <slider id="grad_add" default="0.0" min="-1.0" max="1.0" step="0.01" label="Grad Add" />
+    <slider id="grad_angle" default="0.0" min="0.0" max="360.0" step="0.01" label="Grad Angle" />
+    <slider id="size_grad" default="0.25" min="0.0" max="1.0" step="0.01" label="Size Gradient" />
+
+    
+    <color id="fill_color" default="#000000" label="Unrevealed Fill Color" />
+    <slider id="fill_alpha" default="0.0" min="0.0" max="1.0" step="0.01" label="Unrevealed Fill Opacity" type="percent" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Checkerboard wipe using rotated squares in a grid.
+    // Reveals the source where the wipe progresses; unrevealed can be transparent or filled.
+
+    mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+
+      // Shift in pixels -&gt; UV
+      vec2 shiftUV = vec2(shift_x / max(acScreenSize.x,1.0), shift_y / max(acScreenSize.y,1.0));
+      uv += shiftUV;
+
+      float ang = radians(angle);
+      float freq = max(frequency, 0.0001);
+
+      // Pre-rotation anisotropy
+      vec2 preScale = vec2(rel_width_pre, 1.0);
+      vec2 p = uv * preScale;
+      // Rotate grid
+      p = rot(ang) * p;
+      // Post-rotation anisotropy (squash/expand diamonds)
+      vec2 postScale = vec2(rel_width, 1.0);
+      p *= postScale;
+
+      // Grid coordinate
+      vec2 g = p * freq;
+      // Center within a cell
+      vec2 f = fract(g) - 0.5;
+
+      // Diamond/square distance using L-infinity norm
+      float d = max(abs(f.x), abs(f.y)); // 0..0.5
+
+      // Wipe progression mapped to shape size
+      float s = clamp(wipe_percent/100.0, 0.0, 1.0) * 0.5;
+      if (float(mode) &gt; 1.5) {
+        // Shrink: invert progression (start full squares, shrink holes)
+        s = 0.5 - s;
+      }
+
+      // Gradient‑driven threshold with edge softness
+      float es = max(edge_softness, 0.0);
+
+      // Project UV onto gradient direction; normalize to [-0.5, 0.5]
+      // so a value of 1.0 shifts the threshold roughly from one corner to the opposite.
+      float gAng = radians(grad_angle);
+      vec2 gdir = normalize(vec2(cos(gAng), sin(gAng)));
+      float grad = dot(uv - 0.5, gdir) * (1.0 / 0.7071067811865476); // 1/sqrt(2)
+
+      // Positive grad_add pushes the wipe in +gdir; negative reverses it
+      float sBias = s + grad_add * grad;
+
+      vec2 res = acScreenSize;
+      vec2 uvC = (acScreenNorm * res - 0.5 * res) / min(res.x, res.y);
+      float rad = clamp(length(uvC) * 2.0, 0.0, 1.0);
+      float sRadial = (rad - 0.5) * 2.0 * size_grad;
+      float sAll = sBias + sRadial;
+
+      float t = d - sAll;
+      float inside = 1.0 - smoothstep(-es, es, t);
+
+      // Revealed content (premultiplied) vs unrevealed fill
+      vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+      vec4 revealed = vec4(src.rgb * src.a, src.a) * inside;
+      vec4 fill = vec4(fill_color.rgb * fill_alpha, fill_alpha) * (1.0 - inside);
+      gl_FragColor = revealed + fill;
+    }
+  </shader>
+</effect>

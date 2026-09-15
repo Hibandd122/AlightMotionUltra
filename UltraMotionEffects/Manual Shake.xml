@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vshake" name="Manual Shake" desc="Script-driven camera shake: offsets the layer position, rotation and scale each frame using per-axis X/Y/Z/Tilt oscillators with selectable waveform (cos, sin, triangle, noise), amplitude, frequency and phase offset." tags="other" category="warp" thumb="thumb/Move and Transform/Manual Shake.webp">
+    <params>
+       <slider id="mag" default="4" min="0" max="20" step="0.01" label="Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <slider id="freq" default="2" min="0" max="10" step="0.01" label="Frequency" snap="0,2,4,7" ticks="0,2,4,7" originValue="0" />
+        <slider id="zdist" default="1" min="0.001" max="5" label="Z Dist" snap="0.25,0.5,0.75,1,1.25,1.5,2,3,4,5" ticks="0.250,0.5,0.75,1,1.25,1.5,2,3,4,5" originValue="1" />
+        <slider id="rot" default="0" min="-180" max="180" label="Rotate" snap="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" originValue="0" />
+        
+        
+
+        
+        <slider id="xmag" default="15" min="0" max="100" step="0.05" label="X Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <slider id="xfreq" default="12" min="0" max="100" step="0.05" label="X Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <slider id="xoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="X Offset" />
+        <menu id="xtype" style="radio" default="1" label="X Type">
+            <menu label="cos" value="0" />
+            <menu label="sin" value="1" />
+            <menu label="trian" value="2" />
+            <menu label="noise" value="3" />
+        </menu>
+
+        
+        <slider id="ymag" default="40" min="0" step="0.05" max="100" label="Y Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <slider id="yfreq" default="18" min="0" step="0.05" max="100" label="Y Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <slider id="yoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Y Offset" />
+        <menu id="ytype" style="radio" default="1" label="Y Type">
+            <menu label="cos" value="0" />
+            <menu label="sin" value="1" />
+            <menu label="trian" value="2" />
+            <menu label="noise" value="3" />
+        </menu>
+
+        
+        <slider id="zmag" default="1" min="0" max="100" step="0.05" label="Z Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <slider id="zfreq" default="10" min="0" max="100" step="0.05" label="Z Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <slider id="zoffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Z Offset" />
+        <menu id="ztype" style="radio" default="1" label="Z Type">
+            <menu label="cos" value="0" />
+            <menu label="sin" value="1" />
+            <menu label="trian" value="2" />
+            <menu label="noise" value="3" />
+        </menu>
+
+        
+        <slider id="tmag" default="10" min="0" max="100" step="0.05" label="Tilt Amplitude" snap="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" ticks="0,0.5,1,1.5,2,3,4,5,6,7,8,9,10,12,14,16,20" originValue="0" />
+        <slider id="tfreq" default="40" min="0" max="100" step="0.05" label="Tilt Frequency" snap="0,2,4,7,10,15" ticks="0,2,4,7,10,15" originValue="0" />
+        <slider id="toffset" default="0.0" min="-10000.0" max="10000.0" step="0.1" label="Tilt Offset" />
+        <menu id="ttype" style="radio" default="1" label="Tilt Type">
+            <menu label="cos" value="0" />
+            <menu label="sin" value="1" />
+            <menu label="trian" value="2" />
+            <menu label="noise" value="3" />
+        </menu>
+    </params>
+
+    
+</effect>

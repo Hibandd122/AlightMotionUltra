@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.fisheye_antifisheye" name="Fisheye / Anti-Fisheye" desc="Barrel (fisheye) and pincushion (anti-fisheye) lens distortion driven by a single signed Power control, with adjustable center and optional aspect correction to keep the effect circular." category="warp" tags="fisheye,barrel,pincushion,distort,lens" thumb="thumb/Distort and Warp/Fisheye Anti-Fisheye.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="power" default="0.0" min="-1.0" max="1.0" step="0.01" label="Power (- = Anti, + = Fisheye)" />
+    <slider id="centerX" default="0.5" min="0.0" max="1.0" step="0.001" label="Center X" />
+    <slider id="centerY" default="0.5" min="0.0" max="1.0" step="0.001" label="Center Y" />
+    <menu id="aspectMode" default="1" style="dropdown" label="Aspect Mode">
+      <menu label="Circular (corrected)" value="1" />
+      <menu label="Stretch (no correction)" value="0" />
+    </menu>
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Fisheye / Anti‑Fisheye
+    // Ported from the Shadertoy snippet provided by the user and adapted for Alight Motion
+    // Inspired by: https://stackoverflow.com/questions/6030814
+
+    // Notes:
+    // - power &gt; 0 : fisheye (barrel)
+    // - power &lt; 0 : anti‑fisheye (pincushion)
+    // - aspectMode!=0 applies aspect correction so the effect remains circular on non‑square frames
+
+    void main(){
+      vec2 uv = acScreenNorm;            // 0..1
+      vec2 uvWork = uv;                  // working UVs (may be aspect-adjusted)
+
+      float prop = acScreenSize.x / acScreenSize.y;  // aspect ratio (width/height)
+
+      // Aspect-corrected center
+      vec2 m = vec2(centerX, (aspectMode != 0) ? (centerY / prop) : centerY);
+
+      // Aspect-corrected working coordinates for circular behavior
+      if(aspectMode != 0){
+        uvWork = vec2(uv.x, uv.y / prop);
+      }
+
+      vec2 d = uvWork - m;              // vector from center
+      float r = length(d);              // distance from center
+
+      // Map UI power [-1..1] to a usable curvature scale (radians-like)
+      // Using PI scaling provides a useful range similar to the original mouse mapping
+      float k = power * 3.14159265;
+
+      // Compute bind radius according to original logic
+      float bind;
+      if(k &gt; 0.0){
+        bind = length(m);                 // stick to corners for fisheye
+      } else if(k &lt; 0.0){
+        bind = (prop &lt; 1.0) ? m.x : m.y; // borders when anti‑fisheye
+      } else {
+        bind = 1.0; // not used when k == 0
+      }
+
+      vec2 uv2;
+      if(k &gt; 0.0){
+        // fisheye
+        uv2 = m + normalize(d) * tan(r * k) * bind / tan(bind * k);
+      } else if(k &lt; 0.0){
+        // anti‑fisheye (scaled by 10 like the reference)
+        float kk = -k * 10.0;
+        uv2 = m + normalize(d) * atan(r * kk) * bind / atan(kk * bind);
+      } else {
+        uv2 = uvWork; // no effect
+      }
+
+      // Undo aspect correction for sampling
+      if(aspectMode != 0){
+        uv2 = vec2(uv2.x, uv2.y * prop);
+      }
+
+      // Sample with clamping at edges
+      vec4 src = texture2DCv(inputImg.texture, clamp(uv2, 0.0, 1.0));
+
+      // Preserve original alpha and allow overall alpha control
+      float a = src.a * alpha;
+      gl_FragColor = vec4(src.rgb, 1.0) * a;
+    }
+  </shader>
+
+</effect>

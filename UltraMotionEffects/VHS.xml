@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vhs" name="VHS" desc="Emulates VHS tape playback: separate luma/chroma bandwidth reduction, unsharp masking, tracking and wave warp, bottom-edge tearing, animated grain, noise lines, and a vignette. Includes levels, saturation, and shadow tint controls." category="other" thumb="thumb/Stylize/VHS.webp" tags="vhs,retro,noise,interlace,distort">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="lumaShrink" default="0.50" min="0.05" max="1.00" step="0.01" label="Luma Shrink Ratio" />
+    <slider id="chromaShrink" default="0.03125" min="0.01" max="0.25" step="0.001" label="Chroma Shrink Ratio" />
+
+    
+    <slider id="unsharpAmount" default="2.00" min="0.00" max="4.00" step="0.01" label="Amount" />
+    <slider id="unsharpRadius" default="2.00" min="0.50" max="10.00" step="0.10" label="Radius (px)" />
+    <slider id="unsharpThreshold" default="0.00" min="0.00" max="0.50" step="0.01" label="Threshold" />
+
+    
+    <slider id="blackLevel" default="0.10" min="0.00" max="1.00" step="0.01" label="Black Level" />
+    <slider id="whiteLevel" default="0.90" min="0.00" max="1.00" step="0.01" label="White Level" />
+    <slider id="saturation" default="0.75" min="0.00" max="2.00" step="0.01" label="Saturation" />
+    <color id="shadowTint" default="#B300E6" label="Shadow Tint" alpha="false" />
+
+    
+    <slider id="sourceFps" default="30.0" min="1.0" max="120.0" step="1.0" label="Source FPS" />
+    <slider id="lineHeight" default="2.0" min="1.0" max="10.0" step="0.5" label="Interlace Line Height" />
+    <slider id="noiseGrain" default="4.0" min="1.0" max="16.0" step="1.0" label="Noise Grain Size" />
+    <slider id="noiseBlend" default="0.05" min="0.00" max="0.50" step="0.01" label="Noise Blend" />
+
+    
+    <slider id="trackingSpeed" default="8.0" min="0.5" max="20.0" step="0.5" label="Tracking Speed" />
+    <slider id="trackingOffset" default="8.0" min="0.0" max="40.0" step="0.5" label="Tracking Offset" />
+    <slider id="trackingJitter" default="20.0" min="0.0" max="60.0" step="0.5" label="Tracking Jitter" />
+    <slider id="waveFreq" default="70.0" min="1.0" max="140.0" step="1.0" label="Wave Frequency" />
+    <slider id="waveOffset" default="1.0" min="0.0" max="10.0" step="0.1" label="Wave Offset" />
+    <slider id="bottomWarpH" default="15.0" min="0.0" max="100.0" step="0.5" label="Bottom Warp Height" />
+    <slider id="bottomWarpOff" default="100.0" min="0.0" max="200.0" step="1.0" label="Bottom Warp Offset" />
+    <slider id="bottomWarpJit" default="50.0" min="0.0" max="100.0" step="1.0" label="Bottom Warp Jitter" />
+    <slider id="noiseLineThick" default="6.0" min="1.0" max="20.0" step="1.0" label="Noise Line Thickness" />
+    <slider id="noiseLineOpac" default="0.30" min="0.00" max="1.00" step="0.01" label="Noise Line Opacity" />
+
+    
+    <switch id="showOriginal" default="false" label="Show Original" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    const float PI = 3.14159265358979323846;
+    const vec3 W = vec3(0.2126, 0.7152, 0.0722);
+    float lum(vec3 c){ return dot(c, W); }
+    float lum4(vec4 c){ return dot(c.rgb, W); }
+    float gold(vec2 xy, float seed){ return fract(sin(dot(xy*seed, vec2(12.9898,78.233))) * 43758.5453); }
+    float soft(float b, float l){ return (l&lt;0.5)?(2.0*b*l + b*b*(1.0-2.0*l)):(sqrt(b)*(2.0*l-1.0)+2.0*b*(1.0-l)); }
+    vec4 soft4(vec4 base, vec4 blend){ return vec4(soft(base.r,blend.r), soft(base.g,blend.g), soft(base.b,blend.b), 1.0); }
+    vec3 clipColor(vec3 c){ float l = lum(c); float n = min(c.r, min(c.g, c.b)); float x = max(c.r, max(c.g, c.b)); if(n&lt;0.0){ c.r = l + ((c.r - l) * l) / (l - n); c.g = l + ((c.g - l) * l) / (l - n); c.b = l + ((c.b - l) * l) / (l - n); } if(x&gt;1.0){ c.r = l + ((c.r - l) * (1.0 - l)) / (x - l); c.g = l + ((c.g - l) * (1.0 - l)) / (x - l); c.b = l + ((c.b - l) * (1.0 - l)) / (x - l); } return c; }
+    vec3 setLum(vec3 c, float l){ float d = l - lum(c); c += vec3(d); return clipColor(c); }
+    vec4 blendColor(vec4 base, vec4 blend){ vec3 c = setLum(blend.rgb, lum4(base)); return vec4(c, blend.a); }
+    vec4 blendLum(vec4 base, vec4 blend){ vec3 c = setLum(base.rgb, lum4(blend)); return vec4(c, blend.a); }
+
+    vec4 sample(vec2 uv){ return texture2DCv(inputImg.texture, uv); }
+
+    vec4 shrink(vec2 fragCoord, float shrinkRatio){ float scale = 1.0/acScreenSize.x; float numBands = acScreenSize.x * shrinkRatio; float bandWidth = acScreenSize.x / numBands; float t = mod(fragCoord.x, bandWidth) / bandWidth; vec2 uv = fragCoord / acScreenSize; vec4 a = sample(uv); uv.x += bandWidth * scale; vec4 b = sample(uv); return mix(a, b, t); }
+
+    vec4 gaussianBlur(vec2 uv, float radius){ vec2 s = 1.0 / acScreenSize; float r = max(radius, 0.5); vec4 c = vec4(0.0); float wsum = 0.0; for(int j=-4;j&lt;=4;j++){ for(int i=-4;i&lt;=4;i++){ float dx=float(i), dy=float(j); float w = exp(-(dx*dx+dy*dy)/(2.0*r*r)); c += sample(uv + vec2(dx*s.x, dy*s.y)) * w; wsum += w; } } return c/wsum; }
+
+    vec2 trackingUV(float speed, float offset, float jitter, vec2 fragCoord){ float t = 1.0 - mod(acTime, speed)/speed; float start = mod(t*acScreenSize.y, acScreenSize.y); float j = gold(vec2(5000.0,5000.0), 10.0 + fract(acTime)) * jitter; start += j; vec2 uv; if(fragCoord.y &gt; start) uv = (fragCoord + vec2(offset,0.0))/acScreenSize; else uv = fragCoord/acScreenSize; return uv; }
+    vec2 waveUV(float freq, float offset, vec2 fragCoord, vec2 uv){ float phase = floor(fragCoord.y / (acScreenSize.y / freq)); float onm = gold(vec2(1.0 + phase, phase), 10.0); float off = sin((uv.y + fract(acTime*0.05)) * PI * 2.0 * freq) * ((offset * onm) / acScreenSize.x); return uv + vec2(off, 0.0); }
+    vec4 warpBottom(float height, float offset, float jitter, vec2 uv){ float h = height / acScreenSize.y; if(uv.y &gt; h) return sample(uv); float t = uv.y / h; float off = t * (offset / acScreenSize.x); float j = (gold(vec2(500.0,500.0), fract(acTime)) * jitter) / acScreenSize.x; vec2 u = vec2(uv.x - off - j, uv.y); vec4 px = sample(u); return px * t; }
+    vec4 whiteNoise(float thick, float opac, vec4 px, vec2 fragCoord){ if(gold(vec2(600.0,500.0), fract(acTime) * 10.0) &gt; 0.97){ float start = floor(gold(vec2(800.0,50.0), fract(acTime)) * acScreenSize.y); float endv = floor(start + thick); if(floor(fragCoord.y) &gt;= start &amp;&amp; floor(fragCoord.y) &lt; endv){ float freq = gold(vec2(850.0,50.0), fract(acTime)) * 3.0 + 1.0; float off = gold(vec2(900.0,51.0), fract(acTime)); float x = floor(fragCoord.x) / floor(acScreenSize.x) + off; float w = pow(cos(PI * fract(x * freq) / 2.0), 10.0) * opac; float grit = gold(vec2(floor(fragCoord.x / 3.0), 800.0), fract(acTime)); w = max(w - grit * 0.3, 0.0); return px + w; } } return px; }
+
+    void main(){
+      if (showOriginal) { vec4 o = sample(acScreenNorm); gl_FragColor = o; return; }
+      vec2 fragCoord = acScreenNorm * acScreenSize;
+      vec2 uv = trackingUV(trackingSpeed, trackingOffset, trackingJitter, fragCoord);
+      uv = waveUV(waveFreq, waveOffset, fragCoord, uv);
+      vec4 luma = shrink(fragCoord, lumaShrink);
+      luma = blendLum(vec4(0.5,0.5,0.5,1.0), luma);
+      vec4 chroma = shrink(fragCoord, chromaShrink);
+      chroma = blendColor(luma, chroma);
+      vec4 pre = chroma;
+      vec4 blur = gaussianBlur(uv, unsharpRadius);
+      float ld = abs(lum4(pre) - lum4(blur));
+      vec4 pixel = pre;
+      if (ld &gt;= unsharpThreshold) pixel = pre + (pre - blur) * unsharpAmount;
+      pixel = mix(pixel, vec4(1.0), blackLevel);
+      pixel = mix(pixel, vec4(0.0,0.0,0.0,1.0), 1.0 - whiteLevel);
+      vec3 inten = vec3(dot(pixel.rgb, W));
+      pixel = vec4(mix(inten, pixel.rgb, saturation), 1.0);
+      vec3 st = shadowTint.rgb;
+      float powr = 1.5;
+      if (st.r &gt; 0.0) pixel.r = mix(pixel.r, 1.0 - pow(abs(pixel.r - 1.0), powr), st.r);
+      if (st.g &gt; 0.0) pixel.g = mix(pixel.g, 1.0 - pow(abs(pixel.g - 1.0), powr), st.g);
+      if (st.b &gt; 0.0) pixel.b = mix(pixel.b, 1.0 - pow(abs(pixel.b - 1.0), powr), st.b);
+      float fps = sourceFps;
+      bool updateOdd = mod(floor(fract(acTime) * fps), 2.0) &lt; 1.0;
+      bool oddLine = mod(floor(fragCoord.y), 2.0 * lineHeight) &gt;= lineHeight;
+      vec4 noisePx = pixel;
+      if ((oddLine &amp;&amp; updateOdd) || (!oddLine &amp;&amp; !updateOdd)) noisePx = pixel; else noisePx = pixel;
+      float grainSize = max(1.0, noiseGrain);
+      float seed = fps &gt; 0.0 ? floor(fract(acTime) * fps) / fps : acTime;
+      vec2 uvNoise = fragCoord / acScreenSize;
+      vec4 grain;
+      if (grainSize &gt; 1.0){ uvNoise.x = floor(fragCoord.x / grainSize) / acScreenSize.x; uvNoise.y = floor(fragCoord.y / grainSize) / acScreenSize.y; }
+      float r = gold(uvNoise * (seed + 1.0), 1.0);
+      float g = r;
+      float b = r;
+      grain = vec4(r,g,b,1.0);
+      noisePx = soft4(noisePx, grain) * noiseBlend + noisePx * (1.0 - noiseBlend);
+      vec4 warped = warpBottom(bottomWarpH, bottomWarpOff, bottomWarpJit, uv);
+      vec4 outPx = noisePx;
+      outPx = whiteNoise(noiseLineThick, noiseLineOpac, outPx, fragCoord);
+      float vign = pow(uv.x * (1.0 - uv.x) * uv.y * (1.0 - uv.y), 0.25) * 2.2;
+      outPx *= vign;
+      gl_FragColor = outPx;
+    }
+  </shader>
+
+</effect>

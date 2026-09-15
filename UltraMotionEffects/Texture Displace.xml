@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.shadertoy_dualtexture_displace" name="Texture Displace" desc="Displaces the layer's pixels using a map image: two selectable channels (R/G, R/B, or G/B) of a second texture or the layer below drive the X/Y offset, scaled by Map Amount. Edge handling offers clamp or repeat plus an out-of-bounds feather." category="warp" tags="displace,shadertoy,dualtexture,raster" thumb="thumb/Distort and Warp/Texture Displace.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="mapImg" srcType="content" />
+        <texture id="mapComp" srcType="comp" />
+
+        
+        <slider id="offsetX" default="0.033" min="-3.0" max="3.0" step="0.001" label="Offset X" />
+        <slider id="offsetY" default="-0.016" min="-3.0" max="3.0" step="0.001" label="Offset Y" />
+        <slider id="mapAmount" default="0.172" min="-2.0" max="2.0" step="0.001" label="Map Amount" />
+
+        <switch id="useLayerBelow" default="true" label="Use Layer Below as Map" />
+
+        <menu id="channelPair" default="1" style="dropdown" label="Channels for X/Y">
+            <menu label="R / G" value="0" />
+            <menu label="R / B" value="1" />
+            <menu label="G / B" value="2" />
+        </menu>
+
+        <menu id="edgeMode" default="0" style="dropdown" label="Edge Mode">
+            <menu label="Clamp" value="0" />
+            <menu label="Repeat" value="1" />
+        </menu>
+        <slider id="edgeFeather" default="0.0" min="0.0" max="0.25" step="0.001" label="Edge Feather" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        vec2 wrapUV(vec2 p) {
+            // edgeMode: 0 clamp, 1 repeat
+            if (edgeMode == 0) {
+                return clamp(p, 0.0, 1.0);
+            } else {
+                return fract(p);
+            }
+        }
+
+        vec2 pickChannels(vec4 c) {
+            // channelPair: 0 RG, 1 RB, 2 GB
+            if (channelPair == 0) {
+                return c.rg;
+            } else if (channelPair == 1) {
+                return c.rb;
+            } else {
+                return c.gb;
+            }
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm; // 0..1
+
+            // choose map source
+            vec4 jc = useLayerBelow ? texture2DCv(mapComp.texture, uv)
+                                    : texture2DCv(mapImg.texture, uv);
+
+            // Shadertoy-like offset
+            uv -= vec2(offsetX, offsetY);
+
+            // Channel routing and amount
+            vec2 disp = pickChannels(jc) * mapAmount;
+            vec2 dispUV = uv + disp;
+
+            // Wrapped/clamped displaced sample
+            vec2 sampleUV = wrapUV(dispUV);
+            vec4 displacedCol = texture2DCv(inputImg.texture, sampleUV);
+
+            // Edge feather: blend toward clamped sample when going out-of-bounds
+            vec2 overNeg = max(-dispUV, vec2(0.0));
+            vec2 overPos = max(dispUV - vec2(1.0), vec2(0.0));
+            float o = max(max(overNeg.x, overNeg.y), max(overPos.x, overPos.y));
+
+            vec2 clampUV = clamp(dispUV, 0.0, 1.0);
+            vec4 clampCol = texture2DCv(inputImg.texture, clampUV);
+
+            float feather = edgeFeather; // 0..0.25 in UV space
+            float m = feather &gt; 0.0 ? smoothstep(0.0, feather, o) : 0.0;
+            vec4 col = mix(displacedCol, clampCol, m);
+
+            gl_FragColor = col;
+        }
+    </shader>
+
+</effect>

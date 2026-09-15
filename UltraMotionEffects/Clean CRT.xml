@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cleancrt" name="Clean CRT" desc="Adds animated CRT-style scanline brightness waves and a slow vertical drift to the layer. Controls for wave intensity, line speed, line amount, and blend mode." category="other" tags="procedural" thumb="thumb/Stylize/Clean CRT.webp" experimental="false">
+
+    <params>
+        
+        <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="ITS" label="Intensity" default="0.03" min="-10.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPD" label="Speed Lines" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="AMT" label="Amount" default="180.0" min="0.0" max="200.0" step="1" type="percent" />
+        <slider id="alpha" default="1.0" min="0.0" max="2.0" step="0.01" label="Alpha" type="percent" />
+        
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <menu id="blendMode" style="radio" default="3">
+            <menu label="NORMAL" value="0" />
+            <menu label="LAYER" value="3" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec3 iMouse = vec3(0.5, 0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+        
+        vec2 umefx;
+        umefx = acScreenNorm.st; 
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+             vec2 uv = umefx;
+             vec2 c_uv = uv - 0.5;
+             vec2 t_uv = uv;
+             
+             t_uv.y += mod(uv.y*0.005+iTime*0.001, 0.005)-.0;
+             // t_uv.y += mod(uv.y*0.005+iTime*0.001, 0.005)-.01;
+             
+             float intensity = ITS;
+             float waves = sin((uv.y+iTime/ (16.0 - SPD))*AMT)*intensity + (1.-intensity);
+             // float waves = sin((uv.y+iTime/SPD)*AMT)*intensity + (1.-intensity);
+         
+             vec3 col = texture2DCv(inputImg.texture,t_uv).rgb;
+             col *= vec3(waves);
+             
+             fragColor = vec4(col,1.0);
+        
+    	    vec4 factor = mix(texColorX,fragColor,alpha);
+
+        vec4 resultfinal;
+          if( blendMode==0 ) { resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bcc_led" name="LED Grid" desc="Samples the layer on a configurable grid and renders each cell as a circular or square LED dot. Includes tint, per-cell random flicker, glow ring, antialias, and brightness controls; preserves source alpha." category="drawingedge" thumb="thumb/Stylize/LED Grid.webp" tags="led,grid,stylize" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="ledSizeX" default="80.0" min="4.0" max="500.0" step="1.0" label="LED Size X (columns)" />
+    <slider id="ledSizeY" default="45.0" min="4.0" max="500.0" step="1.0" label="LED Size Y (rows)" />
+    <slider id="dotSize" default="0.43" min="0.05" max="0.8" step="0.001" label="Dot Size" />
+    <slider id="antialias" default="0.02" min="0.0" max="0.1" step="0.0005" label="Antialias" />
+    <menu id="ledShape" style="dropdown" default="0" label="LED Shape">
+      <menu label="Circle" value="0" />
+      <menu label="Square" value="1" />
+    </menu>
+
+    
+    <color id="tintColor" default="#FFFFFFFF" label="Tint Color" alpha="false" />
+    <slider id="tintAmount" default="0.0" min="0.0" max="1.0" step="0.01" label="Tint Amount" />
+
+    
+    <slider id="flickerSpeed" default="2.0" min="0.0" max="60.0" step="0.01" label="Flicker Speed (Hz)" />
+    <slider id="flickerAmount" default="0.2" min="0.0" max="1.0" step="0.01" label="Flicker Amount" />
+
+    
+    <slider id="glowAlpha" default="0.0" min="0.0" max="1.0" step="0.01" label="Glow Alpha" />
+    <slider id="glowSize" default="0.15" min="0.0" max="0.5" step="0.001" label="Glow Size" />
+    <slider id="glowBrightness" default="0.6" min="0.0" max="3.0" step="0.01" label="Glow Brightness" />
+
+    
+    <slider id="brightness" default="1.0" min="0.0" max="3.0" step="0.01" label="Brightness" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec2 getResolution(){
+      vec2 s = getTexSize(inputImg.size);
+      if (s.x &lt;= 0.0 || s.y &lt;= 0.0) s = vec2(1920.0, 1080.0);
+      return s;
+    }
+    float rand(vec2 co){ return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
+
+    void main(){
+      vec2 res = getResolution();
+      vec2 fragCoord = acScreenNorm * res;
+      vec2 uv = acScreenNorm;
+
+      float cellW = res.x / max(ledSizeX, 1.0);
+      float cellH = res.y / max(ledSizeY, 1.0);
+      vec2 cellSize = vec2(cellW, cellH);
+
+      vec2 cellIndex = floor(fragCoord / cellSize);
+      vec2 cellCenterPos = (cellIndex + 0.5) * cellSize;
+      vec2 cellUVn = (fragCoord - cellCenterPos) / cellSize;
+
+      vec2 textureUV = cellCenterPos / res;
+
+      // ── KEY FIX: sample full RGBA so we keep the PNG alpha ──
+      vec4 baseSample = texture2DCv(inputImg.texture, textureUV);
+      float srcAlpha = baseSample.a;                        // PNG transparency
+      vec3 baseCol = baseSample.rgb;
+      baseCol = mix(baseCol, tintColor.rgb, tintAmount);
+
+      float tBlock = floor(acTime * max(flickerSpeed, 0.0));
+      float flickerRnd = rand(cellIndex + vec2(tBlock, tBlock*0.37));
+      float flicker = mix(1.0 - flickerAmount, 1.0, flickerRnd);
+
+      float dMask;
+      if (int(ledShape) == 0){
+        float dist = length(cellUVn);
+        dMask = smoothstep(dotSize, dotSize - antialias, dist);
+      } else {
+        float m = max(abs(cellUVn.x), abs(cellUVn.y));
+        dMask = smoothstep(dotSize, dotSize - antialias, m);
+      }
+
+      float glowMask;
+      if (int(ledShape) == 0){
+        float dist = length(cellUVn);
+        glowMask = smoothstep(dotSize + glowSize, dotSize + glowSize - antialias, dist);
+      } else {
+        float m = max(abs(cellUVn.x), abs(cellUVn.y));
+        glowMask = smoothstep(dotSize + glowSize, dotSize + glowSize - antialias, m);
+      }
+
+      vec3 col = baseCol * dMask * flicker;
+      col += baseCol * glowBrightness * glowMask * glowAlpha;
+      col *= brightness;
+
+      // ── Multiply LED mask by the source PNG alpha ──
+      float outA = max(dMask, glowAlpha * glowMask) * srcAlpha;
+      gl_FragColor = vec4(col * srcAlpha, outA);
+    }
+  </shader>
+
+</effect>

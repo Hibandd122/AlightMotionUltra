@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.rounded_edge_mask" name="Rounded Edge Mask" desc="Smooth rounded mask that follows the layer edges and moves with the layer" category="warp" tags="mask,round,smooth,edge,border,vignette,frame" thumb="thumb/Matte and Mask/Rounded Edge Mask.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="radius" default="0.15" min="0.0" max="1.0" step="0.005" label="Corner Radius" />
+        <slider id="feather" default="0.08" min="0.0" max="1.0" step="0.005" label="Feather (Softness)" />
+        <slider id="scaleX" default="1.0" min="0.01" max="2.0" step="0.01" label="Scale X" />
+        <slider id="scaleY" default="1.0" min="0.01" max="2.0" step="0.01" label="Scale Y" />
+        <slider id="offsetX" default="0.0" min="-1.0" max="1.0" step="0.005" label="Offset X" />
+        <slider id="offsetY" default="0.0" min="-1.0" max="1.0" step="0.005" label="Offset Y" />
+
+        
+        <switch id="invert" default="false" label="Invert Mask" />
+        <slider id="opacity" default="1.0" min="0.0" max="1.0" step="0.01" label="Mask Opacity" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+
+        // Signed distance function for a rounded rectangle
+        // b = half-extents, r = corner radius
+        float sdRoundedBox(vec2 p, vec2 b, float r) {
+            vec2 q = abs(p) - b + r;
+            return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+        }
+
+        void main() {
+            // acLayerNorm is 0..1 within the layer, centered on the layer
+            // This makes the mask follow the layer exactly as it moves/scales/rotates
+            vec2 uv = acLayerNorm;
+
+            // Remap to -0.5 .. 0.5, then apply user offset
+            vec2 p = uv - 0.5 - vec2(offsetX, offsetY) * 0.5;
+
+            // Apply aspect-correct scale
+            // acLayerSize gives the layer pixel size so we can correct aspect
+            float aspect = acLayerSize.x / acLayerSize.y;
+            p.x *= aspect;
+
+            // Half extents of the box (aspect corrected)
+            vec2 halfExtents = vec2(0.5 * scaleX * aspect, 0.5 * scaleY);
+
+            // Corner radius in same space
+            float r = radius * min(halfExtents.x, halfExtents.y);
+
+            // SDF distance — negative = inside, positive = outside
+            float dist = sdRoundedBox(p, halfExtents - r, r);
+
+            // Feather: transition band in layer-space units
+            float featherSize = feather * min(halfExtents.x, halfExtents.y) * 0.5;
+            featherSize = max(featherSize, 0.0001);
+
+            // mask = 1 inside, 0 outside, smooth transition
+            float mask = 1.0 - smoothstep(-featherSize, featherSize, dist);
+
+            if (invert) mask = 1.0 - mask;
+
+            mask *= opacity;
+
+            vec4 col = texture2DCv(inputImg.texture, acScreenNorm);
+            gl_FragColor = vec4(col.rgb * mask, col.a * mask);
+        }
+
+    </shader>
+</effect>

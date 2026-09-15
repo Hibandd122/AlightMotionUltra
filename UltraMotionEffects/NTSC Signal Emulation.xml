@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.insane_signal" name="NTSC Signal Emulation" desc="Emulates an NTSC/VHS composite video signal: luma/chroma are encoded onto a subcarrier and demodulated with per-scanline phase error, producing rainbow crosstalk, dot crawl, luma smear, head-switching tear, tracking noise, snow, and interlace artifacts. Grouped controls cover signal filtering, noise, head switching, and tracking." category="other" tags="vhs,ntsc,signal,glitch,analog,retro" thumb="thumb/Distort and Warp/NTSC Signal Emulation.webp" overdraw="true" max-overdraw="1.0">
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    
+    <slider id="randomSeed" default="0" min="0" max="1000" step="1" label="Random Seed" />
+    <menu id="useField" style="dropdown" default="0" label="Use Field">
+      <menu value="0" label="Interleaved (upper first)" />
+      <menu value="1" label="Interleaved (lower first)" />
+      <menu value="2" label="Both" />
+      <menu value="3" label="None" />
+    </menu>
+    <menu id="lowpassType" style="dropdown" default="1" label="Lowpass Filter Type">
+      <menu value="0" label="Constant K (smoother)" />
+      <menu value="1" label="Butterworth (sharper)" />
+      <menu value="2" label="None" />
+    </menu>
+    <menu id="inputLuma" style="dropdown" default="1" label="Input Luma Filter">
+      <menu value="0" label="None" />
+      <menu value="1" label="Notch" />
+      <menu value="2" label="Box" />
+    </menu>
+    <menu id="chromaLowpassIn" style="dropdown" default="2" label="Chroma Low-pass In">
+      <menu value="0" label="None" />
+      <menu value="1" label="Light" />
+      <menu value="2" label="Full" />
+    </menu>
+    <slider id="compositeSharpen" default="1.0" min="-1.0" max="5.0" step="0.05" label="Composite Signal Sharpening" />
+    <slider id="chromaGain" default="1.6" min="0.0" max="6.0" step="0.05" label="Chroma Gain (Rainbow)" />
+    <slider id="subcarrier" default="1.70" min="0.20" max="3.14" step="0.01" label="Subcarrier Freq" />
+
+    
+    
+    <switch id="noiseEnabled" default="true" label="Enabled" />
+    <slider id="noiseIntensity" default="0.5" min="0.0" max="1.0" step="0.01" label="Intensity" type="percent" />
+    <slider id="noiseFrequency" default="0.5" min="0.0" max="1.0" step="0.01" label="Frequency" />
+    <slider id="noiseDetail" type="integer" default="1" min="0" max="5" step="1" ticks="6" label="Detail" />
+
+    
+    
+    <slider id="snow" default="0.01" min="0.0" max="100.0" step="0.01" label="Snow" />
+    <slider id="snowAnisotropy" default="0.5" min="0.0" max="1.0" step="0.01" label="Snow Anisotropy" type="percent" />
+    <menu id="scanlinePhaseShift" style="dropdown" default="2" label="Scanline Phase Shift">
+      <menu value="0" label="0 degrees" />
+      <menu value="1" label="90 degrees" />
+      <menu value="2" label="180 degrees" />
+      <menu value="3" label="270 degrees" />
+    </menu>
+    <slider id="scanlinePhaseOffset" type="integer" default="0" min="0" max="3" step="1" ticks="4" label="Scanline Phase Shift Offset" />
+    <menu id="chromaDemod" style="dropdown" default="1" label="Chroma Demodulation Filter">
+      <menu value="0" label="Box" />
+      <menu value="1" label="Notch" />
+      <menu value="2" label="1-line comb" />
+      <menu value="3" label="2-line comb" />
+    </menu>
+    <slider id="lumaSmear" default="0.5" min="0.0" max="1.0" step="0.01" label="Luma Smear" />
+
+    
+    
+    <switch id="headEnabled" default="true" label="Enabled" />
+    <slider id="headHeight" default="6.0" min="0.0" max="100.0" step="1.0" label="Height" />
+    <slider id="headOffset" default="3.0" min="0.0" max="100.0" step="1.0" label="Offset" />
+    <slider id="headHShift" default="72.0" min="-200.0" max="200.0" step="1.0" label="Horizontal Shift" />
+    <switch id="midLineEnabled" default="true" label="Start Mid-line" />
+    <slider id="midLinePosition" default="0.91" min="0.0" max="1.0" step="0.01" label="Position" type="percent" />
+    <slider id="midLineJitter" default="0.299" min="0.0" max="1.0" step="0.01" label="Jitter" type="percent" />
+
+    
+    
+    <slider id="trackingHeight" default="24.0" min="0.0" max="200.0" step="1.0" label="Height" />
+    <slider id="trackingWaveIntensity" default="5.0" min="-50.0" max="50.0" step="0.5" label="Wave Intensity" />
+    <slider id="trackingSnow" default="0.5" min="0.0" max="1.0" step="0.01" label="Snow Intensity" type="percent" />
+    <slider id="trackingNoise" default="0.5" min="0.0" max="1.0" step="0.01" label="Noise Intensity" type="percent" />
+
+    
+    
+    <slider id="intensity" default="1.0" min="0.0" max="1.0" step="0.01" label="Intensity" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    #define PI 3.14159265359
+
+    float h11(float p){
+        p = fract(p * 0.1031);
+        p *= p + 33.33;
+        p *= p + p;
+        return fract(p);
+    }
+    float h21(vec2 p){
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    vec3 rgb2yiq(vec3 c){
+        float y = dot(c, vec3(0.299, 0.587, 0.114));
+        float i = dot(c, vec3(0.595716, -0.274453, -0.321263));
+        float q = dot(c, vec3(0.211456, -0.522591, 0.311135));
+        return vec3(y, i, q);
+    }
+    vec3 yiq2rgb(vec3 c){
+        float r = c.x + 0.9563 * c.y + 0.6210 * c.z;
+        float g = c.x - 0.2721 * c.y - 0.6474 * c.z;
+        float b = c.x - 1.1070 * c.y + 1.7046 * c.z;
+        return vec3(r, g, b);
+    }
+    vec3 sampleYIQ(vec2 uv){
+        return rgb2yiq(texture2DCv(inputImg.texture, clamp(uv, 0.001, 0.999)).rgb);
+    }
+
+    void main(){
+        vec2 res = acScreenSize;
+        vec2 uv  = acScreenNorm;
+        float line = floor(uv.y * res.y);
+        float seed = randomSeed * 0.137 + 1.0;
+        float t    = acTime;
+        float invW = 1.0 / res.x;
+        float invH = 1.0 / res.y;
+        float linesFromBottom = res.y - line;
+
+        // ================= geometric displacement =================
+        float xshift = 0.0;
+
+        // ---- head switching (tear at the bottom) ----
+        if(headEnabled){
+            float hsTop    = headOffset;
+            float hsBottom = headOffset + headHeight;
+            if(linesFromBottom &gt; hsTop &amp;&amp; linesFromBottom &lt;= hsBottom){
+                float f  = (linesFromBottom - hsTop) / max(headHeight, 1.0);
+                float sh = (headHShift * invW) * (1.0 - f);
+                if(midLineEnabled){
+                    float jit = (h21(vec2(line, seed)) - 0.5) * midLineJitter;
+                    float pos = clamp(midLinePosition + jit, 0.0, 1.0);
+                    if(uv.x &gt; pos) xshift += sh;
+                } else {
+                    xshift += sh;
+                }
+            }
+        }
+
+        // ---- tracking noise band (wavy displacement) ----
+        float tnActive = 0.0;
+        if(linesFromBottom &lt;= trackingHeight &amp;&amp; trackingHeight &gt; 0.5){
+            float f = 1.0 - linesFromBottom / max(trackingHeight, 1.0);
+            tnActive = f;
+            float wav = sin(uv.y * res.y * 0.6 + t * 9.0) * (trackingWaveIntensity * invW) * f;
+            wav += (h21(vec2(line, seed + 7.0)) - 0.5) * (trackingWaveIntensity * invW) * f;
+            xshift += wav;
+        }
+
+        vec2 suv  = vec2(uv.x + xshift, uv.y);
+        float xpix = (uv.x + xshift) * res.x;
+
+        // ================= composite encode / demodulate =================
+        // The heart of the NTSC look: luma + chroma are modulated onto a
+        // subcarrier, then demodulated with a per-scanline PHASE ERROR.
+        // Sharp luma detail leaks into chroma -&gt; rainbow crosstalk.
+        float sub = subcarrier;                       // radians per pixel
+        float phaseDeg = 0.0;
+        if(scanlinePhaseShift == 1) phaseDeg = 90.0;
+        else if(scanlinePhaseShift == 2) phaseDeg = 180.0;
+        else if(scanlinePhaseShift == 3) phaseDeg = 270.0;
+        float demErr = radians(phaseDeg) * mod(line + scanlinePhaseOffset, 4.0);
+        demErr += (h21(vec2(line, seed + 3.0)) - 0.5) * 0.7;   // colorburst error per line
+        demErr += t * 0.6;                                     // slow crawl over time
+
+        float sY = 0.0, sI = 0.0, sQ = 0.0, wsum = 0.0;
+        for(int k = -6; k &lt;= 6; k++){
+            float fk = float(k);
+            vec3 s  = sampleYIQ(suv + vec2(fk * invW, 0.0));
+            float xp   = xpix + fk;
+            float encP = sub * xp;                 // encode phase (reference burst)
+            float demP = sub * xp + demErr;        // demod phase (with error)
+            float comp = s.x + s.y * cos(encP) + s.z * sin(encP);   // 1-D composite signal
+            float w = exp(-fk * fk * 0.16);
+            sY += comp * w;
+            sI += comp * cos(demP) * w;
+            sQ += comp * sin(demP) * w;
+            wsum += w;
+        }
+        float Yo = sY / wsum;
+        float Io = 2.0 * sI / wsum * chromaGain;
+        float Qo = 2.0 * sQ / wsum * chromaGain;
+        vec3 yiq = vec3(Yo, Io, Qo);
+
+        // ---- chroma demodulation filter (post separation) ----
+        if(chromaDemod == 0){                          // Box: soften chroma horizontally
+            vec3 a = sampleYIQ(suv + vec2( invW, 0.0));
+            vec3 b = sampleYIQ(suv + vec2(-invW, 0.0));
+            yiq.y = (yiq.y + a.y * chromaGain + b.y * chromaGain) / 3.0;
+            yiq.z = (yiq.z + a.z * chromaGain + b.z * chromaGain) / 3.0;
+        } else if(chromaDemod == 2 || chromaDemod == 3){ // comb: blend chroma with line(s) above (reduces dot crawl)
+            vec3 up  = sampleYIQ(suv + vec2(0.0, invH));
+            vec3 up2 = (chromaDemod == 3) ? sampleYIQ(suv + vec2(0.0, 2.0 * invH)) : up;
+            yiq.y = mix(yiq.y, (up.y + up2.y) * 0.5 * chromaGain, 0.5);
+            yiq.z = mix(yiq.z, (up.z + up2.z) * 0.5 * chromaGain, 0.5);
+        }
+        // chromaDemod == 1 (Notch) -&gt; keep demodulated chroma as-is (most rainbow)
+
+        // ---- chroma low-pass in (horizontal blur of I/Q) ----
+        float chromaPx = 0.0;
+        if(chromaLowpassIn == 1) chromaPx = 1.5;
+        else if(chromaLowpassIn == 2) chromaPx = 2.5;
+        if(lowpassType == 1) chromaPx *= 0.7;
+        else if(lowpassType == 2) chromaPx = 0.0;
+        if(chromaPx &gt; 0.01){
+            float si = 0.0, sq = 0.0, sw = 0.0;
+            for(int k = -3; k &lt;= 3; k++){
+                float fk = float(k);
+                float xp = xpix + fk * chromaPx;
+                vec3 s = sampleYIQ(suv + vec2(fk * chromaPx * invW, 0.0));
+                float encP = sub * xp;
+                float demP = sub * xp + demErr;
+                float comp = s.x + s.y * cos(encP) + s.z * sin(encP);
+                float w = exp(-fk * fk * 0.35);
+                si += comp * cos(demP) * w;
+                sq += comp * sin(demP) * w;
+                sw += w;
+            }
+            yiq.y = 2.0 * si / sw * chromaGain;
+            yiq.z = 2.0 * sq / sw * chromaGain;
+        }
+
+        // ---- input luma filter ----
+        if(inputLuma == 2){            // Box = blur luma
+            float yl = 0.0, w = 0.0;
+            for(int k = -2; k &lt;= 2; k++){
+                float fk = float(k);
+                yl += sampleYIQ(suv + vec2(fk * invW, 0.0)).x; w += 1.0;
+            }
+            yiq.x = yl / w;
+        } else if(inputLuma == 1){     // Notch = mild sharpen
+            float yb = 0.0, w = 0.0;
+            for(int k = -2; k &lt;= 2; k++){
+                float fk = float(k);
+                yb += sampleYIQ(suv + vec2(fk * invW, 0.0)).x; w += 1.0;
+            }
+            yb /= w;
+            yiq.x += (yiq.x - yb) * 0.6;
+        }
+
+        // ---- composite signal noise ----
+        if(noiseEnabled){
+            float nfreq = mix(2.0, 40.0, noiseFrequency);
+            float n = (h21(vec2(line * 0.5 + floor(t * 60.0), seed)) - 0.5);
+            int oct = int(noiseDetail + 0.5);
+            float amp = 0.5;
+            for(int o = 0; o &lt; 5; o++){
+                if(o &gt;= oct) break;
+                float fo = float(o) + 1.0;
+                n += (h21(vec2(uv.x * res.x * (nfreq * 0.02) * fo + line, seed + fo)) - 0.5) * amp;
+                amp *= 0.6;
+            }
+            yiq.x += n * noiseIntensity * 0.6;
+        }
+
+        // ---- luma smear (rightward echo / ringing) ----
+        if(lumaSmear &gt; 0.001){
+            float sm = lumaSmear * 10.0 * invW;
+            float yl = sampleYIQ(suv - vec2(sm, 0.0)).x;
+            yiq.x = mix(yiq.x, max(yiq.x, yl * 0.95), lumaSmear);
+        }
+
+        // ---- composite signal sharpening ----
+        if(abs(compositeSharpen) &gt; 0.001){
+            float yb = 0.0, w = 0.0;
+            for(int k = -2; k &lt;= 2; k++){
+                float fk = float(k);
+                yb += sampleYIQ(suv + vec2(fk * invW, 0.0)).x; w += 1.0;
+            }
+            yb /= w;
+            yiq.x += (yiq.x - yb) * compositeSharpen;
+        }
+
+        // ---- interlacing (Use Field) ----
+        if(useField != 3){
+            float parity = mod(line + floor(t * 50.0), 2.0);
+            if(useField == 1) parity = mod(line + 1.0 + floor(t * 50.0), 2.0);
+            if(useField != 2){
+                yiq.x *= (1.0 - 0.10 * parity);
+            }
+        }
+
+        // ---- snow speckles ----
+        if(snow &gt; 0.001){
+            float ax = floor(uv.x * res.x / mix(1.0, 6.0, snowAnisotropy));
+            float sp = h21(vec2(ax + floor(t * 120.0) * 1.3, line * 1.7 + seed));
+            float thresh = 1.0 - clamp(snow * 0.01, 0.0, 1.0);
+            if(sp &gt; thresh){
+                yiq = vec3(0.9, 0.0, 0.0);
+            }
+        }
+
+        // ---- tracking noise static (heavy at very bottom) ----
+        if(tnActive &gt; 0.001){
+            float st = h21(vec2(uv.x * res.x + floor(t * 120.0) * 1.9, line + seed + 11.0));
+            yiq.x = mix(yiq.x, st, trackingSnow * tnActive);
+            yiq.x += (st - 0.5) * trackingNoise * tnActive;
+        }
+
+        // ================= back to RGB =================
+        vec3 outc = clamp(yiq2rgb(yiq), 0.0, 1.0);
+        vec3 orig = texture2DCv(inputImg.texture, clamp(uv, 0.001, 0.999)).rgb;
+        gl_FragColor = vec4(mix(orig, outc, intensity), 1.0);
+    }
+  </shader>
+</effect>

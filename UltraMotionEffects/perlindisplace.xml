@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.perlindisplace" name="@am:string/effect_simplexdisplace_name" desc="@am:string/effect_simplexdisplace_desc" auto-transform="true" category="movetransform" thumb="thumb/simplexdisplace.webp" deprecated="true">
+
+    
+        
+            
+            
+            
+            
+            
+            
+            
+            
+        
+    
+
+    <params>
+        <slider id="freq" default="2.0" min="0.05" max="16.0" label="@am:string/effect_param_freq" />
+        <slider id="mag" default="25" min="1" max="500" label="@am:string/effect_param_mag" />
+        <slider id="seed" default="0" min="0" max="10" label="@am:string/effect_param_seed" />
+        <menu id="basis" default="0" style="radio" label="@am:string/effect_param_basis">
+            <menu label="@am:string/effect_param_time" value="0" />
+            <menu label="@am:string/effect_param_position" value="1" />
+        </menu>
+
+    </params>
+
+    
+
+</effect>

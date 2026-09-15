@@ -1,0 +1,291 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.crt_emulator" name="CRT Emulator" desc="CRT/TV screen emulation with 12 preset color styles, an RGB phosphor grid (dot or aperture-grille), scanlines, chromatic aberration, signal ghosting, glow, sharpening, glitch modes (RGB shift, wavy lines, signal roll, blocks), dark-area noise, a color signal bar, and curved TV borders with bezel." category="other" tags="retro,crt,tv,vhs,glitch,phosphor,stylize,raster" thumb="thumb/Stylize/CRT Emulator.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <menu id="style" style="dropdown" default="4" label="Style">
+      <menu label="Style 1" value="1" />
+      <menu label="Style 2" value="2" />
+      <menu label="Style 3" value="3" />
+      <menu label="Style 4" value="4" />
+      <menu label="Style 5" value="5" />
+      <menu label="Style 6" value="6" />
+      <menu label="Style 7" value="7" />
+      <menu label="Style 8" value="8" />
+      <menu label="Style 9" value="9" />
+      <menu label="Style 10" value="10" />
+      <menu label="Style 11" value="11" />
+      <menu label="Style 12" value="12" />
+    </menu>
+
+    
+    
+    <menu id="gridPattern" style="dropdown" default="1" label="Grid Pattern">
+      <menu label="Circle" value="0" />
+      <menu label="Rectangle" value="1" />
+    </menu>
+    <slider id="gridStrength" default="0.75" min="0.0" max="1.0" step="0.005" label="Grid Strength" type="percent" />
+    <slider id="gridColor" default="0.55" min="0.0" max="1.0" step="0.01" label="Phosphor Color" type="percent" />
+    <slider id="gridScale" default="1.0" min="0.3" max="3.0" step="0.01" label="Grid Scale" />
+    <slider id="scanlines" default="0.25" min="0.0" max="1.0" step="0.005" label="CRT Line" type="percent" />
+    <slider id="rgbSplit" default="0.0" min="0.0" max="3.0" step="0.01" label="RGB Split" />
+    <slider id="ghost" default="0.35" min="0.0" max="1.0" step="0.01" label="Signal Ghost" type="percent" />
+    <slider id="ghostX" default="10" min="-100" max="100" step="1" label="Ghost Offset X" />
+    <slider id="ghostY" default="0" min="-100" max="100" step="1" label="Ghost Offset Y" />
+
+    
+    
+    <switch id="colorBar" default="true" label="Color Bar" />
+    <menu id="barPosition" style="dropdown" default="0" label="Bar Position">
+      <menu label="Top" value="0" />
+      <menu label="Bottom" value="1" />
+    </menu>
+    <slider id="barHeight" default="0.04" min="0.0" max="0.25" step="0.005" label="Bar Height" type="percent" />
+
+    
+    
+    <slider id="exposureFix" default="0" min="-100" max="100" step="1" label="Exposure Fix" />
+    <slider id="noiseLevel" default="1" min="0" max="10" step="1" label="Noise Level" type="integer" ticks="0,2,4,6,8,10" />
+    <slider id="vibrance" default="0" min="-22" max="100" step="1" label="Vibrance" snap="0" ticks="0" />
+    <slider id="sharpness" default="0" min="0" max="200" step="1" label="Sharpness" />
+    <slider id="glow" default="0" min="0" max="150" step="1" label="Glow" />
+    <slider id="colorize" default="230" min="0" max="360" step="1" label="Colorize (Style 10)" />
+
+    
+    
+    <menu id="glitches" style="dropdown" default="0" label="Glitches">
+      <menu label="Off" value="0" />
+      <menu label="RGB Shift" value="1" />
+      <menu label="Wavy Lines" value="2" />
+      <menu label="Signal Roll" value="3" />
+      <menu label="Blocks" value="4" />
+    </menu>
+    <slider id="glitchAmount" default="0" min="0" max="100" step="1" label="Glitch Amount" />
+
+    
+    
+    <switch id="tvBorders" default="false" label="TV Borders" />
+    <slider id="borderCurve" default="0.16" min="0.0" max="0.6" step="0.005" label="Screen Curvature" />
+
+    
+    
+    <slider id="intensity" default="1.0" min="0.0" max="1.0" step="0.005" label="Intensity" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    #define TAU 6.28318530718
+
+    float rnd(vec2 co){
+        float dt = dot(co, vec2(12.9898, 78.233));
+        return fract(sin(mod(dt, 3.14159265)) * 43758.5453);
+    }
+    float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }
+    vec3 hsv2rgb(vec3 c){
+        vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    }
+
+    vec2 barrelWarp(vec2 uv, vec2 center, float aspect, float k){
+        vec2 d = uv - center;
+        d.x *= aspect;
+        d *= 1.0 + k * dot(d, d) * 2.0;
+        d.x /= aspect;
+        return center + d;
+    }
+
+    void main(){
+        vec2 center = acLayerCenterNorm;
+        float aspect = acScreenSize.x / acScreenSize.y;
+
+        // ---------- style colour grade ----------
+        vec3 tint = vec3(1.0);
+        vec3 glowTint = vec3(1.0);
+        float con = 1.06;       // contrast
+        float satB = 0.0;       // saturation bias
+        float brightB = 0.0;    // brightness bias
+        float styleAber = 0.006;
+        float styleGlow = 0.12; // bloom baked into the style (independent of Glow slider)
+
+        if(style == 1){ tint=vec3(1.0,1.0,1.0); con=1.05; satB=0.0; glowTint=vec3(1.0); styleAber=0.005; styleGlow=0.10; }
+        else if(style == 2){ tint=vec3(1.08,1.0,0.90); con=1.06; satB=0.06; glowTint=vec3(1.1,0.95,0.8); styleAber=0.008; styleGlow=0.14; }
+        else if(style == 3){ tint=vec3(1.0,1.0,1.0); con=1.22; satB=-0.30; glowTint=vec3(1.0); styleAber=0.004; styleGlow=0.10; }
+        else if(style == 4){ tint=vec3(0.90,1.00,1.05); con=1.10; satB=0.10; glowTint=vec3(0.6,0.9,1.0); styleAber=0.0025; styleGlow=0.30; }
+        else if(style == 5){ tint=vec3(1.0,1.0,1.0); con=1.06; satB=0.0; glowTint=vec3(1.0); styleAber=0.006; styleGlow=0.10; }
+        else if(style == 6){ tint=vec3(0.70,1.18,0.80); con=1.12; satB=0.12; glowTint=vec3(0.3,1.1,0.4); styleAber=0.006; styleGlow=0.35; }
+        else if(style == 7){ tint=vec3(1.12,0.85,1.10); con=1.10; satB=0.12; glowTint=vec3(1.1,0.4,1.0); styleAber=0.009; styleGlow=0.38; }
+        else if(style == 8){ tint=vec3(1.14,0.98,0.72); con=1.04; satB=-0.18; glowTint=vec3(1.1,0.9,0.6); styleAber=0.006; styleGlow=0.16; }
+        else if(style == 9){ tint=vec3(1.0,1.0,1.0); con=1.34; satB=0.05; glowTint=vec3(1.0); styleAber=0.006; styleGlow=0.12; }
+        else if(style == 10){ tint=vec3(0.72,1.02,1.06); con=1.12; satB=0.10; glowTint=vec3(0.4,1.05,1.05); styleAber=0.009; styleGlow=0.40; }
+        else if(style == 11){ tint=vec3(0.95,0.85,1.18); con=1.12; satB=0.10; glowTint=vec3(0.7,0.4,1.2); styleAber=0.010; styleGlow=0.40; }
+        else if(style == 12){ tint=vec3(0.92,0.96,1.06); con=1.18; satB=0.12; brightB=0.05; glowTint=vec3(1.0,0.6,1.0); styleAber=0.012; styleGlow=0.50; }
+
+        // ---------- geometry: glitches + TV border curve ----------
+        float ga = glitchAmount / 100.0;
+        vec2 suv = acScreenNorm;
+
+        if(glitches == 2){            // wavy lines
+            suv.x += ga * 0.03 * sin(acScreenNorm.y * 130.0 + acTime * 9.0);
+        } else if(glitches == 3){     // signal roll
+            suv.y = fract(suv.y - (0.15 + ga * 0.8) * acTime);
+        } else if(glitches == 4){     // block displacement
+            vec2 bc = floor(acScreenNorm * vec2(18.0, 14.0));
+            float r = rnd(bc + floor(acTime * 12.0));
+            if(r &gt; 1.0 - ga * 0.6){ suv.x += (rnd(bc + 1.7) - 0.5) * ga * 0.12; }
+        }
+
+        if(tvBorders){
+            suv = barrelWarp(suv, center, aspect, borderCurve);
+        }
+
+        // ---------- chromatic aberration (style + RGB-shift glitch) ----------
+        float aber = styleAber * rgbSplit + (glitches == 1 ? ga * 0.025 : 0.0);
+        vec2 ro = vec2(aber, 0.0);
+        vec4 orig = texture2DCv(inputImg.texture, acScreenNorm);
+        float cr_ = texture2DCv(inputImg.texture, suv + ro).r;
+        vec4  cg  = texture2DCv(inputImg.texture, suv);
+        float cb_ = texture2DCv(inputImg.texture, suv - ro).b;
+        vec4 col = vec4(cr_, cg.g, cb_, cg.a);
+
+        // ---------- signal ghost (faint horizontal echo: the CRT "double image" look) ----------
+        if(ghost &gt; 0.001){
+            vec2 goff = vec2(ghostX, ghostY) / acLayerSize;       // px offset, normalised
+            vec3 gh1 = texture2DCv(inputImg.texture, suv + goff).rgb;  // one echo (e.g. right / down)
+            vec3 gh2 = texture2DCv(inputImg.texture, suv - goff).rgb;  // mirror echo (left / up)
+            col.rgb = max(col.rgb, max(gh1, gh2) * ghost);
+        }
+
+        // ---------- sharpness (unsharp mask) ----------
+        if(sharpness &gt; 0.5){
+            float sp = 0.0016;
+            vec3 bl = texture2DCv(inputImg.texture, suv + vec2(sp,0.0)).rgb
+                    + texture2DCv(inputImg.texture, suv - vec2(sp,0.0)).rgb
+                    + texture2DCv(inputImg.texture, suv + vec2(0.0,sp)).rgb
+                    + texture2DCv(inputImg.texture, suv - vec2(0.0,sp)).rgb;
+            bl *= 0.25;
+            col.rgb += (col.rgb - bl) * (sharpness / 100.0) * 2.0;
+        }
+
+        // ---------- glow / bloom (Glow slider + built-in style bloom) ----------
+        float gl = glow / 100.0 + styleGlow;
+        if(gl &gt; 0.001){
+            float d = 0.006 + gl * 0.012;
+            vec3 b = texture2DCv(inputImg.texture, suv + vec2(d,0.0)).rgb
+                   + texture2DCv(inputImg.texture, suv - vec2(d,0.0)).rgb
+                   + texture2DCv(inputImg.texture, suv + vec2(0.0,d)).rgb
+                   + texture2DCv(inputImg.texture, suv - vec2(0.0,d)).rgb
+                   + texture2DCv(inputImg.texture, suv + vec2(d,d)*0.7).rgb
+                   + texture2DCv(inputImg.texture, suv + vec2(-d,d)*0.7).rgb;
+            b *= (1.0/6.0);
+            col.rgb += max(b - 0.50, 0.0) * glowTint * gl * 1.6;
+        }
+
+        // ---------- PHOSPHOR GRID (RGB subpixel mask: Circle = dot/LED, Rectangle = aperture grille) ----------
+        if(gridStrength &gt; 0.001){
+            // gate: structure shows across midtones, deep blacks stay clean
+            float gridAmt = mix(0.65, 1.0, smoothstep(0.0, 0.12, luma(col.rgb)));
+            float cell = max(3.0, (acLayerSize.x / 150.0) / gridScale);    // width of one RGB triad; raise Grid Scale -&gt; finer
+            float sub  = cell / 3.0;                                       // one subpixel column
+            float xpx  = acLayerNorm.x * acLayerSize.x;
+            float ypx  = acLayerNorm.y * acLayerSize.y;
+            float colIdx = floor(mod(xpx / sub, 3.0));                     // 0=R 1=G 2=B
+            vec3 rgbmask = (colIdx &lt; 0.5) ? vec3(1.0,0.0,0.0)
+                         : (colIdx &lt; 1.5) ? vec3(0.0,1.0,0.0)
+                                          : vec3(0.0,0.0,1.0);
+            rgbmask = mix(vec3(1.0), rgbmask * 3.0, gridColor);            // Phosphor Color controls subpixel saturation (avg brightness stays 1)
+            float prof;
+            if(gridPattern == 0){
+                // Circle : round RGB dots (LED screen look)
+                float dx = fract(xpx / sub) - 0.5;
+                float dy = fract(ypx / cell) - 0.5;
+                prof = 1.0 - smoothstep(0.30, 0.62, length(vec2(dx, dy)));
+                prof = 0.45 + 0.55 * prof;                                // gaps never go fully black
+            } else {
+                // Rectangle : vertical RGB stripes (true CRT aperture grille)
+                prof = 0.5 + 0.5 * cos(TAU * (fract(xpx / sub) - 0.5));
+                prof = 0.5 + 0.5 * prof;                                  // gap floor ~0.5
+            }
+            prof /= 0.75;                                                  // brightness compensation for the gaps
+            col.rgb = mix(col.rgb, col.rgb * rgbmask * prof, gridStrength * gridAmt);
+        }
+
+        // ---------- CRT LINES (horizontal scanlines, the CRT_LINE element) ----------
+        if(scanlines &gt; 0.001){
+            float sgate = smoothstep(0.05, 0.40, luma(col.rgb));
+            float spitch = max(2.0, (acLayerSize.y / 220.0) * gridScale);
+            float ypx2 = acLayerNorm.y * acLayerSize.y;
+            float sline = 0.5 + 0.5 * cos(TAU * ypx2 / spitch);   // 1 on the lit line, 0 in the gap
+            col.rgb *= 1.0 - scanlines * 0.6 * sgate * (1.0 - sline);
+            col.rgb *= 1.0 + scanlines * 0.22 * sgate;            // brightness compensation
+        }
+
+        // ---------- style tint / contrast / brightness ----------
+        col.rgb *= tint;
+        col.rgb = (col.rgb - 0.5) * con + 0.5 + brightB;
+
+        // ---------- exposure fix (base phosphor gain, trimmed by the slider) ----------
+        col.rgb *= pow(2.0, exposureFix / 100.0);
+
+        // ---------- vibrance (saturation, weighted to low-sat) ----------
+        {
+            float y = luma(col.rgb);
+            float mx = max(max(col.r,col.g),col.b);
+            float mn = min(min(col.r,col.g),col.b);
+            float curSat = mx - mn;
+            float v = vibrance / 100.0;
+            float amt = v * (1.0 - curSat * 0.7) + satB;
+            col.rgb = clamp(mix(vec3(y), col.rgb, 1.0 + amt), 0.0, 1.0);
+        }
+
+        // ---------- colorize (Style 10 exclusive hue shift) ----------
+        if(style == 10){
+            float a = colorize / 360.0 * TAU;
+            vec3 k = vec3(0.57735);
+            float cs = cos(a);
+            col.rgb = col.rgb * cs + cross(k, col.rgb) * sin(a) + k * dot(k, col.rgb) * (1.0 - cs);
+            col.rgb = clamp(col.rgb, 0.0, 1.0);
+        }
+
+        // ---------- noise / snow (static, only in the darkest portions) ----------
+        if(noiseLevel &gt; 0.5){
+            float darkGate = 1.0 - smoothstep(0.02, 0.35, luma(col.rgb));
+            float ns = (noiseLevel / 10.0) * 0.35 * darkGate;
+            vec2 np = floor(acLayerNorm * acLayerSize / 2.0);
+            float n = rnd(np + vec2(floor(acTime * 24.0)));
+            col.rgb = mix(col.rgb, vec3(n) * col.a, ns);
+        }
+
+        // ---------- COLOR SIGNAL BAR (rainbow strip, like the plugin's signal bar) ----------
+        if(colorBar &amp;&amp; barHeight &gt; 0.001){
+            float yN = acLayerNorm.y;
+            float inBar = (barPosition == 0) ? step(yN, barHeight) : step(1.0 - barHeight, yN);
+            if(inBar &gt; 0.5){
+                float hue = max(0.0, 0.667 * (1.0 - acLayerNorm.x / 0.75));  // blue -&gt; cyan -&gt; green -&gt; yellow -&gt; red
+                col.rgb = hsv2rgb(vec3(hue, 1.0, 1.0));
+            }
+        }
+
+        // ---------- TV borders (rounded bezel + vignette) ----------
+        if(tvBorders){
+            vec2 dluv = barrelWarp(acLayerNorm, vec2(0.5), aspect, borderCurve);
+            vec2 q = abs(dluv - 0.5) * 2.0;
+            float crad = 0.08;
+            vec2 dd = max(q - vec2(1.0 - crad), 0.0);
+            dd.x *= aspect;
+            float edgeMask = 1.0 - smoothstep(crad, crad + 0.02, length(dd));
+            float inside = step(0.0, dluv.x) * step(dluv.x, 1.0) * step(0.0, dluv.y) * step(dluv.y, 1.0);
+            col *= edgeMask * inside;
+            vec2 vq = (dluv - 0.5) * 2.0;
+            col.rgb *= 1.0 - 0.35 * smoothstep(0.4, 1.7, dot(vq, vq));
+        }
+
+        col.rgb = clamp(col.rgb, 0.0, 1.0);
+        gl_FragColor = mix(orig, col, intensity);
+    }
+
+  </shader>
+
+</effect>

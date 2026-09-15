@@ -1,0 +1,531 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.toji.effects.quality_enhancer" name="Quality Enhancer" desc="Seven independently switchable image-enhancement modules applied in a fixed order: bilateral denoise, deband (Bayer-dithered), chromatic aberration fix, HDR local tone expansion, Clarity (midtone local contrast), Detail Recovery (single-scale Retinex), and Texture Boost (edge-suppressed micro-contrast), followed by output gamma and opacity." category="colorlight" tags="quality,clarity,deband,denoise,hdr,texture,ca,chromatic,aberration,enhance,detail,bilateral" thumb="thumb/Color/Quality Enhancer.webp" overdraw="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+
+    
+    
+    <switch id="clarityOn" label="Clarity Enabled" default="true" />
+    <slider id="clarityAmt" label="Clarity Amount" default="0.4" min="-1.0" max="2.0" step="0.01" ticks="-1,0,0.25,0.5,1,2" />
+    <slider id="clarityRadius" label="Clarity Radius (px)" default="0.04" min="0.005" max="0.2" step="0.002" ticks="0.01,0.02,0.04,0.08,0.12" />
+    <slider id="clarityMid" label="Midtone Protection" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,0.75,1" />
+
+    
+    
+    <switch id="debandOn" label="Deband Enabled" default="false" />
+    <slider id="debandThresh" label="Band Threshold" default="0.02" min="0.001" max="0.15" step="0.001" ticks="0.005,0.01,0.02,0.05,0.1" />
+    <slider id="debandRange" label="Search Range (px)" default="0.008" min="0.001" max="0.05" step="0.001" ticks="0.002,0.005,0.01,0.02" />
+    <slider id="debandDither" label="Dither Strength" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,1" />
+    <switch id="debandEdgeSafe" label="Preserve Edges" default="true" />
+
+    
+    
+    <switch id="detailOn" label="Detail Recovery Enabled" default="true" />
+    <slider id="detailAmt" label="Detail Amount" default="0.35" min="0.0" max="2.0" step="0.01" ticks="0,0.25,0.5,1,2" />
+    <slider id="detailRadius" label="Local Radius" default="0.06" min="0.01" max="0.3" step="0.005" ticks="0.02,0.04,0.06,0.1,0.2" />
+    <slider id="detailShadow" label="Shadow Lift" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,1" />
+    <slider id="detailHighlight" label="Highlight Recover" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,1" />
+
+    
+    
+    <switch id="caOn" label="CA Fix Enabled" default="false" />
+    <slider id="caStrength" label="CA Fix Strength" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,0.75,1" />
+    <slider id="caRadius" label="CA Radius (px)" default="0.002" min="0.0" max="0.02" step="0.0002" ticks="0.001,0.002,0.005,0.01" />
+    <menu id="caMode" default="0" style="dropdown" label="CA Mode">
+      <menu label="Radial (lens-style)" value="0" />
+      <menu label="Horizontal (H split)" value="1" />
+      <menu label="Vertical (V split)" value="2" />
+    </menu>
+
+    
+    
+    <switch id="denoiseOn" label="Denoise Enabled" default="false" />
+    <slider id="denoiseStrength" label="Denoise Strength" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,0.75,1" />
+    <slider id="denoiseSpatial" label="Spatial Sigma (px)" default="0.012" min="0.002" max="0.06" step="0.001" ticks="0.004,0.008,0.012,0.02,0.04" />
+    <slider id="denoiseColor" label="Color Sigma" default="0.12" min="0.01" max="0.5" step="0.005" ticks="0.05,0.1,0.15,0.2,0.3" />
+    <menu id="denoiseMode" default="0" style="dropdown" label="Denoise Mode">
+      <menu label="All Channels (RGB)" value="0" />
+      <menu label="Luma Only" value="1" />
+      <menu label="Chroma Only" value="2" />
+    </menu>
+
+    
+    
+    <switch id="hdrOn" label="HDR Enabled" default="false" />
+    <slider id="hdrAmt" label="HDR Amount" default="0.4" min="0.0" max="2.0" step="0.01" ticks="0,0.25,0.5,1,2" />
+    <slider id="hdrShadow" label="Shadow Detail" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,0.75,1" />
+    <slider id="hdrHighlight" label="Highlight Detail" default="0.5" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,0.75,1" />
+    <slider id="hdrLocalRadius" label="Local Radius" default="0.1" min="0.01" max="0.4" step="0.005" ticks="0.02,0.05,0.1,0.2,0.4" />
+    <switch id="hdrColorSafe" label="Preserve Saturation" default="true" />
+
+    
+    
+    <switch id="texBoostOn" label="Texture Boost Enabled" default="false" />
+    <slider id="texBoostAmt" label="Texture Amount" default="0.5" min="0.0" max="3.0" step="0.05" ticks="0,0.5,1,1.5,2,3" />
+    <slider id="texBoostScale" label="Texture Scale (px)" default="0.008" min="0.001" max="0.05" step="0.001" ticks="0.003,0.005,0.008,0.015,0.03" />
+    <slider id="texBoostEdgeSup" label="Edge Suppression" default="0.6" min="0.0" max="1.0" step="0.01" ticks="0,0.25,0.5,0.75,1" />
+
+    
+    
+    <slider id="outputGamma" label="Output Gamma" default="1.0" min="0.5" max="2.2" step="0.01" ticks="1.0,1.4,1.8,2.2" />
+    <slider id="alpha" label="Alpha" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+  </params>
+
+  <shader type="fragment">
+
+    // ═══════════════════════════════════════════════════════════════
+    //  QUALITY ENHANCER  —  GLSL ES 1.00
+    //  7 non-sharpening quality improvement techniques
+    //
+    //  FUNCTION ORDER (all defined before first use):
+    //   1.  Color space helpers (rgb↔yuv, luma)
+    //   2.  Sampling helpers
+    //   3.  Blur helpers (box3, box5, gaussian3)
+    //   4.  Hash / dither noise
+    //   5.  Module: Clarity
+    //   6.  Module: Deband
+    //   7.  Module: Detail Recovery (Retinex)
+    //   8.  Module: CA Fix
+    //   9.  Module: Bilateral Denoise
+    //  10.  Module: HDR Expansion
+    //  11.  Module: Texture Boost
+    //  12.  main()
+    // ═══════════════════════════════════════════════════════════════
+
+    // ── 1. Color helpers ──────────────────────────────────────────
+    vec3 rgb2yuv(vec3 c) {
+        float y =  0.2126*c.r + 0.7152*c.g + 0.0722*c.b;
+        float u = -0.1146*c.r - 0.3854*c.g + 0.5000*c.b;
+        float v =  0.5000*c.r - 0.4542*c.g - 0.0458*c.b;
+        return vec3(y, u, v);
+    }
+    vec3 yuv2rgb(vec3 yuv) {
+        float r = yuv.x                + 1.5748*yuv.z;
+        float g = yuv.x - 0.1873*yuv.y - 0.4681*yuv.z;
+        float b = yuv.x + 1.8556*yuv.y;
+        return clamp(vec3(r, g, b), 0.0, 1.0);
+    }
+    float luma(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+
+    // ── 2. Sampling ───────────────────────────────────────────────
+    vec2 pxSz() {
+        return 1.0 / acLayerSize;
+    }
+    vec4 samp(vec2 uv) {
+        return texture2DCv(inputImg.texture, clamp(uv, 0.0, 1.0));
+    }
+
+    // ── 3. Blur helpers ───────────────────────────────────────────
+    // 3×3 box blur
+    vec3 box3(vec2 uv, vec2 r) {
+        vec3 c = vec3(0.0);
+        c += samp(uv + vec2(-r.x,-r.y)).rgb;
+        c += samp(uv + vec2( 0.0,-r.y)).rgb;
+        c += samp(uv + vec2( r.x,-r.y)).rgb;
+        c += samp(uv + vec2(-r.x, 0.0)).rgb;
+        c += samp(uv + vec2( 0.0, 0.0)).rgb;
+        c += samp(uv + vec2( r.x, 0.0)).rgb;
+        c += samp(uv + vec2(-r.x, r.y)).rgb;
+        c += samp(uv + vec2( 0.0, r.y)).rgb;
+        c += samp(uv + vec2( r.x, r.y)).rgb;
+        return c / 9.0;
+    }
+
+    // 5-tap cross blur (fast approximation for larger radii)
+    vec3 cross5(vec2 uv, vec2 r) {
+        vec3 c = samp(uv).rgb * 0.4;
+        c += samp(uv + vec2( r.x, 0.0)).rgb * 0.15;
+        c += samp(uv + vec2(-r.x, 0.0)).rgb * 0.15;
+        c += samp(uv + vec2( 0.0, r.y)).rgb * 0.15;
+        c += samp(uv + vec2( 0.0,-r.y)).rgb * 0.15;
+        return c;
+    }
+
+    // 3×3 Gaussian
+    vec3 gauss3(vec2 uv, vec2 r) {
+        float w0=0.44198, w1=0.27901;
+        vec3 c = vec3(0.0);
+        c += samp(uv+vec2(-r.x,-r.y)).rgb * w1*w1;
+        c += samp(uv+vec2( 0.0,-r.y)).rgb * w0*w1;
+        c += samp(uv+vec2( r.x,-r.y)).rgb * w1*w1;
+        c += samp(uv+vec2(-r.x, 0.0)).rgb * w1*w0;
+        c += samp(uv+vec2( 0.0, 0.0)).rgb * w0*w0;
+        c += samp(uv+vec2( r.x, 0.0)).rgb * w1*w0;
+        c += samp(uv+vec2(-r.x, r.y)).rgb * w1*w1;
+        c += samp(uv+vec2( 0.0, r.y)).rgb * w0*w1;
+        c += samp(uv+vec2( r.x, r.y)).rgb * w1*w1;
+        return c;
+    }
+
+    // ── 4. Hash / dither ──────────────────────────────────────────
+    float hash21(vec2 p) {
+        p = mod(p, vec2(289.0));
+        p = fract(p * vec2(0.1031, 0.1030));
+        p += dot(p, p.yx + vec2(33.33));
+        return fract((p.x + p.y) * p.x);
+    }
+    // Ordered dither (Bayer 4×4 matrix)
+    float bayer(vec2 uv) {
+        vec2 pos = mod(floor(uv * acLayerSize), 4.0);
+        float x = pos.x, y = pos.y;
+        // 4×4 Bayer matrix / 16
+        float b00=0.0,  b10=0.5,  b20=0.125, b30=0.625;
+        float b01=0.75, b11=0.25, b21=0.875, b31=0.375;
+        float b02=0.1875, b12=0.6875, b22=0.0625, b32=0.5625;
+        float b03=0.9375, b13=0.4375, b23=0.8125, b33=0.3125;
+        float val = 0.0;
+        if      (y &lt; 0.5) {
+            if      (x &lt; 0.5) val=b00;
+            else if (x &lt; 1.5) val=b10;
+            else if (x &lt; 2.5) val=b20;
+            else               val=b30;
+        } else if (y &lt; 1.5) {
+            if      (x &lt; 0.5) val=b01;
+            else if (x &lt; 1.5) val=b11;
+            else if (x &lt; 2.5) val=b21;
+            else               val=b31;
+        } else if (y &lt; 2.5) {
+            if      (x &lt; 0.5) val=b02;
+            else if (x &lt; 1.5) val=b12;
+            else if (x &lt; 2.5) val=b22;
+            else               val=b32;
+        } else {
+            if      (x &lt; 0.5) val=b03;
+            else if (x &lt; 1.5) val=b13;
+            else if (x &lt; 2.5) val=b23;
+            else               val=b33;
+        }
+        return val - 0.5; // -0.5..0.5 centered
+    }
+
+    // ── 5. CLARITY ────────────────────────────────────────────────
+    //
+    //  Classic Clarity = input - lowpass, then boost midtones only.
+    //  The midtone curve (S-curve around 0.5) ensures shadows and
+    //  highlights are not distorted — only the midrange gets contrast.
+    //
+    vec3 applyClarity(vec3 col, vec2 uv) {
+        vec2 r   = vec2(clarityRadius);
+        // Lowpass at clarity radius
+        vec3 lp  = gauss3(uv, r);
+        // Highpass = input - lowpass (mid-frequency band)
+        vec3 hp  = col - lp;
+        // Luminance of original — midtone protection mask
+        float lumV = luma(col);
+        // Midtone mask: bell curve centered at clarityMid
+        float mid  = clarityMid;
+        float bell = 1.0 - abs(lumV - mid) / max(mid, 1.0 - mid);
+        bell = clamp(bell, 0.0, 1.0);
+        bell = bell * bell; // quadratic falloff
+        // Add boosted midfrequency back
+        return clamp(col + hp * clarityAmt * bell, 0.0, 1.0);
+    }
+
+    // ── 6. DEBAND ─────────────────────────────────────────────────
+    //
+    //  Deband algorithm:
+    //  1. Sample neighbors in a small radius
+    //  2. If the color difference is BELOW the band threshold,
+    //     it's likely banding — blend toward the average
+    //  3. If the difference is ABOVE threshold, it's a real edge —
+    //     leave it alone (edge-safe mode)
+    //  4. Add a tiny amount of dither to break up remaining bands
+    //
+    vec3 applyDeband(vec3 col, vec2 uv) {
+        vec2 r   = vec2(debandRange);
+        vec2 px  = pxSz();
+
+        // Sample 8 neighbors
+        vec3 n0 = samp(uv + vec2( r.x,  0.0)).rgb;
+        vec3 n1 = samp(uv + vec2(-r.x,  0.0)).rgb;
+        vec3 n2 = samp(uv + vec2( 0.0,  r.y)).rgb;
+        vec3 n3 = samp(uv + vec2( 0.0, -r.y)).rgb;
+        vec3 n4 = samp(uv + vec2( r.x,  r.y)).rgb;
+        vec3 n5 = samp(uv + vec2(-r.x,  r.y)).rgb;
+        vec3 n6 = samp(uv + vec2( r.x, -r.y)).rgb;
+        vec3 n7 = samp(uv + vec2(-r.x, -r.y)).rgb;
+        vec3 avg = (n0+n1+n2+n3+n4+n5+n6+n7) * 0.125;
+
+        // Difference between center and average
+        float diff = length(col - avg);
+
+        // Edge detection: if diff is large = real edge, don't deband
+        float edgeMask = 1.0;
+        if (debandEdgeSafe) {
+            // Check gradient magnitude (simple)
+            float gx = length(n0 - n1);
+            float gy = length(n2 - n3);
+            float grad = length(vec2(gx, gy));
+            edgeMask = 1.0 - smoothstep(debandThresh, debandThresh*3.0, grad);
+        }
+
+        // Banding mask: small diff = banding region
+        float bandMask = step(diff, debandThresh) * edgeMask;
+
+        // Dither to break up flat bands
+        float dit = bayer(uv) * debandDither * debandThresh * 0.5;
+        vec3 dithered = clamp(avg + vec3(dit), 0.0, 1.0);
+
+        return mix(col, dithered, bandMask);
+    }
+
+    // ── 7. DETAIL RECOVERY (Retinex-style) ───────────────────────
+    //
+    //  Single-scale Retinex: log(I) - log(blur(I))
+    //  This gives a "normalized" version of each pixel relative
+    //  to its local surround — revealing texture in crushed/blown areas.
+    //
+    //  Shadow lift: brings up dark areas
+    //  Highlight recovery: pulls back blown highlights
+    //
+    vec3 applyDetailRecovery(vec3 col, vec2 uv) {
+        vec2 r    = vec2(detailRadius);
+        vec3 blr  = cross5(uv, r);
+
+        // Single-scale Retinex in log space
+        vec3 logI  = log(col  + vec3(0.001));
+        vec3 logB  = log(blr  + vec3(0.001));
+        vec3 retinex = logI - logB; // local contrast map
+
+        // Shadow mask: pixels darker than 0.4
+        float lumV   = luma(col);
+        float shadMask = (1.0 - smoothstep(0.0, 0.5, lumV)) * detailShadow;
+        // Highlight mask: pixels brighter than 0.6
+        float highMask = smoothstep(0.5, 1.0, lumV) * detailHighlight;
+
+        // Apply detail boost weighted by shadow/highlight zones
+        float zoneMask = max(shadMask, highMask);
+        vec3 boosted = col + retinex * detailAmt * zoneMask;
+
+        return clamp(boosted, 0.0, 1.0);
+    }
+
+    // ── 8. CA FIX ─────────────────────────────────────────────────
+    //
+    //  Chromatic aberration creates color fringing where R/G/B
+    //  channels are slightly offset. We correct by sampling each
+    //  channel with a small opposing offset centered on the pixel.
+    //
+    //  Radial mode: offset direction = away from image center (lens)
+    //  Horizontal/Vertical: fixed axis offset
+    //
+    vec3 applyCAFix(vec3 col, vec2 uv) {
+        vec2 center = vec2(0.5);
+        vec2 dir    = vec2(0.0);
+
+        if (caMode == 0) {
+            // Radial: offset toward/away from center
+            dir = normalize(uv - center + vec2(0.0001));
+        } else if (caMode == 1) {
+            dir = vec2(1.0, 0.0);
+        } else {
+            dir = vec2(0.0, 1.0);
+        }
+
+        float r = caRadius;
+        // Sample R channel with positive offset, B with negative
+        // (Green stays at center — most common CA pattern)
+        float rChan = samp(uv + dir * r).r;
+        float gChan = col.g;
+        float bChan = samp(uv - dir * r).b;
+
+        vec3 caFixed = vec3(rChan, gChan, bChan);
+        return mix(col, caFixed, caStrength);
+    }
+
+    // ── 9. BILATERAL DENOISE ──────────────────────────────────────
+    //
+    //  Bilateral filter: weighted average of neighborhood pixels
+    //  where weight = spatial_gaussian × range_gaussian
+    //
+    //  spatial_gaussian: closer pixels get higher weight
+    //  range_gaussian:   pixels with similar color get higher weight
+    //
+    //  This means flat regions get averaged (noise reduced) but
+    //  edges stay sharp because pixels across an edge have very
+    //  different colors → low range weight → not averaged.
+    //
+    vec3 applyBilateral(vec3 col, vec2 uv) {
+        vec2  sigS  = vec2(denoiseSpatial);
+        float sigC  = denoiseColor;
+        float sigC2 = sigC * sigC * 2.0;
+
+        vec3  sum   = vec3(0.0);
+        float wsum  = 0.0;
+
+        // 5×5 bilateral kernel
+        for (int dy = -2; dy &lt;= 2; dy++) {
+            for (int dx = -2; dx &lt;= 2; dx++) {
+                vec2  off  = vec2(float(dx), float(dy)) * sigS;
+                vec3  nbr  = samp(uv + off).rgb;
+                // Spatial weight: Gaussian distance
+                float dist2 = float(dx*dx + dy*dy);
+                float wSp   = exp(-dist2 / (2.0 * 4.0)); // sigma=2
+                // Range weight: color similarity
+                float cdiff = length(nbr - col);
+                float wRng  = exp(-(cdiff*cdiff) / sigC2);
+                float w     = wSp * wRng;
+                sum  += nbr * w;
+                wsum += w;
+            }
+        }
+        vec3 bilateral = sum / max(wsum, 0.0001);
+
+        // Mode: apply to all, luma only, or chroma only
+        if (denoiseMode == 0) {
+            return mix(col, bilateral, denoiseStrength);
+        } else if (denoiseMode == 1) {
+            // Luma only
+            vec3 colYUV = rgb2yuv(col);
+            vec3 bilYUV = rgb2yuv(bilateral);
+            colYUV.x = mix(colYUV.x, bilYUV.x, denoiseStrength);
+            return yuv2rgb(colYUV);
+        } else {
+            // Chroma only
+            vec3 colYUV = rgb2yuv(col);
+            vec3 bilYUV = rgb2yuv(bilateral);
+            colYUV.y = mix(colYUV.y, bilYUV.y, denoiseStrength);
+            colYUV.z = mix(colYUV.z, bilYUV.z, denoiseStrength);
+            return yuv2rgb(colYUV);
+        }
+    }
+
+    // ── 10. HDR EXPANSION ─────────────────────────────────────────
+    //
+    //  Local tone mapping using a tone curve derived from the
+    //  local average (lowpass). Each pixel is adjusted relative
+    //  to its neighborhood:
+    //
+    //    toneMapped = curve(I / localAvg) * localAvg
+    //
+    //  This compresses local contrast in over-bright areas and
+    //  expands it in dark areas → reveals hidden detail everywhere.
+    //
+    vec3 applyHDR(vec3 col, vec2 uv) {
+        vec2 r    = vec2(hdrLocalRadius);
+        vec3 lAvg = cross5(uv, r);
+        float lAvgLum = max(luma(lAvg), 0.001);
+        float colLum  = luma(col);
+
+        // Ratio of pixel to local average
+        float ratio = colLum / lAvgLum;
+
+        // Tone curve: compress ratio with log
+        // ratio &lt; 1 = dark relative to surround → lift
+        // ratio &gt; 1 = bright relative to surround → pull down
+        float toned = log(ratio + 1.0) / log(2.0 + 1.0);
+
+        // Shadow detail: boost when both pixel and avg are dark
+        float shadowZone = (1.0 - smoothstep(0.0, 0.4, lAvgLum)) * hdrShadow;
+        // Highlight detail: recover when avg is bright
+        float highZone = smoothstep(0.6, 1.0, lAvgLum) * hdrHighlight;
+        float zone = max(shadowZone, highZone);
+
+        float newLum = mix(colLum, toned * lAvgLum, hdrAmt * zone);
+
+        vec3 result;
+        if (hdrColorSafe) {
+            // Preserve hue/saturation: just rescale luminance
+            float scale = newLum / max(colLum, 0.001);
+            result = clamp(col * scale, 0.0, 1.0);
+        } else {
+            result = clamp(col * (newLum / max(colLum, 0.001)), 0.0, 1.0);
+        }
+        return result;
+    }
+
+    // ── 11. TEXTURE BOOST ─────────────────────────────────────────
+    //
+    //  Boosts micro-contrast in FLAT regions (textures, skin, fabric)
+    //  while SUPPRESSING boost near strong edges.
+    //  This is the opposite philosophy from sharpening:
+    //    Sharpening: targets edges
+    //    Texture Boost: targets flat areas with fine texture
+    //
+    //  Method:
+    //  1. Compute local variance at tiny scale
+    //  2. Variance is HIGH at edges → suppress there
+    //  3. Variance is LOW in flat areas → boost there
+    //  4. Boost = multiply deviation from local mean
+    //
+    vec3 applyTextureBoost(vec3 col, vec2 uv) {
+        vec2 r   = vec2(texBoostScale);
+        vec3 lp  = box3(uv, r);
+        // Deviation from local mean
+        vec3 dev = col - lp;
+        // Local variance (luminance-based)
+        float varSum = 0.0;
+        varSum += dot(samp(uv+vec2( r.x, 0.0)).rgb - lp, samp(uv+vec2( r.x, 0.0)).rgb - lp);
+        varSum += dot(samp(uv+vec2(-r.x, 0.0)).rgb - lp, samp(uv+vec2(-r.x, 0.0)).rgb - lp);
+        varSum += dot(samp(uv+vec2( 0.0, r.y)).rgb - lp, samp(uv+vec2( 0.0, r.y)).rgb - lp);
+        varSum += dot(samp(uv+vec2( 0.0,-r.y)).rgb - lp, samp(uv+vec2( 0.0,-r.y)).rgb - lp);
+        float variance = varSum * 0.25;
+
+        // Edge suppression: high variance = strong edge = less boost
+        float edgeSup = 1.0 - smoothstep(0.0, texBoostEdgeSup * 0.1, variance);
+
+        // Boost deviation in flat areas
+        vec3 boosted = lp + dev * (1.0 + texBoostAmt * edgeSup);
+        return clamp(boosted, 0.0, 1.0);
+    }
+
+    // ── 12. main ──────────────────────────────────────────────────
+    void main() {
+        vec2 uv  = acScreenNorm;
+        vec4 src = samp(uv);
+        vec3 col = src.rgb;
+
+        // Apply each module in order — only if enabled
+        // Order matters: denoise before clarity, deband before detail
+
+        // 1. Denoise first (remove noise before boosting anything)
+        if (denoiseOn) {
+            col = applyBilateral(col, uv);
+        }
+
+        // 2. Deband (smooth compression bands before local contrast)
+        if (debandOn) {
+            col = applyDeband(col, uv);
+        }
+
+        // 3. CA Fix (fix fringing before contrast processing)
+        if (caOn) {
+            col = applyCAFix(col, uv);
+        }
+
+        // 4. HDR Expansion (recover shadow/highlight detail)
+        if (hdrOn) {
+            col = applyHDR(col, uv);
+        }
+
+        // 5. Clarity (midtone local contrast)
+        if (clarityOn) {
+            col = applyClarity(col, uv);
+        }
+
+        // 6. Detail Recovery (Retinex local normalization)
+        if (detailOn) {
+            col = applyDetailRecovery(col, uv);
+        }
+
+        // 7. Texture Boost (micro-contrast in flat regions)
+        if (texBoostOn) {
+            col = applyTextureBoost(col, uv);
+        }
+
+        // Output gamma
+        if (outputGamma != 1.0) {
+            col = pow(clamp(col, 0.0, 1.0), vec3(1.0 / outputGamma));
+        }
+
+        gl_FragColor = vec4(clamp(col, 0.0, 1.0), src.a) * alpha;
+    }
+
+  </shader>
+
+</effect>

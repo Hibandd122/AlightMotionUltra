@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_glow" name="Chromatic Glow" desc="Thresholded glow accumulated over a golden-angle spiral of Gaussian-weighted taps, with per-channel chromatic dispersion (R, G, B sampled at increasing radii), elliptical width controls, dithering, and screen-mode compositing. Samples above 128 are capped internally." category="colorlight" tags="glow,blur,gaussian,chromatic,lighting,smooth,dither" thumb="thumb/Light and Glow/Chromatic Glow.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="brightness" default="2.4" min="0.0" max="10.0" step="0.1" label="Brightness" />
+        <slider id="threshold" default="0.42" min="0.0" max="1.0" step="0.01" label="Threshold" type="percent" />
+        
+        
+        <slider id="glowWidth" default="0.7" min="0.0" max="2.0" step="0.01" label="Glow Width" />
+        <slider id="widthX" default="1.0" min="0.0" max="5.0" step="0.1" label="Width X" />
+        <slider id="widthY" default="1.0" min="0.0" max="5.0" step="0.1" label="Width Y" />
+        <slider id="dispersion" default="1.0" min="0.0" max="5.0" step="0.1" label="Dispersion" />
+
+        
+        <slider id="quality" default="100" min="8" max="1000" step="1" snap="1" label="Samples" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // S_Glow Ultra-Smooth Implementation for Alight Motion
+        
+        #define PI 3.14159265359
+        #define GOLDEN_ANGLE 2.3999632
+
+        float dither(vec2 uv) {
+            return fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453) * 0.004;
+        }
+
+        void main() {
+            // Unifying to screen coordinates to fix squeeze/stretch issues
+            vec2 uv = acScreenNorm.xy;
+            float aspect = acScreenSize.x / acScreenSize.y;
+            
+            vec4 source = texture2DCv(inputImg.texture, uv);
+            
+            vec3 glowSum = vec3(0.0);
+            float totalWeight = 0.0;
+            
+            int samples = int(quality);
+            
+            // Scaled weights based on dispersion (Match: 1.0, 1.4, 2.2)
+            vec3 colorWeights = vec3(1.0, 1.0 + dispersion * 0.4, 1.0 + dispersion * 1.2);
+            
+            for(int i = 0; i &lt; 128; i++) {
+                if (i &gt;= samples) break;
+                
+                float fraction = float(i) / float(samples);
+                float angle = float(i) * GOLDEN_ANGLE;
+                
+                // Non-linear distribution: pow(fraction, 0.8)
+                float dist = pow(fraction, 0.8); 
+                
+                vec2 dir = vec2(cos(angle), sin(angle));
+                vec2 scale = vec2(widthX, widthY) * glowWidth * 0.12;
+                scale.x /= aspect; // Correct for screen resolution to keep glow circular
+                
+                // True Gaussian weight
+                float weight = exp(-dist * dist * 5.0);
+                
+                // Chromatic sampling
+                vec2 uvR = uv + dir * dist * scale * colorWeights.r;
+                vec2 uvG = uv + dir * dist * scale * colorWeights.g;
+                vec2 uvB = uv + dir * dist * scale * colorWeights.b;
+                
+                // Sample and Threshold
+                float r = max(texture2DCv(inputImg.texture, uvR).r - threshold, 0.0);
+                float g = max(texture2DCv(inputImg.texture, uvG).g - threshold, 0.0);
+                float b = max(texture2DCv(inputImg.texture, uvB).b - threshold, 0.0);
+                
+                glowSum += vec3(r, g, b) * weight;
+                totalWeight += weight;
+            }
+            
+            // Normalize, Apply Brightness, and Dither
+            vec3 finalGlow = (glowSum / totalWeight) * brightness;
+            finalGlow += dither(uv);
+            
+            // Screen Combine mode
+            vec3 result = 1.0 - (1.0 - source.rgb) * (1.0 - finalGlow);
+            
+            // Subtle contrast adjustment
+            result = pow(max(result, 0.0), vec3(0.95));
+            
+            vec4 finalColor = vec4(result, source.a);
+            
+            // Handle mixing - use original source as base to avoid global screen filling
+            gl_FragColor = mix(source, finalColor, blend);
+        }
+    </shader>
+
+</effect>

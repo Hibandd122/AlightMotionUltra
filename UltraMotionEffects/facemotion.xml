@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.facemotion" name="Face Towards Motion" desc="Rotate element to face dynamically in direction of motion vector" category="movetransform" auto-transform="true" thumb="thumb/efek.png">
+
+    
+
+    <params>
+        <slider id="angleOffset" default="0.0" min="-180.0" max="180.0" step="1.0" label="Angle Offset (deg)" />
+        <slider id="smoothing" default="0.0" min="0.0" max="1.0" step="0.05" label="Smoothing" />
+    </params>
+
+    
+
+</effect>

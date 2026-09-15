@@ -1,0 +1,184 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.warp_styles" name="Warp" desc="Text-warp style distortion with 15 selectable styles (Arc, Arch, Bulge, Shell, Flag, Wave, Fish, Rise, FishEye, Inflate, Twist, Squeeze and more), adjustable bend, horizontal/vertical taper, vertical axis mode, tile modes and blend." category="warp" tags="warp,distort,arc,wave,bulge,twist,squeeze" thumb="thumb/Distort and Warp/Warp.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <menu id="warpStyle" style="dropdown" default="0" label="Warp Style">
+            <menu value="0" label="Arc" />
+            <menu value="1" label="Arc Lower" />
+            <menu value="2" label="Arc Upper" />
+            <menu value="3" label="Arch" />
+            <menu value="4" label="Bulge" />
+            <menu value="5" label="Shell Lower" />
+            <menu value="6" label="Shell Upper" />
+            <menu value="7" label="Flag" />
+            <menu value="8" label="Wave" />
+            <menu value="9" label="Fish" />
+            <menu value="10" label="Rise" />
+            <menu value="11" label="FishEye" />
+            <menu value="12" label="Inflate" />
+            <menu value="13" label="Twist" />
+            <menu value="14" label="Squeeze" />
+        </menu>
+        <switch id="warpVertical" default="false" label="Warp Axis (Vertical)" />
+        <slider id="bend" default="50.0" min="-1000.0" max="1000.0" step="1.0" label="Bend" />
+        <slider id="hDistortion" default="0.0" min="-100.0" max="100.0" step="1.0" label="Horizontal Distortion" />
+        <slider id="vDistortion" default="0.0" min="-100.0" max="100.0" step="1.0" label="Vertical Distortion" />
+        
+        
+        <switch id="followLayer" default="true" label="Follow Layer" />
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+
+         
+        <menu id="tileMode" style="dropdown" default="0" label="Tile Mode">
+            <menu value="0" label="Transparent" />
+            <menu value="1" label="Repeat" />
+            <menu value="2" label="Mirror" />
+            <menu value="3" label="Clamp" />
+        </menu>
+    </params>
+
+    <passes>
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        // Multi-Style Warp Implementation for Alight Motion
+        
+        #define PI 3.14159265359
+
+        vec2 applyTile(vec2 uv, int mode) {
+            if (mode == 1) { // Repeat
+                return fract(uv);
+            } else if (mode == 2) { // Mirror
+                vec2 m = mod(uv, 2.0);
+                return mix(m, 2.0 - m, step(1.0, m));
+            } else if (mode == 3) { // Clamp
+                return clamp(uv, 0.0, 1.0);
+            }
+            return uv; // Transparent/Default
+        }
+
+        void main() {
+            vec2 luv = acLayerNorm.xy;
+            vec2 suv = acScreenNorm.xy;
+            
+            vec2 uv;
+            vec2 aspect;
+            if(followLayer) {
+                uv = luv;
+                aspect = vec2(acLayerSize.x / acLayerSize.y, 1.0);
+            } else {
+                uv = suv;
+                aspect = vec2(acScreenSize.x / acScreenSize.y, 1.0);
+            }
+            
+            // 1. Normalize UVs to [-1, 1] for math
+            vec2 p = uv * 2.0 - 1.0;
+            
+            // 2. Apply Horizontal and Vertical Distortion (Tapering)
+            float hDist = hDistortion * 0.01;
+            float vDist = vDistortion * 0.01;
+            
+            p.x *= (1.0 - vDist * p.y);
+            p.y *= (1.0 - hDist * p.x);
+            
+            // 3. Axis Swap for Vertical Mode
+            if (warpVertical) {
+                p = p.yx;
+            }
+            
+            // 4. Warp Logic
+            float b = bend * 0.01;
+            vec2 warped = p;
+            int style = int(warpStyle);
+            int tMode = int(tileMode);
+            
+            float curve = (1.0 - p.x * p.x);
+            
+            if (style == 0) { // Arc
+                warped.y += b * curve;
+            } 
+            else if (style == 1) { // Arc Lower
+                if (p.y &lt; 0.0) warped.y += b * curve * (abs(p.y));
+            }
+            else if (style == 2) { // Arc Upper
+                if (p.y &gt; 0.0) warped.y += b * curve * p.y;
+            }
+            else if (style == 3) { // Arch
+                warped.y += b * curve;
+                warped.x *= (1.0 - b * 0.5 * (1.0 + p.y));
+            }
+            else if (style == 4) { // Bulge
+                float bulge = b * (1.0 - abs(p.x)) * (1.0 - abs(p.y));
+                warped *= (1.0 - bulge);
+            }
+            else if (style == 5) { // Shell Lower
+                warped.y += b * curve;
+                warped.x *= (1.0 + b * 0.5 * (1.0 - p.y));
+            }
+            else if (style == 6) { // Shell Upper
+                warped.y += b * curve;
+                warped.x *= (1.0 + b * 0.5 * (1.0 + p.y));
+            }
+            else if (style == 7) { // Flag
+                warped.y += b * sin(p.x * PI + 0.0);
+            }
+            else if (style == 8) { // Wave
+                warped.y += b * sin(p.x * PI * 2.0);
+            }
+            else if (style == 9) { // Fish
+                warped.y *= (1.0 + b * p.x);
+                warped.x += b * 0.2 * (1.0 - p.y * p.y);
+            }
+            else if (style == 10) { // Rise
+                warped.y += b * sin(p.x * PI * 0.5);
+            }
+            else if (style == 11) { // FishEye
+                float d = length(p);
+                warped = p * (1.0 + b * d);
+            }
+            else if (style == 12) { // Inflate
+                float d = length(p);
+                warped = p / (1.0 + b * (1.0 - d));
+            }
+            else if (style == 13) { // Twist
+                float d = length(p);
+                float angle = b * PI * (1.0 - d);
+                float s = sin(angle), c = cos(angle);
+                warped = vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+            }
+            else if (style == 14) { // Squeeze
+                warped.x *= (1.0 + b * (1.0 - abs(p.y)));
+                warped.y *= (1.0 + b * (1.0 - abs(p.x)));
+            }
+            
+            // 5. Inverse Axis Swap
+            if (warpVertical) {
+                warped = warped.yx;
+            }
+            
+            // 6. Map back to [0, 1]
+            vec2 finalUV = (warped + 1.0) * 0.5;
+            
+            // 7. Apply Tiling
+            vec2 tiledUV = applyTile(finalUV, tMode);
+            
+            // 8. Clamp and Sample
+            vec4 color = texture2DCv(inputImg.texture, tiledUV);
+            
+            // Alpha mask only if transparent mode is selected
+            if (tMode == 0) {
+                if (finalUV.x &lt; 0.0 || finalUV.x &gt; 1.0 || finalUV.y &lt; 0.0 || finalUV.y &gt; 1.0) {
+                    color = vec4(0.0);
+                }
+            }
+            
+            vec4 base = texture2DCv(inputImg.texture, suv);
+            gl_FragColor = mix(base, color, blend);
+        }
+    </shader>
+
+</effect>

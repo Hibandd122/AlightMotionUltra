@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cos_web_zozuar" name="Cosine Web" desc="Generates an abstract rotating web pattern by iteratively accumulating cosine fields at growing scales (Shadertoy port). Controls include time speed, iteration count, rotation, scale growth, color multiplier and gamma." category="procedural" tags="web, cosine, abstract" thumb="thumb/Procedural/Cosine Web.webp">
+
+    
+    <params>
+    <texture id="inputImg" srcType="content" />
+    
+        
+        <slider id="TIME_SPEED" label="Time Speed" default="1.0" min="0.0" max="5.0" step="0.001" type="float" />
+
+        
+        <slider id="ITER" label="Iterations" default="20.0" min="1.0" max="64.0" step="1.0" type="float" />
+        <slider id="ROT" label="Rotation (rad)" default="5.0" min="-12.0" max="12.0" step="0.001" type="float" />
+        <slider id="S0" label="Start Scale S" default="12.0" min="0.1" max="64.0" step="0.01" type="float" />
+        <slider id="S_GROW" label="Scale Growth" default="1.2" min="1.0" max="2.5" step="0.001" type="float" />
+
+        
+        <color id="COLOR_MUL" label="Color Multiplier" default="#FF040201" alpha="true" />
+        <slider id="ADD_BIAS" label="Add Bias" default="0.2" min="-1.0" max="1.0" step="0.001" type="float" />
+        <slider id="POST_SUB_D" label="Post Subtract d" default="1.0" min="0.0" max="2.0" step="0.001" type="float" />
+        <slider id="GAMMA" label="Gamma" default="1.0" min="0.2" max="2.2" step="0.01" type="float" />
+    </params>
+
+    <shader type="fragment" precision="high">
+// Cosine Web (Zozuar) - AM single pass, GLES-safe loops
+
+mat2 rotate2D(float r){ return mat2(cos(r), sin(r), -sin(r), cos(r)); }
+
+void main(){
+    vec2 R = acScreenSize;
+    vec2 uv = (acScreenNorm * R - 0.5 * R) / max(R.y, 1.0);
+    vec3 col = vec3(0.0);
+    float t = acTime * TIME_SPEED;
+
+    vec2 n = vec2(0.0);
+    vec2 q = vec2(0.0);
+    vec2 p = uv;
+    float d = dot(p, p);
+    float S = S0;
+    float aAcc = 0.0;
+    mat2 m = rotate2D(ROT);
+
+    int iters = int(clamp(ITER, 1.0, 64.0));
+    const int MAX_IT = 64;
+    for (int j = 0; j &lt; MAX_IT; j++){
+        if (j &gt;= iters) break;
+        p = m * p;
+        n = m * n;
+        q = p * S + t * 4.0 + sin(t * 4.0 - d * 6.0) * 0.8 + float(j) + n;
+        aAcc += dot(cos(q) / S, vec2(0.2));
+        n -= sin(q);
+        S *= S_GROW;
+    }
+
+    vec3 cm = COLOR_MUL.rgb;
+    col = cm * (aAcc + ADD_BIAS) + aAcc + aAcc - d * POST_SUB_D;
+
+    col = pow(max(col, 0.0), vec3(GAMMA));
+    gl_FragColor = vec4(col, 1.0);
+}
+    </shader>
+</effect>

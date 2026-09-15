@@ -1,0 +1,741 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.vhs_suite" name="VHS Suite" desc="Five-preset analog video simulation (Glitch, Camera View, VHS Play, Ghosting TV, CRT Blur) built from three passes: chromatic aberration, sharpen/blur kernels, screen bend, YIQ tape smear, ghost frames, static bands, on-screen text/timecode rendering from a font texture, scanline/grille shading, and a VHS texture overlay with global intensity, speed, and tint." category="other" tags="vhs,glitch,camera,shadertoy" thumb="thumb/Distort and Warp/VHS Suite.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="vhsTex" srcType="image" src="textures/vhs-player-overlay.png" />
+        <texture id="fontTex" srcType="content" label="Font Texture (16x16 Grid)" />
+        <texture id="bufferA" srcType="buffer" />
+        <texture id="bufferB" srcType="buffer" />
+
+        <menu id="preset" style="dropdown" default="0" label="Preset">
+            <menu label="Glitch" value="0" />
+            <menu label="Camera View" value="1" />
+            <menu label="VHS Play" value="2" />
+            <menu label="Ghosting TV" value="3" />
+            <menu label="CRT Blur" value="4" />
+        </menu>
+
+        
+        <slider id="intensity" default="1.0" min="0.0" max="3.0" step="0.01" label="Intensity" />
+        <slider id="speed" default="1.0" min="0.0" max="5.0" step="0.1" label="Animation Speed" />
+        <color id="tint" default="#FFFFFF" label="Tint" />
+        <slider id="vhsTexOpacity" default="0.5" min="0.0" max="1.0" step="0.01" label="VHS Texture Opacity" />
+    </params>
+
+    <passes>
+        <pass target="bufferA" />
+        <pass target="bufferB" />
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        
+        // ==========================================
+        // SHARED FUNCTIONS
+        // ==========================================
+        
+        float hash(vec2 p) {
+            vec3 p3  = fract(vec3(p.xyx) * .1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+        
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            vec2 u = f*f*(3.0-2.0*f);
+            return mix( mix( hash( i + vec2(0.0,0.0) ), 
+                             hash( i + vec2(1.0,0.0) ), u.x),
+                        mix( hash( i + vec2(0.0,1.0) ), 
+                             hash( i + vec2(1.0,1.0) ), u.x), u.y);
+        }
+        
+        float noiseTex(vec2 uv) {
+            return noise(uv * 15.0);
+        }
+
+        // Font Rendering
+        vec2 FontFromScreen(in vec2 tpos, in float fontSize, in vec2 charPos) {
+            return (tpos / fontSize + charPos + 0.5) / 16.0;
+        }
+
+        int IntToAscii(in int x) {
+            return x + 48;
+        }
+
+        vec3 DrawCharacterOnScreen(in vec2 fragCoord, in int characterID, in vec2 letterPositionOnScreen, in float fontSize) {
+            vec2 letterPosition = (fragCoord - acScreenSize * letterPositionOnScreen);
+            
+            int cx = characterID - (characterID / 16) * 16;
+            int cy = 15 - characterID / 16;
+            vec2 charPosition = vec2(float(cx), float(cy));
+
+            vec2 uv = FontFromScreen(letterPosition, fontSize, charPosition);
+
+            float rLetter = 1.0 - texture2DCv(fontTex.texture, uv).x;
+            float gLetter = 1.0 - texture2DCv(fontTex.texture, uv + 0.002).x;
+            float bLetter = 1.0 - texture2DCv(fontTex.texture, uv - 0.002).x;
+
+            vec3 letter = vec3(rLetter, gLetter, bLetter);
+            vec2 boxSize = abs(letterPosition) - 0.5 * fontSize;
+
+            float rBoxValue = step(rLetter, max(boxSize.x, boxSize.y));
+            float gBoxValue = step(gLetter, max(boxSize.x, boxSize.y));
+            float bBoxValue = step(bLetter, max(boxSize.x, boxSize.y));
+
+            return ((vec3(1.0) - vec3(rBoxValue, gBoxValue, bBoxValue)) * (vec3(1.0) - vec3(rLetter, gLetter, bLetter)));
+        }
+
+        // --- Mode 3 Functions ---
+        float rand3(vec2 co){
+            return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+        }
+
+        vec2 warpSmart(vec2 uv, float offsetValue, float currentTime) {
+            bool bendTop    = (offsetValue == 4.0);
+            bool bendBottom = (offsetValue == -0.3);
+            bool noBend     = (offsetValue == 0.5);
+
+            if (noBend || (!bendTop &amp;&amp; !bendBottom)) return uv;
+
+            float baseStrength = 0.4 + 0.4 * rand3(vec2(floor(currentTime / 2.0), 123.0));
+            float jitter = 5.3 * sin(currentTime * 45.7 + 1.3);
+            float strength = clamp(baseStrength + jitter, -1.0, 0.5) * intensity;
+
+            float curve;
+            if (bendTop) {
+                float curveRand = rand3(vec2(floor(currentTime / 1.5), 456.0));
+                curve = 7.0 + curveRand * 5.0;  
+            } else {
+                curve = 8.0;
+            }
+
+            float localT = 0.0;
+            float offset = 0.0;
+
+            if (bendTop) {
+                if (uv.y &lt;= 0.5) return uv;
+                localT = (uv.y - 0.5) * 2.0;
+                offset = -strength * pow(localT, curve);
+            }
+            else if (bendBottom) {
+                if (uv.y &gt;= 0.5) return uv;
+                localT = (0.5 - uv.y) * 2.0;
+                offset = +strength * pow(localT, curve);
+            }
+
+            uv.x = clamp(uv.x + offset, 0.0, 1.0);
+            return uv;
+        }
+
+        // ==========================================
+        // PASS 0
+        // ==========================================
+        
+        void pass0() {
+            vec2 uv = acScreenNorm;
+            vec4 col = texture2DCv(inputImg.texture, uv);
+            
+            if (preset == 0) {
+                // Glitch Mode: Vertical Bars
+                float bar = abs(uv.x - 0.5);
+                bar = step(bar, 0.425);
+                col *= bar;
+            } else if (preset == 2) {
+                // VHS Play Mode: Text Buffer composite
+                vec3 textCol = vec3(0.0);
+                float fontSize = 0.06 * acScreenSize.y;
+                vec2 fragCoord = uv * acScreenSize;
+                
+                // Draw "PLAY"
+                vec3 currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 80, vec2(0.1, 0.85), fontSize); // P
+                textCol += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 76, vec2(0.13, 0.85), fontSize); // L
+                textCol += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 65, vec2(0.16, 0.85), fontSize); // A
+                textCol += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 89, vec2(0.19, 0.85), fontSize); // Y
+                textCol += currentLetter;
+                
+                col.rgb += textCol;
+            } else if (preset == 3) {
+                float targetAspect = 4.0 / 3.0;
+                float currentAspect = acScreenSize.x / acScreenSize.y;
+                
+                vec2 center = vec2(0.5, 0.5);
+
+                if (currentAspect &gt; targetAspect) {
+                    float scale = currentAspect / targetAspect;
+                    uv.x = (uv.x - center.x) * scale + center.x;
+                    if (uv.x &lt; 0.0 || uv.x &gt; 1.0) {
+                        col = vec4(0.0, 0.0, 0.0, 1.0);
+                    }
+                } else {
+                    float scale = targetAspect / currentAspect;
+                    uv.y = (uv.y - center.y) * scale + center.y;
+                    if (uv.y &lt; 0.0 || uv.y &gt; 1.0) {
+                        col = vec4(0.0, 0.0, 0.0, 1.0);
+                    }
+                }
+                
+                if (uv.x &gt;= 0.0 &amp;&amp; uv.x &lt;= 1.0 &amp;&amp; uv.y &gt;= 0.0 &amp;&amp; uv.y &lt;= 1.0) {
+                    vec2 adjustedFragCoord = uv * acScreenSize;
+                    vec4 texColor = vec4(0.0);
+
+                    for(int g = 0; g &lt; 3; g++){
+                        float timeOffset    = float(g) * 0.016;
+                        float ghostWeight   = 1.0 / 3.0;
+                        float currentTime   = (acTime * speed) - timeOffset;
+
+                        vec2 samplePosition = adjustedFragCoord.xy / acScreenSize;
+                        samplePosition.y += (rand3(vec2(currentTime)) - 0.5) / 18.0;
+
+                        float horizontalJitter = (rand3(vec2(currentTime, adjustedFragCoord.y)) - 0.5) / 64.0;
+
+                        float timeSegment = floor(currentTime / 1.5);
+                        float valueIndex  = rand3(vec2(timeSegment, 456.0));
+                        float offsetValue;
+
+                        if (valueIndex &lt; 0.6) {
+                            offsetValue = 4.0;   
+                        } else if (valueIndex &lt; 0.7) {
+                            offsetValue = -0.3; 
+                        } else {
+                            offsetValue = 0.5; 
+                        }
+
+                        float whiteNoiseOffset = (rand3(vec2(currentTime * 0.5)) - offsetValue) * 0.22;
+                        float adjustedY = samplePosition.y + whiteNoiseOffset;
+
+                        float bwBandOffset = (rand3(vec2(currentTime * 0.7 + 200.0)) - 0.5) * 2.5;
+                        float bwBandY = samplePosition.y + bwBandOffset;
+                        float bwBandPattern = rand3(vec2(floor(bwBandY * 3.0), currentTime * 0.05));
+                        bool isInBWBand = bwBandPattern &gt; 0.6;
+
+                        float colorNoiseOffset = (rand3(vec2(currentTime * 0.7 + 100.0)) - 0.5) * 12.25;
+
+                        vec2 noiseSamplePos = samplePosition;
+                        noiseSamplePos.x += horizontalJitter;
+
+                        float whiteNoise = rand3(vec2(floor(adjustedY * 1500.0),
+                                                    floor(noiseSamplePos.x * 50.0)) + vec2(currentTime, 0.0));
+
+                        vec2 warpUV = samplePosition;
+                        warpUV = warpSmart(warpUV, offsetValue, currentTime);
+
+                        if (whiteNoise &gt; 15.5 - 50.0 * adjustedY || whiteNoise &lt; 1.5 - 5.0 * adjustedY) {
+                            vec2 pixelatedPos = warpUV;
+                            float pixelBlockSize = 200.0;
+                            pixelatedPos = floor(pixelatedPos * pixelBlockSize) / pixelBlockSize;
+
+                            float aberrationAmount = 0.004 * intensity;
+                            vec2 aberrationOffset = vec2(aberrationAmount, 0.0);
+                            float r = texture2DCv(inputImg.texture, pixelatedPos - aberrationOffset).r;
+                            float g = texture2DCv(inputImg.texture, pixelatedPos).g;
+                            float b = texture2DCv(inputImg.texture, pixelatedPos + aberrationOffset).b;
+                            vec4 frameColor = vec4(r, g, b, 1.0);
+
+                            vec2 pixelSize = 1.0 / acScreenSize;
+                            vec4 sharpenKernel = vec4(0.0);
+                            sharpenKernel += texture2DCv(inputImg.texture, pixelatedPos + vec2(-pixelSize.x, 0.0)) * -0.25;
+                            sharpenKernel += texture2DCv(inputImg.texture, pixelatedPos + vec2( pixelSize.x, 0.0)) * -0.25;
+                            sharpenKernel += texture2DCv(inputImg.texture, pixelatedPos + vec2(0.0, -pixelSize.y)) * -0.25;
+                            sharpenKernel += texture2DCv(inputImg.texture, pixelatedPos + vec2(0.0,  pixelSize.y)) * -0.25;
+                            sharpenKernel += frameColor * 2.0;
+                            frameColor = mix(frameColor, sharpenKernel, 1.0);
+
+                            frameColor.rgb = floor(frameColor.rgb * 24.0) / 24.0;
+
+                            vec3 myTint = vec3(0.88, 0.94, 1.12);
+                            frameColor.rgb *= myTint;
+
+                            float brightnessBoost = 1.0 / max(max(myTint.r, myTint.g), myTint.b);
+                            frameColor.rgb *= brightnessBoost * 0.98;
+                            frameColor.rgb = clamp(frameColor.rgb, 0.0, 1.0);
+
+                            if (isInBWBand) {
+                                float gray = dot(frameColor.rgb, vec3(0.299, 0.587, 0.114));
+                                float desatAmount = 0.8;
+                                frameColor.rgb = mix(frameColor.rgb, vec3(gray), desatAmount);
+                            }
+
+                            texColor += frameColor * ghostWeight;
+                        } else {
+                            float staticNoise = rand3(adjustedFragCoord.xy + vec2(currentTime * 10.0, 0.0));
+                            vec2 jitteredTextureSample = samplePosition;
+                            jitteredTextureSample.x += horizontalJitter;
+                            vec4 backgroundTexture = texture2DCv(inputImg.texture, jitteredTextureSample);
+
+                            float colorNoiseY = adjustedFragCoord.y + colorNoiseOffset * acScreenSize.y;
+                            vec4 colorNoise = (vec4(-0.5) + vec4(
+                                rand3(vec2(colorNoiseY, currentTime)),
+                                rand3(vec2(colorNoiseY, currentTime + 1.0)),
+                                rand3(vec2(colorNoiseY, currentTime + 2.0)), 0.0)) * 2.5;
+
+                            vec4 noiseColor = vec4(staticNoise) * 0.9
+                                            + vec4(2.0) * 0.17
+                                            + colorNoise * 0.5
+                                            + backgroundTexture * 0.2;
+
+                            texColor += noiseColor * ghostWeight;
+                        }
+                    }
+                    col = mix(texColor, texColor * vec4(tint.rgb, 1.0), 0.5);
+                }
+            } else if (preset == 4) {
+                // Pass through for Mode 4
+                col = texture2DCv(inputImg.texture, uv);
+            }
+            
+            gl_FragColor = col;
+        }
+        
+        // ==========================================
+        // PASS 1
+        // ==========================================
+        
+        
+        // --- Mode 0 Functions ---
+        vec3 CA(sampler2D tex, vec2 uv) {
+            float str = 0.01 * intensity;
+            float r = texture2DCv(tex, uv + vec2(0.0, str)).r;
+            float g = texture2DCv(tex, uv).g;
+            float b = texture2DCv(tex, uv + vec2(0.0, -str)).b;
+            return vec3(r, g, b);
+        }
+
+        vec3 Sharpen(sampler2D tex, vec2 uv) {
+            float str = 0.0075 * intensity;
+            vec3 tl = CA(tex, uv + vec2(-str, str));
+            vec3 tm = CA(tex, uv + vec2(0.0, str));
+            vec3 tr = CA(tex, uv + vec2(str, str));
+            vec3 ml = CA(tex, uv + vec2(-str, 0.0));
+            vec3 mr = CA(tex, uv + vec2(str, 0.0));
+            vec3 bl = CA(tex, uv + vec2(-str, -str));
+            vec3 bm = CA(tex, uv + vec2(0.0, -str));
+            vec3 br = CA(tex, uv + vec2(str, -str));
+            vec3 final = (tl + tm + tr + ml + mr + bl + bm + br) / 8.0;
+            final = mix(texture2DCv(tex, uv).rgb, final, -2.0);
+            return final;
+        }
+
+        vec3 Blur(sampler2D tex, vec2 uv) {
+            float str = 0.0025;
+            vec3 tl = Sharpen(tex, uv + vec2(-str, str));
+            vec3 tm = Sharpen(tex, uv + vec2(0.0, str));
+            vec3 tr = Sharpen(tex, uv + vec2(str, str));
+            vec3 ml = Sharpen(tex, uv + vec2(-str, 0.0));
+            vec3 mr = Sharpen(tex, uv + vec2(str, 0.0));
+            vec3 bl = Sharpen(tex, uv + vec2(-str, -str));
+            vec3 bm = Sharpen(tex, uv + vec2(0.0, -str));
+            vec3 br = Sharpen(tex, uv + vec2(str, -str));
+            vec3 final = (tl + tm + tr + ml + mr + bl + bm + br) / 8.0;
+            return final;
+        }
+
+        vec2 DistortUV(vec2 uv) {
+            float offs = noiseTex(vec2(acTime * speed, uv.y * 0.5));
+            offs -= 0.5;
+            offs *= 2.0;
+            offs *= 0.0025 * intensity;
+            uv.x += offs;
+            return uv;
+        }
+
+        vec3 ColourCorrect(vec3 col) {
+            col += 0.1;
+            col = clamp(col, vec3(0.0), vec3(1.0));
+            col = pow(col, vec3(0.8));
+            col /= 1.5;
+            col = clamp(col, vec3(0.0), vec3(1.0));
+            return col;
+        }
+
+        vec3 Finalize(vec3 col, vec2 uv) {
+            float bars = noiseTex(vec2(acTime * speed, uv.y * 0.1));
+            col += vec3(bars) * vec3(0.05, 0.01, 0.005) * intensity;
+            float n = noiseTex(uv * 0.45 + (acTime * speed * noiseTex(vec2(acTime * speed))));
+            n *= 0.05 * intensity;
+            return (col * n) + col / 1.1;
+        }
+
+        // --- Mode 1 Functions ---
+        float bendscale = 1.4;
+        
+        float Random(vec2 co, float inty) {
+            return inty * fract(sin((acTime * speed) * dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+
+        vec3 LoadTextureWithFilter(sampler2D tex, vec2 UV) {
+            vec2 fragCoord = UV * acScreenSize;
+
+            vec2 rOffset = vec2(-0.001, -0.0005) * intensity;
+            vec2 bOffset = vec2(0.001, 0.001) * intensity;
+
+            float sharpenFactor = 1.5;
+
+            float upR = texture2DCv(tex, (fragCoord + vec2(0.0, 1.0)) / acScreenSize + rOffset).r;
+            float upG = texture2DCv(tex, (fragCoord + vec2(0.0, 1.0)) / acScreenSize).g;
+            float upB = texture2DCv(tex, (fragCoord + vec2(0.0, 1.0)) / acScreenSize + bOffset).b;
+
+            float leftR = texture2DCv(tex, (fragCoord + vec2(-1.0, 0.0)) / acScreenSize + rOffset).r;
+            float leftG = texture2DCv(tex, (fragCoord + vec2(-1.0, 0.0)) / acScreenSize).g;
+            float leftB = texture2DCv(tex, (fragCoord + vec2(-1.0, 0.0)) / acScreenSize + bOffset).b;
+
+            float centerR = texture2DCv(tex, fragCoord / acScreenSize + rOffset).r;
+            float centerG = texture2DCv(tex, fragCoord / acScreenSize).g;
+            float centerB = texture2DCv(tex, fragCoord / acScreenSize + bOffset).b;
+
+            float rightR = texture2DCv(tex, (fragCoord + vec2(1.0, 0.0)) / acScreenSize + rOffset).r;
+            float rightG = texture2DCv(tex, (fragCoord + vec2(1.0, 0.0)) / acScreenSize).g;
+            float rightB = texture2DCv(tex, (fragCoord + vec2(1.0, 0.0)) / acScreenSize + bOffset).b;
+
+            float downR = texture2DCv(tex, (fragCoord + vec2(0.0, -1.0)) / acScreenSize + rOffset).r;
+            float downG = texture2DCv(tex, (fragCoord + vec2(0.0, -1.0)) / acScreenSize).g;
+            float downB = texture2DCv(tex, (fragCoord + vec2(0.0, -1.0)) / acScreenSize + bOffset).b;
+
+            return (1.0 + 4.0 * sharpenFactor) * vec3(centerR, centerG, centerB) -
+                sharpenFactor * (vec3(upR, upG, upB) + vec3(leftR, leftG, leftB) + vec3(rightR, rightG, rightB) + vec3(downR, downG, downB));
+        }
+
+        vec2 screenDistort(vec2 uv) {
+            uv -= vec2(0.5, 0.5);
+            uv = uv * bendscale * (1.0 / 1.2 + 2.0 * uv.x * uv.x * uv.y * uv.y);
+            uv += vec2(0.5, 0.5);
+            return uv;
+        }
+
+        vec2 scale2D(vec2 uv, vec2 scale) {
+            mat2 scaleMatrix = mat2(scale.x, 0.0, 0.0, scale.y);
+            return uv * scaleMatrix;
+        }
+
+        float box(vec2 st, vec2 size, float _smoothEdges) {
+            size = vec2(0.5) - size * 0.5;
+            vec2 aa = vec2(_smoothEdges * 0.5);
+            vec2 uv = smoothstep(size, size + aa, st);
+            uv *= smoothstep(size, size + aa, vec2(1.0) - st);
+            return uv.x * uv.y;
+        }
+
+        float horizontalBar(float pos, float uvY, float offset) {
+            float barRange = 0.05;
+            float edge0 = (pos - barRange);
+            float edge1 = (pos + barRange);
+
+            float x = smoothstep(edge0, pos, uvY) * offset;
+            x -= smoothstep(pos, edge1, uvY) * offset;
+            return x;
+        }
+
+        // --- Mode 2 Functions ---
+        vec3 rgb2yiq(vec3 rgb) {
+            return mat3(0.299, 0.596, 0.211, 0.587, -0.274, -0.523, 0.114, -0.322, 0.312) * rgb;
+        }
+
+        vec3 yiq2rgb(vec3 yiq) {
+            return mat3(1.000, 1.000, 1.000, 0.956, -0.272, -1.106, 0.621, -0.647, 1.703) * yiq;
+        }
+
+        mat2 rotate2D(float t) {
+            return mat2(cos(t), sin(t), -sin(t), cos(t));
+        }
+
+        vec3 vhsTex2D(vec2 uv, float rot) {
+            vec3 yiq = vec3(0.0);
+            int SAMPLES = 6;
+            
+            for (int i = 0; i &lt; 6; i++) {
+                yiq += (rgb2yiq(texture2DCv(bufferA.texture, uv - vec2(float(i), 0.0) / vec2(320.0, 240.0)).xyz) *
+                       vec2(float(i), float(SAMPLES - 1 - i)).yxx / float(SAMPLES - 1)) / float(SAMPLES) * 2.0;
+            }
+            if (rot != 0.0) { yiq.yz = rotate2D(rot) * yiq.yz; }
+            return yiq2rgb(yiq);
+        }
+
+        void pass1() {
+            vec2 uv = acScreenNorm;
+            float alpha = texture2DCv(bufferA.texture, uv).a;
+            
+            if (preset == 0) {
+                // GLITCH MODE
+                uv = DistortUV(uv);
+                vec3 colour = Blur(bufferA.texture, uv);
+                colour = ColourCorrect(colour);
+                colour = Finalize(colour, uv);
+                colour = mix(colour, colour * tint.rgb, 0.5);
+                gl_FragColor = vec4(colour, alpha);
+                
+            } else if (preset == 1) {
+                // CAMERA VIEW MODE
+                vec3 pixelColor = vec3(0.0, 0.0, 1.0);
+                
+                vec2 distUV = screenDistort(uv);
+                distUV = scale2D(distUV, vec2(0.85));
+                distUV += vec2(0.075, 0.075);
+                
+                float offsetIntensity = 0.001 * intensity;
+                for (float i = 0.0; i &lt; 1.0; i += 0.1) {
+                    float d = mod((acTime * speed) * i, 1.7);
+                    float o = sin(1.0 - tan((acTime * speed) * 0.24 * i));
+                    o *= offsetIntensity;
+                    distUV.x += horizontalBar(d, distUV.y, o);
+                }
+                
+                pixelColor = LoadTextureWithFilter(bufferA.texture, distUV);
+                
+                // Draw text
+                float fontSize = 0.1 * acScreenSize.y;
+                float blink = step(0.5, (sin(5.0 * (acTime * speed)) + 1.0) / 2.0);
+                vec3 currentLetter;
+                vec2 fragCoord = distUV * acScreenSize;
+
+                currentLetter = DrawCharacterOnScreen(fragCoord, 3, vec2(0.1, 0.85), fontSize);
+                pixelColor += (currentLetter * blink * vec3(1.0, 0.0, 0.0));
+                currentLetter = DrawCharacterOnScreen(fragCoord, 82, vec2(0.13, 0.85), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 69, vec2(0.16, 0.85), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 67, vec2(0.19, 0.85), fontSize);
+                pixelColor += currentLetter;
+
+                int dayFirst = 1; int daySecond = 2;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(dayFirst), vec2(0.1, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(daySecond), vec2(0.13, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 46, vec2(0.15, 0.1), fontSize);
+                pixelColor += currentLetter;
+
+                int monthFirst = 0; int monthSecond = 5;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(monthFirst), vec2(0.17, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(monthSecond), vec2(0.20, 0.1), fontSize);
+                pixelColor += currentLetter;
+
+                float simulatedTime = acTime * speed * 60.0;
+                float hour = mod(simulatedTime / 3600.0, 24.0);
+                int hourFirst = int(hour) / 10;
+                int hourSecond = int(mod(hour, 10.0));
+
+                float minute = mod(simulatedTime / 60.0, 60.0);
+                int minuteFirst = int(minute) / 10;
+                int minuteSecond = int(mod(minute, 10.0));
+
+                float second = mod(simulatedTime, 60.0);
+                int secondFirst = int(second) / 10;
+                int secondSecond = int(mod(second, 10.0));
+
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(hourFirst), vec2(0.7, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(hourSecond), vec2(0.73, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 58, vec2(0.75, 0.1), fontSize);
+                pixelColor += currentLetter;
+
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(minuteFirst), vec2(0.77, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(minuteSecond), vec2(0.8, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, 58, vec2(0.825, 0.1), fontSize);
+                pixelColor += currentLetter;
+
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(secondFirst), vec2(0.85, 0.1), fontSize);
+                pixelColor += currentLetter;
+                currentLetter = DrawCharacterOnScreen(fragCoord, IntToAscii(secondSecond), vec2(0.88, 0.1), fontSize);
+                pixelColor += currentLetter;
+
+                pixelColor *= box(distUV, vec2(1.0), 0.1);
+                pixelColor += vec3(0.03, 0.0, 0.05) * tint.rgb; 
+                pixelColor += 0.08 * intensity;
+                pixelColor -= Random(distUV, 0.08 * intensity);
+                
+                gl_FragColor = vec4(pixelColor, alpha);
+                
+            } else if (preset == 2) {
+                // VHS PLAY MODE (Buffer A in ShaderToy)
+                float time = acTime * speed;
+                vec2 uvn = uv;
+                vec3 col = vec3(0.0);
+
+                float tcPhase = 1.0;
+                float tcNoise = smoothstep(0.3, 1.0, noise(vec2(uvn.y * 1.77, time)));
+                uvn.x = uvn.x - 0.0 / 320.0 * 8.0;
+
+                float snPhase = smoothstep(6.0 / 240.0, 0.0, uvn.y);
+                uvn.y += snPhase * 0.3;
+                uvn.x += snPhase * ((noiseTex(vec2(uv.y * 10.0, time)) - 0.5) / 320.0 * 24.0);
+
+                col = vhsTex2D(uvn, tcPhase * 0.2 + snPhase * 2.0);
+
+                float cn = tcNoise * (0.3 + 0.7 * tcPhase);
+                if (0.29 &lt; cn) {
+                    vec2 uvt = (uvn + vec2(1.0, 0.0) * noiseTex(vec2(uvn.y, time))) * vec2(0.1, 1.0);
+                    float n0 = noiseTex(uvt);
+                    float n1 = noiseTex(uvt + vec2(1.0, 0.0) / 320.0);
+                    if (n1 &lt; n0) {
+                        col = mix(col, 2.0 * vec3(1.0), pow(n0, 10.0));
+                    }
+                }
+
+                col *= 0.9 + 0.1 * vec3(noise(mod(uvn * vec2(1.0) + time * vec2(5.97, 4.45), vec2(1.0))));
+                col = clamp(col, 0.0, 1.0);
+                col = yiq2rgb(rgb2yiq(col));
+
+                gl_FragColor = vec4(col, alpha);
+            } else if (preset == 3) {
+                gl_FragColor = texture2DCv(bufferA.texture, uv);
+            } else if (preset == 4) {
+                gl_FragColor = texture2DCv(bufferA.texture, uv);
+            }
+        }
+        
+        // ==========================================
+        // PASS 2 (FINAL)
+        // ==========================================
+        
+        
+        mat4 saturationMatrix(float sat) {
+            vec3 luminance = vec3(0.3086, 0.6094, 0.0820);
+            float oneMinusSat = 1.0 - sat;
+            vec3 red = vec3(luminance.x * oneMinusSat) + vec3(sat, 0.0, 0.0);
+            vec3 green = vec3(luminance.y * oneMinusSat) + vec3(0.0, sat, 0.0);
+            vec3 blue = vec3(luminance.z * oneMinusSat) + vec3(0.0, 0.0, sat);
+            return mat4(vec4(red, 0.0), vec4(green, 0.0), vec4(blue, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
+        }
+
+        // --- Mode 4 Functions ---
+        float kernel_spike4(vec2 uv, float skips) {
+            float dist = length(uv)/(sqrt(skips*skips + skips*skips));
+            float b = -abs(dist)+1.;
+            b = b*b*b*b;
+            return b;
+        }
+        float kernel4(vec2 uv) {
+            float dist = length(uv)/(sqrt(2.));
+            float b = cos(dist*(3.14159/2.));
+            return b*b;
+        }
+        float hash_uv4(vec2 p) {
+            vec3 p3  = fract(vec3(p.xyx) * .1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+        vec3 tint4(float brightness) {
+            vec3 a = vec3(0.8, 1.1, 0.7)*brightness;
+            vec3 b = vec3(0.8, 0.8, 1.8)*(1.-brightness);
+            return a+b;
+        }
+        float grey4(vec3 col) {
+            return (col.x+col.y+col.z)/3.;
+        }
+        vec3 saturate_and_noise4(vec3 col, float amount, vec2 fragCoord) {
+            vec3 saturated = col*amount + 0.5*(1.-amount);
+            vec3 noisy = saturated + hash_uv4(floor(fragCoord/10.)+(acTime*speed))/40.;
+            return noisy;
+        }
+        vec3 blur4(vec2 fragCoord) {
+            float x_scan = 15.0;
+            float y_scan = 5.0;
+            float x_skew = 5.0;
+            vec3 total = vec3(0.);
+            float weighting = 0.;
+            float skips = 2.0;
+            
+            for (float y=-5.0; y&lt;5.0; y++) {
+                for (float x=-3.0; x&lt;15.0; x++) {
+                    vec2 pos = vec2(x*skips, y*skips);
+                    vec2 sampleUV = (fragCoord + pos) / acScreenSize;
+                    vec3 samp = texture2DCv(bufferB.texture, sampleUV).xyz;
+                    float weight = kernel_spike4(vec2(pos.x/x_scan, pos.y/y_scan), skips);
+                    
+                    float brightness = grey4(samp);
+                    vec3 t = tint4(brightness);
+                    total += samp*weight*brightness*t;
+                    weighting += weight*brightness;
+                }
+            }
+            return total / max(weighting, 0.001);
+        }
+        vec3 sharpening4(vec2 fragCoord) {
+            float size = 3.0;
+            float factor = 0.1 * intensity;
+            float acutance = 0.;
+            vec2 baseUV = fragCoord / acScreenSize;
+            vec3 base = texture2DCv(bufferB.texture, baseUV).xyz;
+            
+            for (float y=-3.0; y&lt;3.0; y++) {
+                for (float x=-3.0; x&lt;3.0; x++) {
+                    vec2 pos = vec2(x*1., y*1.);
+                    vec2 sampleUV = (fragCoord + pos) / acScreenSize;
+                    vec3 samp = texture2DCv(bufferB.texture, sampleUV).xyz;
+                    float weight = kernel4(pos/size);
+                    
+                    acutance += grey4((base-samp)*weight);
+                }
+            }
+            return base + acutance*factor;
+        }
+
+        void pass2() {
+            vec2 uv = acScreenNorm;
+            vec4 finalCol;
+            
+            if (preset == 0 || preset == 1 || preset == 3) {
+                // Output directly for Mode 0, 1, 3
+                finalCol = texture2DCv(bufferB.texture, uv);
+                
+            } else if (preset == 2) {
+                // VHS PLAY MODE (Buffer B + Image pass in ShaderToy)
+                float sat = 1.5;
+                vec3 col;
+                
+                float amount = smoothstep(0.8, 1.0, sin((acTime * speed) * 2.0));
+                amount = pow(amount, 8.0);
+                amount *= 0.05 * intensity;
+                
+                col.r = texture2DCv(bufferB.texture, vec2(uv.x + amount, uv.y)).r;
+                col.g = texture2DCv(bufferB.texture, uv).g;
+                col.b = texture2DCv(bufferB.texture, vec2(uv.x - amount, uv.y)).b;
+                
+                col = (saturationMatrix(sat) * vec4(col, 1.0)).rgb;
+                col = mix(col, col * tint.rgb, 0.5);
+                
+                // CRT effect
+                float scanline = clamp(0.95 + 0.05 * cos(3.14 * (uv.y + 0.008 * (acTime * speed)) * 240.0), 0.0, 1.0);
+                float grille = 0.85 + 0.15 * clamp(1.5 * cos(3.14 * uv.x * 640.0), 0.0, 1.0);
+                col *= scanline * grille * 1.2;  
+                
+                float alpha = texture2DCv(bufferB.texture, uv).a;
+                finalCol = vec4(col, alpha);
+            } else if (preset == 4) {
+                // CRT BLUR MODE
+                vec2 fragCoord = uv * acScreenSize;
+                vec3 col = blur4(fragCoord);
+                float g = grey4(sharpening4(fragCoord));
+                g += 0.7;
+                col = saturate_and_noise4(col * g, 0.9, fragCoord);
+                col = mix(col, col * tint.rgb, 0.5);
+                finalCol = vec4(col, texture2DCv(bufferB.texture, uv).a);
+            }
+
+            // ---- VHS Texture Overlay (applied to all presets) ----
+            vec4 vhsOverlay = texture2DCv(vhsTex.texture, uv);
+            finalCol.rgb = mix(finalCol.rgb, finalCol.rgb * vhsOverlay.rgb, vhsTexOpacity);
+
+            gl_FragColor = finalCol;
+        }
+        
+        void main() {
+            if (acPass == 0) {
+                pass0();
+            } else if (acPass == 1) {
+                pass1();
+            } else if (acPass == 2) {
+                pass2();
+            }
+        }
+        </shader>
+</effect>

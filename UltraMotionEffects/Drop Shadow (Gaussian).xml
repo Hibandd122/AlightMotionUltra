@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.drop_shadow" name="Drop Shadow (Gaussian)" desc="Generates a soft drop shadow by offsetting the layer matte (alpha or luma, optionally inverted), blurring it with a separable Gaussian on half-resolution buffers, and compositing the foreground over the colored shadow." category="drawingedge" tags="shadow,drop,soft,blur,composite,lighting" thumb="thumb/Stylize/Drop Shadow (Gaussian).webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="bufferA" srcType="buffer" downsample="2" />
+        <texture id="bufferB" srcType="buffer" downsample="2" />
+        <texture id="bufferC" srcType="buffer" downsample="2" />
+
+        
+        <color id="shadowColor" default="#000000" label="Shadow Color" />
+        <slider id="shadowOpacity" default="1.0" min="0.0" max="3.0" step="0.01" label="Shadow Opacity" />
+        <slider id="shadowBlur" default="0.1" min="0.0" max="2.0" step="0.005" label="Shadow Blur" />
+
+        
+        <slider id="shiftX" default="0.042" min="-1.0" max="1.0" step="0.001" label="Shift X" />
+        <slider id="shiftY" default="-0.042" min="-1.0" max="1.0" step="0.001" label="Shift Y" />
+
+        
+        <slider id="fgOpacity" default="1.0" min="0.0" max="1.0" step="0.01" label="Fg Opacity" />
+
+        
+        <menu id="matteUse" style="dropdown" default="0" label="Matte Use">
+            <menu label="Alpha" value="0" />
+            <menu label="Luma" value="1" />
+        </menu>
+        <menu id="invertMatte" style="dropdown" default="0" label="Invert Matte">
+            <menu label="Off" value="0" />
+            <menu label="On" value="1" />
+        </menu>
+
+    </params>
+
+    <passes>
+        <pass target="bufferA" />
+        <pass target="bufferB" />
+        <pass target="bufferC" />
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+
+        const float PI = 3.14159265;
+
+        float getMatte(vec4 col) {
+            float mv;
+            if (matteUse == 1) {
+                mv = dot(col.rgb, vec3(0.299, 0.587, 0.114));
+            } else {
+                mv = col.a;
+            }
+            if (invertMatte == 1) mv = 1.0 - mv;
+            return clamp(mv, 0.0, 1.0);
+        }
+
+        // Incremental Gaussian blur — same algorithm as the reference gaussianblur effect
+        vec4 gaussianBlur(sampler2D tex, vec2 uv, vec2 texOffset, float kernelSize) {
+            if (kernelSize &lt;= 0.0) return texture2DCv(tex, uv);
+
+            float adjSigma = kernelSize / 2.14596602;
+
+            vec3 ig;
+            ig.x = 1.0 / (sqrt(2.0 * PI) * adjSigma);
+            ig.y = exp(-0.5 / (adjSigma * adjSigma));
+            ig.z = ig.y * ig.y;
+
+            vec4 avgValue = texture2DCv(tex, uv) * ig.x;
+            float coeffSum = ig.x;
+
+            for (float i = 1.0; i &lt;= kernelSize; i += 2.0) {
+                float offset0 = i;
+                float offset1 = i + 1.0;
+
+                ig.xy *= ig.yz;
+                coeffSum += 2.0 * ig.x;
+                float w0 = ig.x;
+
+                ig.xy *= ig.yz;
+                coeffSum += 2.0 * ig.x;
+                float w1 = ig.x;
+
+                float wL = w0 + w1;
+                float oL = (offset0 * w0 + offset1 * w1) / wL;
+
+                avgValue += texture2DCv(tex, uv - oL * texOffset) * wL;
+                avgValue += texture2DCv(tex, uv + oL * texOffset) * wL;
+            }
+
+            return avgValue / coeffSum;
+        }
+
+        // ==========================================
+        // PASS 0 — downsample matte at offset position
+        // ==========================================
+        void pass0() {
+            vec2 uv = acScreenNorm - vec2(shiftX, shiftY);
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            float m = getMatte(src);
+            gl_FragColor = vec4(m, m, m, m);
+        }
+
+        // ==========================================
+        // PASS 1 — horizontal Gaussian blur
+        // ==========================================
+        void pass1() {
+            vec2 uv = acScreenNorm;
+            float kernelSize = shadowBlur / 2.0 * 1.14 / 4.0 / 3.0 * length(acPreviewSize);
+            vec2 texOffset = vec2(1.0 / bufferA.size.x, 0.0);
+            gl_FragColor = gaussianBlur(bufferA.texture, uv, texOffset, kernelSize);
+        }
+
+        // ==========================================
+        // PASS 2 — vertical Gaussian blur
+        // ==========================================
+        void pass2() {
+            vec2 uv = acScreenNorm;
+            float kernelSize = shadowBlur / 2.0 * 1.14 / 4.0 / 3.0 * length(acPreviewSize);
+            vec2 texOffset = vec2(0.0, 1.0 / bufferB.size.y);
+            gl_FragColor = gaussianBlur(bufferB.texture, uv, texOffset, kernelSize);
+        }
+
+        // ==========================================
+        // PASS 3 — composite shadow + foreground
+        // ==========================================
+        void pass3() {
+            vec2 uv = acScreenNorm;
+
+            float blurredMatte = texture2DCv(bufferC.texture, uv).r;
+            float shadowMatte = clamp(blurredMatte * shadowOpacity, 0.0, 1.0);
+
+            // Shadow
+            vec4 shadow = vec4(shadowColor.rgb * shadowMatte, shadowMatte);
+
+            // Foreground
+            vec4 fg = texture2DCv(inputImg.texture, uv);
+            float fgA = getMatte(fg) * fgOpacity;
+
+            // Composite fg over shadow
+            vec3 rgb = shadow.rgb * (1.0 - fgA) + fg.rgb * fgA;
+            float a   = shadow.a + fgA * (1.0 - shadow.a);
+
+            gl_FragColor = vec4(rgb, a);
+        }
+
+        void main() {
+            if (acPass == 0) {
+                pass0();
+            } else if (acPass == 1) {
+                pass1();
+            } else if (acPass == 2) {
+                pass2();
+            } else {
+                pass3();
+            }
+        }
+
+    </shader>
+</effect>

@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.psykostripes" name="Psykostripes" desc="Renders animated psychedelic RGB sine-wave stripes across the layer, warped by Sobel edge detection and image luminance. Controls include stripe direction/magnitude/phase, per-channel color frequency and phase, edge strength/warp/width, tint, saturation, brightness and source mix." category="drawingedge" thumb="thumb/Stylize/Psykostripes.webp" tags="stripes,psychedelic,distortion,color">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="stripeDirDeg" default="15.0" min="-360.0" max="360.0" step="0.5" label="Stripe Dir" type="angle" />
+    <slider id="stripeMag" default="2.32" min="0.0" max="20.0" step="0.01" label="Stripe Mag" />
+    <slider id="phaseStart" default="0.5" min="-10.0" max="10.0" step="0.001" label="Phase Start" />
+    <slider id="phaseSpeed" default="1.0" min="-10.0" max="10.0" step="0.001" label="Phase Speed" />
+    <slider id="offset" default="0.0" min="-10.0" max="10.0" step="0.001" label="Offset" />
+
+    
+    <slider id="freqColors" default="1.9" min="0.0" max="20.0" step="0.01" label="Freq Colors" />
+    <slider id="freqRed" default="1.0" min="0.0" max="5.0" step="0.01" label="Freq Red" />
+    <slider id="freqGreen" default="1.1" min="0.0" max="5.0" step="0.01" label="Freq Green" />
+    <slider id="freqBlue" default="1.2" min="0.0" max="5.0" step="0.01" label="Freq Blue" />
+    <slider id="phaseRed" default="0.0" min="-6.2832" max="6.2832" step="0.001" label="Phase Red" />
+    <slider id="phaseGreen" default="0.0" min="-6.2832" max="6.2832" step="0.001" label="Phase Green" />
+    <slider id="phaseBlue" default="0.0" min="-6.2832" max="6.2832" step="0.001" label="Phase Blue" />
+    <slider id="brightness" default="1.0" min="0.0" max="3.0" step="0.01" label="Brightness" />
+    <color id="tintColor" default="#FFFFFFFF" label="Color" alpha="false" />
+    <slider id="saturation" default="1.0" min="0.0" max="2.0" step="0.01" label="Saturation" />
+
+
+    
+    <slider id="edgeAmt" default="1.0" min="0.0" max="10.0" step="0.01" label="Edge Strength" />
+    <slider id="edgeWarp" default="0.5" min="-5.0" max="5.0" step="0.01" label="Edge Warp" />
+    <slider id="edgeWidth" default="1.0" min="0.0" max="10.0" step="0.1" label="Edge Width" />
+    <switch id="edgeInvert" label="Invert Edges" default="false" />
+
+    
+    <slider id="mixWithSource" default="0.0" min="0.0" max="1.0" step="0.01" label="Mix With Source" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec2 getResolution(){
+      vec2 s = getTexSize(inputImg.size);
+      if (s.x &lt;= 0.0 || s.y &lt;= 0.0) s = vec2(1920.0, 1080.0);
+      return s;
+    }
+    float gray(vec4 c){ return dot(c.rgb, vec3(0.299,0.587,0.114)); }
+    mat2 rot2(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
+
+    float getLuma(vec2 uv) {
+      return gray(texture2DCv(inputImg.texture, uv));
+    }
+
+    float sobel(vec2 uv, vec2 pixel, float w) {
+      vec2 p = pixel * w;
+      float t00 = getLuma(uv + p * vec2(-1, -1));
+      float t10 = getLuma(uv + p * vec2( 0, -1));
+      float t20 = getLuma(uv + p * vec2( 1, -1));
+      float t01 = getLuma(uv + p * vec2(-1,  0));
+      float t21 = getLuma(uv + p * vec2( 1,  0));
+      float t02 = getLuma(uv + p * vec2(-1,  1));
+      float t12 = getLuma(uv + p * vec2( 0,  1));
+      float t22 = getLuma(uv + p * vec2( 1,  1));
+      float gx = t00 + 2.0 * t01 + t02 - (t20 + 2.0 * t21 + t22);
+      float gy = t00 + 2.0 * t10 + t20 - (t02 + 2.0 * t12 + t22);
+      return length(vec2(gx, gy));
+    }
+
+    void main(){
+      vec2 res = getResolution();
+      vec2 uv = acScreenNorm;
+      vec2 pixel = 1.0 / res;
+
+      float ang = radians(stripeDirDeg);
+      vec2 dir = rot2(ang) * vec2(1.0, 0.0);
+
+      // Edge detection
+      float edge = sobel(uv, pixel, edgeWidth) * edgeAmt;
+      float maskEdge = clamp(edge, 0.0, 1.0);
+      if(edgeInvert) maskEdge = 1.0 - maskEdge;
+
+      vec4 s0 = texture2DCv(inputImg.texture, uv);
+      float amp = gray(s0);
+
+      float basePhase = phaseStart + acTime * phaseSpeed + offset;
+      float mag = stripeMag;
+      
+      // Distort wave based on edges and original luminance
+      float wave = dot(uv - 0.5, dir) * mag + basePhase;
+      wave += edge * edgeWarp;
+      wave += amp * edgeWarp * 0.5;
+
+      float fBase = freqColors;
+      float rC = 0.5 + 0.5 * sin(wave * fBase * freqRed + phaseRed);
+      float gC = 0.5 + 0.5 * sin(wave * fBase * freqGreen + phaseGreen);
+      float bC = 0.5 + 0.5 * sin(wave * fBase * freqBlue + phaseBlue);
+      vec3 colS = vec3(rC, gC, bC);
+
+      vec3 tint = tintColor.rgb;
+      vec3 colT = colS * tint;
+      
+      // Apply "Find Edges" look: dark boundaries or glowing lines
+      if(!edgeInvert) {
+          colT *= (1.0 - maskEdge * 0.8); // Darken edges
+      } else {
+          colT += maskEdge * 0.5; // Glow edges
+      }
+
+      float g = dot(colT, vec3(0.299,0.587,0.114));
+      vec3 colSat = mix(vec3(g), colT, clamp(saturation, 0.0, 2.0));
+      colSat *= brightness;
+
+      vec3 srcCol = s0.rgb;
+      float aIn = s0.a;
+      vec3 stripeBlend = mix(colSat, srcCol, mixWithSource);
+      vec3 outCol = mix(srcCol, stripeBlend, aIn);
+      
+      gl_FragColor = vec4(outCol, aIn);
+    }
+  </shader>
+
+</effect>

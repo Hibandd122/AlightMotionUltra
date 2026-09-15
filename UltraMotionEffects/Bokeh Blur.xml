@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.creative.cinematic_bokeh" name="Bokeh Blur" desc="Bokeh blur using a golden-angle spiral sample pattern with luminance-weighted highlight blooming. Controls include aperture shape (circle, triangle, square, hexagon), anamorphic width/height, radius, highlight threshold/intensity and quality (8-128 samples)." category="blur" tags="blur,bokeh,cinematic,camera" thumb="thumb/Blur and Sharpen/Bokeh Blur.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <menu id="blurShape" style="dropdown" default="0" label="Bokeh Shape">
+            <menu value="0" label="Circle" />
+            <menu value="3" label="Triangle" />
+            <menu value="4" label="Square" />
+            <menu value="6" label="Hexagon" />
+        </menu>
+
+        <slider id="blurWidth" default="1.0" min="0.1" max="5.0" step="0.01" label="Blur Width" />
+        <slider id="blurHeight" default="1.0" min="0.1" max="5.0" step="0.01" label="Blur Height" />
+        
+        <slider id="blurRadius" default="0.02" min="0.0" max="0.1" step="0.001" label="Blur Radius" />
+        <slider id="highlightThreshold" default="0.5" min="0.0" max="1.0" step="0.01" label="Highlight Threshold" />
+        <slider id="highlightGain" default="4.0" min="0.0" max="10.0" step="0.1" label="Highlight Intensity" />
+        <slider id="quality" default="48" min="8" max="128" step="8" label="Quality (Iterations)" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        const float GOLDEN_ANGLE = 2.39996323;
+        const float PI = 3.14159265;
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            float aspect = acScreenSize.x / acScreenSize.y;
+            
+            float r = blurRadius;
+            float iterations = float(quality);
+            
+            vec3 acc = vec3(0.0);
+            float tot = 0.0;
+            
+            // Polygon mapping function
+            float sides = float(blurShape);
+            
+            for (int i = 0; i &lt; 128; i++) 
+            {
+                if (float(i) &gt;= iterations) break;
+
+                float fi = float(i);
+                float theta = fi * GOLDEN_ANGLE;
+                float rad = sqrt(fi) / sqrt(iterations);
+                
+                // Shape modulation
+                if (sides &gt; 2.5) {
+                    float deg = 2.0 * PI / sides;
+                    rad *= 1.0 / cos(mod(theta, deg) - deg * 0.5);
+                }
+
+                vec2 off = vec2(cos(theta), sin(theta));
+                
+                // Anamorphic scaling and aspect correction
+                vec2 offset = off * rad * r;
+                offset.x *= blurWidth / aspect;
+                offset.y *= blurHeight;
+                
+                vec3 col = texture2DCv(inputImg.texture, uv + offset).rgb;
+                
+                // Professional highlight blooming
+                float lum = dot(col, vec3(0.299, 0.587, 0.114));
+                float weight = pow(max(0.0, (lum - highlightThreshold) / (1.0 - min(0.99, highlightThreshold))), highlightGain) + 0.01;
+                
+                acc += col * weight;
+                tot += weight;
+            }
+            
+            vec3 finalCol = acc / tot;
+            gl_FragColor = vec4(finalCol, 1.0);
+        }
+    </shader>
+</effect>

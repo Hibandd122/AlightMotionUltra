@@ -1,0 +1,206 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.3d_point_cloud" name="3D Point Cloud" desc="Re-renders the layer as a grid of glowing 3D points, using each sample's luminance as depth, with perspective projection and position/rotation controls. Density sets the point grid size and has a very large performance cost at high values." category="3d" tags="3d,pointcloud,particles,extrusion,luminance" thumb="thumb/3D/3D Point Cloud.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="strength" default="0.0" min="0.0" max="1.0" step="0.01" label="Strength" type="percent" />
+        
+        
+        <slider id="density" default="40.0" min="10.0" max="80.0" step="1.0" label="Density (Grid Size)" />
+        <slider id="partSize" default="0.025" min="0.001" max="0.1" step="0.001" label="Particle Size" />
+        <slider id="depthFreq" default="1.5" min="0.0" max="5.0" step="0.05" label="Depth (Frequency)" />
+        <slider id="intensity" default="0.4" min="0.0" max="2.0" step="0.01" label="Glow Intensity" />
+        
+        
+        <slider id="posX" default="0.0" min="-5.0" max="5.0" step="0.01" label="Position X" />
+        <slider id="posY" default="0.0" min="-5.0" max="5.0" step="0.01" label="Position Y" />
+        <slider id="posZ" default="0.0" min="-5.0" max="5.0" step="0.01" label="Position Z" />
+        
+        
+        <slider id="rotX" default="0.0" min="-180.0" max="180.0" step="0.1" label="Rotation X" />
+        <slider id="rotY" default="0.0" min="-180.0" max="180.0" step="0.1" label="Rotation Y" />
+        <slider id="rotZ" default="0.0" min="-180.0" max="180.0" step="0.1" label="Rotation Z" />
+        
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Math Helpers
+        const float PI = 3.14159265358;
+        float deg2rad(float d){ return d * (PI / 180.0); }
+
+        mat3 getRotX(float a){ float c=cos(a), s=sin(a); return mat3(1,0,0, 0,c,-s, 0,s,c); }
+        mat3 getRotY(float a){ float c=cos(a), s=sin(a); return mat3(c,0,s, 0,1,0, -s,0,c); }
+        mat3 getRotZ(float a){ float c=cos(a), s=sin(a); return mat3(c,-s,0, s,c,0, 0,0,1); }
+
+        float cross2(vec2 a, vec2 b){ return a.x*b.y - a.y*b.x; }
+
+        // Splat cutoff. A cell is skipped only when its Gaussian weight is below
+        // exp(-30) = 1e-13, i.e. far under one 8-bit code even after the 1/2.2 gamma.
+        const float CUT  = 5.4772256;   // sqrt(30)
+        const float WMAX = 48.0;        // max cells visited per axis (see notes below)
+
+        void main() {
+            // Normalize layer coordinates (so it moves with the object)
+            vec2 uv = acLayerNorm * 2.0 - 1.0;
+            float aspectRatio = acLayerSize.x / acLayerSize.y;
+            uv.x *= aspectRatio;
+
+            // Sample original for blending
+            vec4 original = texture2DCv(inputImg.texture, acLayerNorm);
+
+            // Nothing of the cloud can survive the blend: skip the whole grid.
+            // strength == 0 -&gt; mix() returns the original; intensity == 0 -&gt; the
+            // accumulator stays black, and tonemap+gamma of black is black.
+            if (strength &lt;= 0.0 || intensity &lt;= 0.0) {
+                gl_FragColor = vec4(mix(original.rgb, vec3(0.0), strength), mix(original.a, 1.0, strength));
+                return;
+            }
+
+            vec3 finalColor = vec3(0.0);
+
+            // 1. Camera Setup
+            // Move the camera backward on the Z-axis
+            vec3 ro = vec3(0.0, 0.0, -2.5 + posZ);
+
+            // 2. Prep Transformations
+            float rotRX = deg2rad(rotX);
+            float rotRY = deg2rad(rotY);
+            float rotRZ = deg2rad(rotZ);
+            mat3 combinedRot = getRotY(rotRY) * getRotX(rotRX) * getRotZ(rotRZ);
+
+            vec3 objPos = vec3(posX * aspectRatio, posY, 0.0);
+
+            // 3. Exact splat culling.
+            // weight = exp(-dist*dist/(size*size)) with size = partSize/viewPos.z, so
+            //   dist*dist/(size*size) == |viewPos.xy - viewPos.z*uv|^2 / partSize^2.
+            // viewPos = combinedRot*p + A is affine in the object-space particle
+            // p = (gx, gy, dz), hence  E(p) = m0*gx + m1*gy + m2*dz + b  with the
+            // columns below. A cell can only light this pixel while |E| &lt;= CUT*partSize,
+            // and dz is bounded by the luminance range, so whole rows/columns of the
+            // grid can be solved away before any texture fetch.
+            vec3 A  = objPos - ro;
+            vec2 m0 = combinedRot[0].xy - uv * combinedRot[0].z;
+            vec2 m1 = combinedRot[1].xy - uv * combinedRot[1].z;
+            vec2 m2 = combinedRot[2].xy - uv * combinedRot[2].z;
+            vec2 bb = A.xy - A.z * uv;
+
+            float steps = floor(density);
+            float last  = steps - 1.0;           // density &gt;= 10, so last &gt;= 9
+            float halfD = 0.5 * max(depthFreq, 0.0);
+            float rad   = partSize * CUT;
+            float rad2  = rad * rad;
+            float m2sq  = max(dot(m2, m2), 1e-12);
+            float reach = rad + length(m2) * halfD;   // depth slides the splat along m2
+            float reach2 = reach * reach;
+            float a2    = dot(m0, m0);
+            float kx    = 0.5 / max(aspectRatio, 1e-4);
+
+            // Row window: rows whose |E| can dip under `reach` for some column.
+            float yLo = 0.0;
+            float yHi = last;
+            float l0  = length(m0);
+            if (l0 &gt; 1e-5) {
+                float c1 = cross2(m0, m1);
+                float c0 = cross2(m0, bb);
+                float rhs = reach * l0;
+                if (abs(c1) &gt; 1e-7) {
+                    float ga = (-c0 - rhs) / c1;
+                    float gb = (-c0 + rhs) / c1;
+                    yLo = max(ceil((min(ga, gb) * 0.5 + 0.5) * last), 0.0);
+                    yHi = min(floor((max(ga, gb) * 0.5 + 0.5) * last), last);
+                } else if (abs(c0) &gt; rhs) {
+                    yHi = -1.0;
+                }
+            }
+            float yCount = yHi - yLo + 1.0;
+            if (yCount &gt; WMAX) { yLo = max(floor((yLo + yHi) * 0.5 - (WMAX * 0.5 - 0.5)), 0.0); yCount = WMAX; }
+
+            // 4. Loop through the surviving grid cells
+            for (int iy = 0; iy &lt; 48; iy++) {
+                if (float(iy) &gt;= yCount) break;
+                float y = yLo + float(iy);
+                if (y &gt; last) break;
+
+                float puvy = y / (steps - 1.0);
+                float gy = (puvy - 0.5) * 2.0;
+                vec2 v = m1 * gy + bb;
+
+                // Column window for this row: |m0*gx + v| &lt;= reach.
+                float xLo = 0.0;
+                float xHi = last;
+                if (a2 &gt; 1e-10) {
+                    float b2 = dot(m0, v);
+                    float c2 = dot(v, v) - reach2;
+                    float disc = b2 * b2 - a2 * c2;
+                    if (disc &lt; 0.0) continue;
+                    float sq = sqrt(disc);
+                    xLo = max(ceil(((-b2 - sq) / a2 * kx + 0.5) * last), 0.0);
+                    xHi = min(floor(((-b2 + sq) / a2 * kx + 0.5) * last), last);
+                }
+                float xCount = xHi - xLo + 1.0;
+                if (xCount &lt; 1.0) continue;
+                if (xCount &gt; WMAX) { xLo = max(floor((xLo + xHi) * 0.5 - (WMAX * 0.5 - 0.5)), 0.0); xCount = WMAX; }
+
+                for (int ix = 0; ix &lt; 48; ix++) {
+                    if (float(ix) &gt;= xCount) break;
+                    float x = xLo + float(ix);
+                    if (x &gt; last) break;
+
+                    float puvx = x / (steps - 1.0);
+                    float gx = (puvx - 0.5) * 2.0 * aspectRatio;
+
+                    // Exact per-cell test over the full luminance (depth) range:
+                    // closest approach of E to the origin along the dz segment.
+                    vec2 e0 = m0 * gx + v;
+                    float dzc = clamp(-dot(e0, m2) / m2sq, -halfD, halfD);
+                    vec2 ec = e0 + m2 * dzc;
+                    if (dot(ec, ec) &gt; rad2) continue;
+
+                    // Get the UV coordinate of this specific particle (Layer relative)
+                    vec2 puv = vec2(puvx, puvy);
+
+                    // Sample the texture for color
+                    vec4 texColor = texture2DCv(inputImg.texture, puv);
+                    if(texColor.a &lt; 0.01) continue; // More aggressive transparency skip
+
+                    // Calculate brightness (luminance) to use as the Z-depth
+                    float luminance = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+
+                    // 5. Construct the 3D Position (X, Y, Z)
+                    vec3 p3d = vec3(
+                        gx,
+                        gy,
+                        (luminance - 0.5) * depthFreq
+                    );
+
+                    // 6. Apply Position and Rotation
+                    p3d = combinedRot * p3d;
+                    p3d += objPos;
+
+                    // 7. 3D to 2D Projection (Perspective)
+                    vec3 viewPos = p3d - ro;
+
+                    if(viewPos.z &lt; 0.1) continue;
+
+                    vec2 projPos = viewPos.xy / viewPos.z;
+
+                    // 8. Draw the point
+                    float dist = length(uv - projPos);
+                    float size = partSize / viewPos.z;
+                    float weight = exp(-(dist * dist) / (size * size));
+
+                    finalColor += texColor.rgb * weight * intensity * texColor.a;
+                }
+            }
+
+            // Tone mapping and Gamma correction
+            finalColor = finalColor / (1.0 + finalColor);
+            finalColor = pow(finalColor, vec3(1.0/2.2));
+
+            vec3 result = mix(original.rgb, finalColor, strength);
+
+            gl_FragColor = vec4(result, mix(original.a, 1.0, strength));
+        }
+</shader>
+</effect>

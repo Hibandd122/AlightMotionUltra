@@ -1,0 +1,194 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.shatter_voronoi_mp" name="Shatter (Voronoi MP)" desc="Procedural Voronoi-cell shatter: each cell scatters, rotates, and falls with gravity as Progress increases, with a blurred edge glow generated in downsampled multipass buffers. Cell scale, randomness, edge width/feather/color, and quality controls." category="warp" tags="shatter,transition,voronoi,disintegrate,multipass" thumb="thumb/Matte and Mask/Shatter (Voronoi MP).webp" overdraw="true" max-overdraw="1.5">
+
+  
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <texture id="shatterPass" srcType="buffer" />
+    <texture id="edgeMask" srcType="buffer" downsample="2" />
+    <texture id="hblur" srcType="buffer" downsample="2" />
+    <texture id="vblur" srcType="buffer" downsample="2" />
+
+    
+    <slider id="progress" default="0.0" min="0.0" max="1.0" step="0.005" label="@string/progress" type="percent" />
+    <slider id="cellScale" default="40.0" min="4.0" max="200.0" step="0.5" label="@string/cellscale" />
+    <slider id="randomness" default="0.5" min="0.0" max="1.0" step="0.01" label="@string/randomness" />
+    <slider id="scatter" default="0.2" min="0.0" max="1.0" step="0.01" label="@string/scatter" />
+    <slider id="rotAmount" default="90.0" min="-720.0" max="720.0" step="1.0" label="@string/rotation" />
+    <slider id="gravity" default="0.5" min="-2.0" max="2.0" step="0.01" label="@string/gravity" />
+
+    
+    <slider id="edgeWidth" default="0.8" min="0.1" max="4.0" step="0.05" label="@string/edge_width" />
+    <slider id="edgeFeather" default="0.5" min="0.0" max="2.0" step="0.01" label="@string/edge_feather" />
+    <color id="edgeColor" default="#FFFFFFFF" label="@string/edge_color" alpha="true" />
+    <slider id="edgeGlow" default="0.6" min="0.0" max="3.0" step="0.01" label="@string/edge_glow" />
+
+    
+    <menu id="quality" style="radio" default="2" label="@string/quality">
+      <menu label="Low" value="1" />
+      <menu label="Medium" value="2" />
+      <menu label="High" value="3" />
+    </menu>
+
+    
+    <switch id="glowOnly" default="false" label="@string/glow_only" />
+  </params>
+
+  <passes>
+    <pass target="shatterPass" />
+    <pass target="edgeMask" />
+    <pass target="hblur" />
+    <pass target="vblur" />
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // Voronoi Shatter Multi‑Pass
+    // Pass 0: compute shattered image into shatterPass (RGB) and write edge mask to alpha
+    // Pass 1: extract edge mask from shatterPass.a into edgeMask (downsampled)
+    // Pass 2: horizontal blur edgeMask -&gt; hblur
+    // Pass 3: vertical blur hblur -&gt; vblur
+    // Pass 4: composite shatterPass + edge glow (vblur * edgeColor * edgeGlow)
+
+    const float PI = 3.14159265358979323846;
+
+    // Hash helpers
+    float hash11(float n){ return fract(sin(n)*43758.5453123); }
+    float hash21(vec2 p){ return fract(1e4*sin(17.0*p.x + 0.1*p.y)*(0.1+abs(sin(13.0*p.y+7.0*p.x)))); }
+
+    // Rot2
+    mat2 r2(float a){ float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+    // Voronoi: return nearest distance and ID; also second-nearest distance for edge width
+    vec4 voronoi(vec2 uv, float cellScale, float randAmt){
+      vec2 g = uv * cellScale;
+      vec2 i = floor(g);
+      vec2 f = fract(g);
+
+      float d1 = 1e9; vec2 id1 = vec2(0.0);
+      float d2 = 1e9;
+
+      for(int y=-1;y&lt;=1;y++){
+        for(int x=-1;x&lt;=1;x++){
+          vec2 o = vec2(x,y);
+          vec2 h = i + o;
+          // jittered cell point
+          float s = hash21(h);
+          vec2 p = fract(vec2(s, hash11(s*91.7)) + randAmt*0.6);
+          vec2 diff = (o + p) - f;
+          float d = dot(diff,diff);
+          if(d &lt; d1){ d2 = d1; d1 = d; id1 = h + p; }
+          else if(d &lt; d2){ d2 = d; }
+        }
+      }
+      return vec4(d1, d2, id1);
+    }
+
+    // Simple separable blur (incremental Gaussian) on edge mask
+    vec4 blurInternal(sampler2D tex, vec2 texOffset, vec2 st, float numBlurPixelsPerSide){
+      float adjSigma = numBlurPixelsPerSide / 2.14596602;
+      const float PIc = 3.14159265;
+      highp vec3 incG;
+      incG.x = 1.0 / (sqrt(2.0 * PIc) * max(adjSigma,1e-4));
+      incG.y = exp(-0.5 / (max(adjSigma,1e-4) * max(adjSigma,1e-4)));
+      incG.z = incG.y * incG.y;
+      vec4 avg = texture2DCv(tex,st) * incG.x; float sum = incG.x;
+      for(float i=1.0;i&lt;=128.0;i+=2.0){
+        float o0=i, o1=i+1.0;
+        incG.xy *= incG.yz; float w0 = incG.x;
+        incG.xy *= incG.yz; float w1 = incG.x;
+        float w = w0 + w1;
+        float off = (o0*w0 + o1*w1) / max(w,1e-6);
+        vec2 o = texOffset * off;
+        avg += texture2DCv(tex, st - o) * w;
+        avg += texture2DCv(tex, st + o) * w;
+        sum += 2.0*w;
+        if(i&gt;numBlurPixelsPerSide) break;
+      }
+      return avg / max(sum,1e-6);
+    }
+
+    void main(){
+      int Q = int(quality);
+      float taps = (Q==1)? 6.0 : (Q==2? 10.0 : 14.0);
+
+      if(acPass==0){
+        // Shatter &amp; edge mask in alpha
+        vec2 uv = acLayerNorm; // content UV
+        // Keep isotropy
+        uv.x *= acLayerSize.x/acLayerSize.y;
+
+        // Voronoi sites
+        vec4 v = voronoi(uv, cellScale, randomness);
+        float d1 = sqrt(v.x);
+        float d2 = sqrt(v.y);
+        vec2 site = v.zw; // in cell space
+        // World site position (normalize to uv space)
+        vec2 siteUV = site / cellScale;
+
+        // Cell random direction and angle
+        float sid = hash21(floor(site));
+        vec2 dir = normalize(vec2(cos(sid*6.2831), sin(sid*6.2831)) + 1e-3);
+        float ang = radians(rotAmount) * progress * (sid*2.0-1.0);
+
+        // Gravity (down in uv-y)
+        vec2 grav = vec2(0.0, gravity * progress * progress);
+        vec2 T = dir * scatter * progress + grav;
+
+        // Inverse transform: map current pixel back to source space of its cell
+        vec2 p = uv - siteUV;
+        p = r2(-ang) * p; // undo rotation
+        p -= T;           // undo translation
+        vec2 sampleUV = p + siteUV;
+
+        // Undo aspect for sampling
+        sampleUV.x /= acLayerSize.x/acLayerSize.y;
+
+        vec4 src = texture2DCv(inputImg.texture, (vec4(sampleUV,0.,1.)*acLayerToScreen).xy);
+
+        // Edge metric from difference of nearest and 2nd nearest distances
+        float e = clamp((d2 - d1) * cellScale * edgeWidth, 0.0, 1.0);
+        float edgeMask = 1.0 - smoothstep(0.0, edgeFeather, e);
+
+        gl_FragColor = vec4(src.rgb, edgeMask * src.a);
+        return;
+      }
+
+      if(acPass==1){
+        // Extract edge mask from shatterPass alpha and write to edgeMask
+        vec4 s = texture2DCv(shatterPass.texture, acScreenNorm);
+        gl_FragColor = vec4(s.a);
+        return;
+      }
+
+      if(acPass==2){
+        // Horizontal blur edge mask
+        float k = (Q==1? 6.0 : Q==2? 10.0 : 14.0);
+        float kernelSize = k;
+        vec2 texOffset = vec2(1.0/edgeMask.size.x, 0.0);
+        gl_FragColor = blurInternal(edgeMask.texture, texOffset, acScreenNorm.st, kernelSize);
+        return;
+      }
+
+      if(acPass==3){
+        // Vertical blur
+        float k = (Q==1? 6.0 : Q==2? 10.0 : 14.0);
+        float kernelSize = k;
+        vec2 texOffset = vec2(0.0, 1.0/hblur.size.y);
+        gl_FragColor = blurInternal(hblur.texture, texOffset, acScreenNorm.st, kernelSize);
+        return;
+      }
+
+      // Final composite
+      vec4 shattered = texture2DCv(shatterPass.texture, acScreenNorm);
+      vec3 baseRGB = shattered.rgb;
+      float edgeB = texture2DCv(vblur.texture, acScreenNorm).r;
+      vec3 glowRGB = edgeColor.rgb * edgeB * edgeGlow * edgeColor.a;
+      vec3 outRGB = glowOnly ? glowRGB : (baseRGB + glowRGB);
+      gl_FragColor = vec4(outRGB, shattered.a);
+    }
+  </shader>
+</effect>

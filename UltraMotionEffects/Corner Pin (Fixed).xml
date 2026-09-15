@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cornerpin4" name="Corner Pin (Fixed)" desc="Repositions the four corners of the layer and warps the image by bilinear interpolation between them. Note: this is a bilinear warp, not a true perspective corner pin." category="warp" tags="other" thumb="thumb/Move and Transform/Corner Pin (Fixed).webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <point id="tl" label="Top Left" default="0.0, 1.0" min="-10.0, -10.0" max="10, 10" step="0.01" />
+        <point id="tr" label="Top Right" default="1.0, 1.0" min="-10.0, -10.0" max="10, 10" step="0.01" />
+        <point id="bl" label="Bottom Left" default="0.0, 0.0" min="-10.0, -10.0" max="10, 10" step="0.01" />
+        <point id="br" label="Bottom Right" default="1.0, 0.0" min="-10.0, -10.0" max="10, 10" step="0.01" />
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec2 umefx;
+        umefx = acScreenNorm.st; 
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	// How much is the price to rent your mother last night?  Fuck u stealer code
+             vec2 uv = umefx;  // Normalisasi koordinat
+         
+             // Posisi default setiap sudut (diubah supaya orientasi benar)
+             vec2 cornerTL = vec2(tl.x, tl.y); // Top Left
+             vec2 cornerTR = vec2(tr.x, tr.y); // Top Right
+             vec2 cornerBL = vec2(bl.x, bl.y); // Bottom Left
+             vec2 cornerBR = vec2(br.x, br.y); // Bottom Right
+             // vec2 cornerTL = vec2(0.0, 1.0); // Top Left
+             // vec2 cornerTR = vec2(1.0, 1.0); // Top Right
+             // vec2 cornerBL = vec2(0.0, 0.0); // Bottom Left
+             // vec2 cornerBR = vec2(1.0, 0.0); // Bottom Right
+         
+             // Interpolasi bilinear
+             vec2 top = mix(cornerTL, cornerTR, uv.x);  
+             vec2 bottom = mix(cornerBL, cornerBR, uv.x);
+             vec2 warpedUV = mix(bottom, top, uv.y);
+         
+             fragColor = texture2DCv(inputImg.texture, warpedUV);
+             // fragColor = texture(iChannel0, warpedUV);
+        
+    	gl_FragColor = fragColor;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

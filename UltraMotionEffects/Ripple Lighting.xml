@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.ripplelighting" name="Ripple Lighting" desc="Renders animated concentric ripple waves lit by two opposing specular highlights on a black background, replacing the layer content. Controls cover ripple frequency, amplitude, speed, light angle/intensity/spread, auto-rotating light, and tint." category="colorlight" thumb="thumb/Light and Glow/Ripple Lighting.webp" tags="ripple,light,wave,lighting" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    
+    <slider id="speed" default="5.00" min="0.0" max="10.0" step="0.1" label="Animation Speed" />
+    <slider id="frequency" default="9.12" min="1.0" max="30.0" step="0.01" label="Ripple Frequency" />
+    <slider id="waveAmp" default="0.04" min="0.0" max="0.2" step="0.001" label="Wave Amplitude" />
+    <slider id="lightIntensity" default="1.50" min="0.0" max="5.0" step="0.1" label="Light Intensity" />
+    <slider id="lightSpread" default="3.00" min="0.1" max="5.0" step="0.1" label="Light Spread" />
+    <slider id="lightAngle" default="-0.63" min="-3.14159" max="3.14159" step="0.01" label="Light Angle" />
+    <switch id="autoRotate" default="false" label="Auto Rotate Light" />
+    <color id="tint" default="#ffffff" label="Light Tint" />
+  </params>
+
+  <shader type="fragment">
+    precision highp float;
+
+    // Calculate the height of the ripple at a given point
+    float getHeight(vec2 p) {
+        float dist = length(p);
+        // A decaying sine wave expanding from the center
+        float decay = smoothstep(1.0, 0.1, dist);
+        return sin(dist * frequency - acTime * speed) * waveAmp * decay;
+    }
+
+    void main() {
+        // Normalized pixel coordinates (centered)
+        vec2 uv = (acScreenNorm.st - 0.5) * vec2(acScreenSize.x / acScreenSize.y, 1.0);
+
+        // 1. Surface Normals
+        // We calculate the slope of the wave to determine how light bounces off it
+        float eps = 0.002;
+        float h = getHeight(uv);
+        float h_x = getHeight(uv + vec2(eps, 0.0));
+        float h_y = getHeight(uv + vec2(0.0, eps));
+        
+        // Construct normal vector from height gradients
+        vec3 normal = normalize(vec3(h - h_x, h - h_y, eps));
+
+        // 2. Lighting Setup
+        vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
+        vec3 col = vec3(0.0); // Start with black background
+
+        // Determine Light Angle based on controls
+        float currentAngle = lightAngle;
+        if (autoRotate) {
+            currentAngle = acTime * 0.3;
+        }
+
+        // Light 1
+        // Calculate position based on currentAngle
+        vec3 lightPos1 = vec3(cos(currentAngle) * lightSpread, sin(currentAngle) * lightSpread, 1.0);
+        vec3 lightDir1 = normalize(lightPos1 - vec3(uv, 0.0));
+        vec3 halfDir1 = normalize(lightDir1 + viewDir);
+        float spec1 = pow(max(dot(normal, halfDir1), 0.0), 80.0); // Sharp highlight
+        
+        // Light 2 (Opposite side)
+        vec3 lightPos2 = vec3(-lightPos1.x, -lightPos1.y, 1.0);
+        vec3 lightDir2 = normalize(lightPos2 - vec3(uv, 0.0));
+        vec3 halfDir2 = normalize(lightDir2 + viewDir);
+        float spec2 = pow(max(dot(normal, halfDir2), 0.0), 80.0);
+
+        // Combine lights
+        col += (spec1 + spec2) * tint.rgb * lightIntensity;
+
+        // 3. Post-Processing
+        // Vignette to fade out the edges completely into black
+        col *= smoothstep(0.8, 0.2, length(uv));
+        
+        // Gamma correction for smoother light falloff
+        col = pow(col, vec3(0.4545));
+
+        gl_FragColor = vec4(col, 1.0);
+    }
+  </shader>
+
+  <passes>
+    <pass />
+  </passes>
+</effect>

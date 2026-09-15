@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.lightning_procedural" name="Lightning (Procedural)" desc="Generates an animated lightning bolt: fractal (fBm) noise warps a vertical centerline whose distance drives a glow falloff. Controls include RGB color, intensity, width, animation speed, octave count, warp strength, and octave rotation." category="colorlight" tags="lightning,procedural,shadertoy" thumb="thumb/Procedural/Lightning (Procedural).webp" experimental="false">
+
+  <params>
+    
+    <slider id="colorR" default="0.2" min="0.0" max="2.0" step="0.001" label="Color R" />
+    <slider id="colorG" default="0.3" min="0.0" max="2.0" step="0.001" label="Color G" />
+    <slider id="colorB" default="0.8" min="0.0" max="2.0" step="0.001" label="Color B" />
+    <slider id="intensity" default="0.07" min="0.0" max="1.0" step="0.001" label="Intensity" />
+    <slider id="width" default="1.0" min="0.1" max="4.0" step="0.001" label="Width" />
+
+    
+    <slider id="speed" default="0.8" min="-5.0" max="5.0" step="0.001" label="Speed" />
+    <slider id="octaves" default="10" min="1" max="12" step="1" label="FBM Octaves" />
+    <slider id="warp" default="2.0" min="0.0" max="4.0" step="0.001" label="FBM Warp" />
+    <slider id="rotate" default="0.45" min="-3.14159" max="3.14159" step="0.001" label="Octave Rotate" />
+  </params>
+
+  <passes>
+    <pass />
+  </passes>
+
+  <shader type="fragment" precision="high">
+    // ShaderToy -&gt; Alight Motion mapping
+    // iResolution.xy -&gt; acScreenSize
+    // iTime -&gt; acTime
+    // fragCoord -&gt; acScreenNorm * acScreenSize
+
+    float hash11(float p)
+    {
+        p = fract(p * 0.1031);
+        p *= p + 33.33;
+        p *= p + p;
+        return fract(p);
+    }
+
+    float hash12(vec2 p)
+    {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    mat2 rotate2d(float theta)
+    {
+        float c = cos(theta);
+        float s = sin(theta);
+        return mat2(c, -s, s, c);
+    }
+
+    float noise2(vec2 p)
+    {
+        vec2 ip = floor(p);
+        vec2 fp = fract(p);
+        float a = hash12(ip);
+        float b = hash12(ip + vec2(1.0, 0.0));
+        float c = hash12(ip + vec2(0.0, 1.0));
+        float d = hash12(ip + vec2(1.0, 1.0));
+        vec2 t = smoothstep(0.0, 1.0, fp);
+        return mix(mix(a, b, t.x), mix(c, d, t.x), t.y);
+    }
+
+    float fbm(vec2 p, int octaveCount, float rotAngle)
+    {
+        float value = 0.0;
+        float amplitude = 0.5;
+        mat2 R = rotate2d(rotAngle);
+        for (int i = 0; i &lt; 12; ++i)
+        {
+            if(i &gt;= octaveCount) break;
+            value += amplitude * noise2(p);
+            p = R * p * 2.0;
+            amplitude *= 0.5;
+        }
+        return value;
+    }
+
+    void imagePass(out vec4 fragColor, vec2 fragCoord)
+    {
+        vec2 iResolution = acScreenSize;
+        // Normalized pixel coordinates (from -1 to 1), aspect-corrected
+        vec2 uv = fragCoord / iResolution.xy;
+        uv = 2.0 * uv - 1.0;
+        uv.x *= iResolution.x / iResolution.y;
+
+        // Animated domain warp via FBM
+        float t = acTime * speed;
+        int   oct = int(octaves + 0.5);
+        float wobble = fbm(uv + t, oct, rotate);
+        uv += warp * (wobble - 0.5) * 2.0; // center around 0
+
+        // Distance from bolt centerline (x=0)
+        float dist = max(1e-4, abs(uv.x));
+
+        // Base color and intensity with subtle jitter
+        vec3 baseCol = vec3(colorR, colorG, colorB);
+        float jitter = mix(0.0, intensity, hash11(acTime));
+        float glow = pow(jitter * width / dist, 1.0);
+
+        vec3 col = baseCol * glow;
+        fragColor = vec4(col, 1.0);
+    }
+
+    void main(){
+      vec2 fragCoord = acScreenNorm * acScreenSize;
+      vec4 c; imagePass(c, fragCoord); gl_FragColor = c; return;
+    }
+  </shader>
+</effect>

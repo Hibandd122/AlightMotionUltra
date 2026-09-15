@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra3d.height-displace" name="Height Displace" desc="Shifts pixels along a chosen direction using the image's own luminance as a height map, refined over 16 iterative steps for a parallax-like offset. Depth scales the shift and View Angle sets its direction." category="3d" thumb="thumb/Distort and Warp/Height Displace.webp" tags="3d,parallax,displace,height,raster" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="depth" default="0.5" min="0.0" max="1.0" label="Depth" />
+        <slider id="viewAngle" default="45.0" min="0.0" max="360.0" label="View Angle" type="angle" step="1" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            float a=radians(viewAngle);
+            vec2 vdir=vec2(cos(a),sin(a))*depth*0.08;
+            vec2 uv=acScreenNorm;
+            for(int i=0;i&lt;16;i++){
+                float h=dot(texture2DCv(inputImg.texture, uv).rgb, vec3(0.333));
+                uv += vdir*(h-0.5)/16.0;
+            }
+            gl_FragColor=texture2DCv(inputImg.texture, uv);
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.creative.directional_skew" name="Directional Skew" desc="Shears the layer around its center along an axis set by Skew Angle, with Skew Scale setting the shear amount and direction. Single-tap UV remap with no bounds expansion, so content pushed past the layer edge is clipped." category="warp" tags="distort,skew,shear,warp" thumb="thumb/Distort and Warp/Directional Skew.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="skewScale" default="0.5" min="-2.0" max="2.0" step="0.01" label="Skew Scale" />
+        <slider id="skewAngle" default="0.0" min="-180.0" max="180.0" step="1.0" label="Skew Angle" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main() {
+            // Normalized pixel coordinates (from 0 to 1)
+            vec2 uv = acScreenNorm;
+
+            // --- Apply Directional Skew ---
+            // Center the coordinates on the layer center
+            vec2 centered = uv - acLayerCenterNorm;
+            
+            // Calculate rotation based on Angle
+            float rad = radians(skewAngle);
+            float c = cos(rad);
+            float s = sin(rad);
+            
+            // Rotation matrices
+            // mat2(column0, column1)
+            mat2 toSkewAxis = mat2(c, -s, s, c);
+            mat2 fromSkewAxis = mat2(c, s, -s, c);
+            
+            // 1. Rotate to align with skew axis
+            vec2 temp = centered * toSkewAxis;
+            
+            // 2. Apply Skew (Shear)
+            // 'skewScale' determines the strength of the shear
+            temp.x += temp.y * skewScale;
+            
+            // 3. Rotate back
+            centered = temp * fromSkewAxis;
+            
+            // Restore coordinates
+            uv = centered + acLayerCenterNorm;
+
+            // Sample the texture
+            // We ensure we dont sample outside 0-1 if needed, but standard behavior usually crops or wraps
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    </shader>
+</effect>

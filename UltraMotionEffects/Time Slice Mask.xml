@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect thumb="thumb/Transition/Time Slice Mask.webp" id="com.alightcreative.effects.time_slice_mask" name="Time Slice Mask" desc="Internal mask pass for Time Slice Wipe: generates a directional banded wipe matte from angle, band count, smoothness, feather and speed, animated over time." category="warp" tags="extra" internal="true">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <texture id="inputImg2" srcType="comp" />
+    <slider id="count" default="10.0" min="1.0" max="200.0" label="Count" step="1.0" />
+    <slider id="smoothness" default="0.5" min="0.0" max="1.0" label="Smoothness" step="0.01" />
+    <slider id="speed" default="1.0" min="-5.0" max="5.0" label="Speed" step="0.01" />
+    <slider id="angle" default="0.0" min="0.0" max="3600.0" label="Angle" type="angle" step="0.5" />
+    <slider id="feather" default="0.02" min="0.0" max="100.0" label="Feather" step="0.001" />
+    <slider id="reverse" default="0.0" min="0.0" max="1.0" label="Reverse (0/1)" step="1.0" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    void main(){
+      vec2 uv = acLayerNorm;
+      float progress = fract(acTime * speed);
+      float rad = angle * 0.017453292519943295;
+      vec2 v = normalize(vec2(cos(rad), -sin(rad)));
+      float p = dot(uv - vec2(0.5), v) + 0.5;
+      float pr = smoothstep(-smoothness, 0.0, p - progress * (1.0 + smoothness));
+      float cell = fract(count * p);
+      float useFeather = step(1e-6, feather);
+      float sHard = step(pr, cell);
+      float sSoft = smoothstep(pr, pr + feather, cell);
+      float s = mix(sHard, sSoft, useFeather);
+      gl_FragColor = vec4(vec3(s), s);
+    }
+  </shader>
+
+</effect>

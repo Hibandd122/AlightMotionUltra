@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.color_transfer_adjustment" name="Color Transfer" desc="Statistical color match: samples the composition below and a reference image on a grid, computes per-channel YUV mean/std statistics, and remaps the comp toward the reference (Reinhard-style transfer). Includes contrast matching (min/max or robust mean±2σ), chroma-only mode, and strength controls. Place on a full-screen layer on top." category="colorlight" tags="color,match,transfer,grading,adjustment" thumb="thumb/Color/Color Transfer.webp" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="compSrc" srcType="comp" />
+    <texture id="refImg" srcType="content" />
+
+    
+    <switch id="useLayerBelowAsRef" default="false" label="Use Layer Below as Reference" />
+    <slider id="strength" default="1.0" min="0.0" max="1.0" step="0.01" label="Strength" />
+    <slider id="chromaStrength" default="1.0" min="0.0" max="1.0" step="0.01" label="Chroma Strength" />
+    <switch id="preserveLuma" default="false" label="Preserve Luma (chroma only)" />
+    <switch id="matchContrast" default="true" label="Match Contrast (min/max)" />
+    <switch id="robustContrast" default="true" label="Robust Contrast (mean±2σ)" />
+    <slider id="sampleGrid" default="16" min="4" max="32" step="1" label="Sample Grid" type="integer" />
+    <switch id="halfSamples" default="false" label="Fast Sampling (reduced)" />
+
+    
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+
+    vec3 rgb2yuv(vec3 c){
+      float y = dot(c, LUMA);
+      float u = c.b - y;
+      float v = c.r - y;
+      return vec3(y,u,v);
+    }
+    vec3 yuv2rgb(vec3 yuv){
+      float y = yuv.x; float u = yuv.y; float v = yuv.z;
+      float r = v + y;
+      float b = u + y;
+      float g = (y - 0.2126*r - 0.0722*b) / max(0.7152, 1e-6);
+      return clamp(vec3(r,g,b), 0.0, 1.0);
+    }
+
+    void accumStats(vec3 c, inout vec3 sum, inout vec3 sum2, inout vec3 minv, inout vec3 maxv){
+      sum += c; sum2 += c*c; minv = min(minv, c); maxv = max(maxv, c);
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+
+      // Source: composite below this layer
+      vec3 srcRGB = texture2DCv(compSrc.texture, uv).rgb;
+
+      // Build stats over grid from source and reference.
+      // These statistics are GLOBAL: every pixel computes the exact same numbers.
+      // The grid is therefore fixed at a compile-time 8x8 = 64 taps instead of up
+      // to 32x32 = 1024; the taps still span the full 0..1 frame (same coverage /
+      // extent), only the sampling density of the mean/variance estimate changes.
+      const int NS = 8;
+      const float FNS = 8.0;
+      bool halfFlag = halfSamples;
+      bool refIsComp = useLayerBelowAsRef;
+      vec3 sumS=vec3(0.0), sum2S=vec3(0.0), minS=vec3(1e9), maxS=vec3(-1e9);
+      vec3 sumR=vec3(0.0), sum2R=vec3(0.0), minR=vec3(1e9), maxR=vec3(-1e9);
+      int count=0;
+      for(int y=0;y&lt;NS;y++){
+        for(int x=0;x&lt;NS;x++){
+          if(halfFlag &amp;&amp; mod(float(x+y),2.0)&gt;0.5) continue;
+          vec2 p=(vec2(float(x)+0.5,float(y)+0.5)/FNS);
+          vec3 sYUV = rgb2yuv(texture2DCv(compSrc.texture, p).rgb);
+          accumStats(sYUV, sumS, sum2S, minS, maxS);
+          if(!refIsComp){
+            accumStats(rgb2yuv(texture2DCv(refImg.texture, p).rgb), sumR, sum2R, minR, maxR);
+          }
+          count++;
+        }
+      }
+      // reference = same comp (refImg unused): the reference accumulators are
+      // bit-identical to the source ones, so the duplicate fetch/accumulate is
+      // skipped entirely and copied instead.
+      if(refIsComp){ sumR=sumS; sum2R=sum2S; minR=minS; maxR=maxS; }
+
+      float fcount=float(count);
+      vec3 meanS=sumS/max(fcount,1.0);
+      vec3 meanR=sumR/max(fcount,1.0);
+      vec3 varS=max(sum2S/max(fcount,1.0)-meanS*meanS, vec3(0.0));
+      vec3 varR=max(sum2R/max(fcount,1.0)-meanR*meanR, vec3(0.0));
+      vec3 stdS=sqrt(varS+vec3(1e-6));
+      vec3 stdR=sqrt(varR+vec3(1e-6));
+
+      vec3 yuvS = rgb2yuv(srcRGB);
+      vec3 yuv = yuvS;
+
+      if(matchContrast){
+        float yMinS = robustContrast ? (meanS.x - 2.0*stdS.x) : minS.x;
+        float yMaxS = robustContrast ? (meanS.x + 2.0*stdS.x) : maxS.x;
+        float yMinR = robustContrast ? (meanR.x - 2.0*stdR.x) : minR.x;
+        float yMaxR = robustContrast ? (meanR.x + 2.0*stdR.x) : maxR.x;
+        float yNorm=(yuv.x - yMinS)/max(yMaxS - yMinS, 1e-5);
+        float yMatched=mix(yMinR, yMaxR, clamp(yNorm,0.0,1.0));
+        yuv.x = mix(yuv.x, yMatched, 0.7);
+      }
+
+      vec3 z=(yuv - meanS)/stdS;
+      vec3 yuvT=z*stdR + meanR;
+      if(preserveLuma){ yuvT.x = yuvS.x; }
+      yuvT.yz = mix(yuvS.yz, yuvT.yz, chromaStrength);
+
+      vec3 cMatch = yuv2rgb(yuvT);
+      vec3 outRGB = mix(srcRGB, cMatch, strength);
+
+      gl_FragColor = vec4(outRGB, 1.0) * alpha;
+    }
+  </shader>
+
+</effect>

@@ -1,0 +1,261 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.dissolveshake" name="Dissolve Shake" desc="Camera shake with fade-out: random (layered noise) and sine-wave shake on X, Y, zoom, and tilt axes, optional per-channel RGB separation with its own randomness, and a dissolve fade with speed and curve controls. Edge handling offers black, tile, or reflect." category="warp" tags="shake,dissolve,transition,camera,motion,rgb,split,cinematic" thumb="thumb/Move and Transform/Dissolve Shake.webp">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="dissolveAmt" label="Dissolve Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="dissolveSpeed" label="Dissolve Speed" default="3.0" min="1.0" max="10.0" step="0.1" type="float" />
+        <slider id="dissolveCurve" label="Dissolve Curve" default="1.0" min="0.3" max="3.0" step="0.05" type="float" />
+        
+        <slider id="amplitude" label="Amplitude" default="3.0" min="0.0" max="30.0" step="0.1" type="float" />
+        <slider id="frequency" label="Frequency" default="10.0" min="0.1" max="40.0" step="0.1" type="float" />
+        <slider id="seed" label="Seed" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="smoothness" label="Smoothness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <slider id="xRandAmp" label="X Random Amp" default="0.2" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="xRandFreq" label="X Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="xWaveAmp" label="X Wave Amp" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="xWaveFreq" label="X Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="xPhase" label="X Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="yRandAmp" label="Y Random Amp" default="0.1" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="yRandFreq" label="Y Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="yWaveAmp" label="Y Wave Amp" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="yWaveFreq" label="Y Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="yPhase" label="Y Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="zRandAmp" label="Z Random Amp" default="0.0" min="0.0" max="0.5" step="0.01" type="float" />
+        <slider id="zRandFreq" label="Z Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="zWaveAmp" label="Z Wave Amp" default="0.0" min="0.0" max="0.5" step="0.01" type="float" />
+        <slider id="zWaveFreq" label="Z Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="zPhase" label="Z Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="tiltRandAmp" label="Tilt Random Amp" default="0.0" min="0.0" max="15.0" step="0.1" type="float" />
+        <slider id="tiltRandFreq" label="Tilt Random Freq" default="1.0" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="tiltWaveAmp" label="Tilt Wave Amp" default="0.0" min="0.0" max="15.0" step="0.1" type="float" />
+        <slider id="tiltWaveFreq" label="Tilt Wave Freq" default="0.5" min="0.0" max="5.0" step="0.1" type="float" />
+        <slider id="tiltPhase" label="Tilt Phase" default="0.0" min="-10.0" max="10.0" step="0.1" type="float" />
+        
+        <slider id="redAmp" label="Red Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="greenAmp" label="Green Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="blueAmp" label="Blue Amplitude" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="redPhase" label="Red Phase" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="greenPhase" label="Green Phase" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="bluePhase" label="Blue Phase" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="rgbRandomness" label="RGB Randomness" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="rgbFrequency" label="RGB Frequency" default="2.0" min="0.1" max="10.0" step="0.1" type="float" />
+        
+        <menu id="edgeMode" style="dropdown" default="3" label="Edge Mode">
+            <menu label="Black" value="1" />
+            <menu label="Tile" value="2" />
+            <menu label="Reflect" value="3" />
+        </menu>
+        
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+     
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float hash(float n) {
+        return fract(sin(n) * 43758.5453123);
+    }
+    float hash2(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+    float smoothNoise(float t, float s) {
+        float i = floor(t);
+        float f = fract(t);
+        float a = hash(i + s);
+        float b = hash(i + 1.0 + s);
+        float c = hash(i + 2.0 + s);
+        float d = hash(i + 3.0 + s);
+        float f2 = f * f;
+        float f3 = f2 * f;
+        float cr0 = -0.5*a + 1.5*b - 1.5*c + 0.5*d;
+        float cr1 = a - 2.5*b + 2.0*c - 0.5*d;
+        float cr2 = -0.5*a + 0.5*c;
+        float cr3 = b;
+        return cr0*f3 + cr1*f2 + cr2*f + cr3;
+    }
+    float layeredNoise(float t, float s, float smooth_amt) {
+        float n = 0.0;
+        float amp = 1.0;
+        float totalAmp = 0.0;
+        float freq = 1.0;
+        int layers = 4;
+        for (int i = 0; i &lt; 4; i++) {
+            float fi = float(i);
+            float layerSeed = s + fi * 17.31;
+            float rawNoise = smoothNoise(t * freq, layerSeed) * 2.0 - 1.0;
+            n += rawNoise * amp;
+            totalAmp += amp;
+            amp *= mix(0.6, 0.3, smooth_amt);
+            freq *= mix(2.1, 1.7, smooth_amt);
+        }
+        return n / max(totalAmp, EPS);
+    }
+    float getRandomShake(float time, float freq, float phase, float seedOffset, float smooth_amt) {
+        float t = (time + phase) * freq;
+        float s = seed + seedOffset;
+        return layeredNoise(t, s, smooth_amt);
+    }
+    float getWaveShake(float time, float freq, float phase) {
+        return sin((time + phase) * freq * 2.0 * PI);
+    }
+    float getShakeAxis(float time, float masterAmp, float masterFreq,
+                       float randAmp, float randFreq,
+                       float waveAmp, float waveFreq,
+                       float phase, float seedOff) {
+        float result = 0.0;
+        if (randAmp &gt; EPS) {
+            float rnd = getRandomShake(time, masterFreq * randFreq, phase, seedOff, smoothness);
+            result += rnd * randAmp;
+        }
+        if (waveAmp &gt; EPS) {
+            float wav = getWaveShake(time, waveFreq, phase);
+            result += wav * waveAmp;
+        }
+        return result * masterAmp;
+    }
+    vec2 applyEdge(vec2 uv, float mode) {
+        if (mode &lt; 1.5) {
+            return uv;
+        } else if (mode &lt; 2.5) {
+            return fract(uv);
+        } else {
+            vec2 r = uv;
+            r.x = (mod(floor(r.x), 2.0) == 0.0) ? fract(r.x) : 1.0 - fract(r.x);
+            r.y = (mod(floor(r.y), 2.0) == 0.0) ? fract(r.y) : 1.0 - fract(r.y);
+            return r;
+        }
+    }
+    vec2 applyShakeToUV(vec2 uv, float time, float channelAmp, float channelPhase,
+                        float rgbRandX, float rgbRandY, float rgbRandZ, float rgbRandTilt) {
+        float t = time + channelPhase * 0.1;
+        float shakeX = getShakeAxis(t, amplitude, frequency,
+                       xRandAmp, xRandFreq, xWaveAmp, xWaveFreq,
+                       xPhase, 0.0);
+        float shakeY = getShakeAxis(t, amplitude, frequency,
+                       yRandAmp, yRandFreq, yWaveAmp, yWaveFreq,
+                       yPhase, 100.0);
+        float shakeZ = getShakeAxis(t, amplitude, frequency,
+                       zRandAmp, zRandFreq, zWaveAmp, zWaveFreq,
+                       zPhase, 200.0);
+        float shakeTilt = getShakeAxis(t, amplitude, frequency,
+                          tiltRandAmp, tiltRandFreq, tiltWaveAmp, tiltWaveFreq,
+                          tiltPhase, 300.0);
+        shakeX += rgbRandX;
+        shakeY += rgbRandY;
+        shakeZ += rgbRandZ;
+        shakeTilt += rgbRandTilt;
+        shakeX *= channelAmp;
+        shakeY *= channelAmp;
+        shakeZ *= channelAmp;
+        shakeTilt *= channelAmp;
+        vec2 center = vec2(0.5);
+        vec2 result = uv - center;
+        float tiltRad = shakeTilt * PI / 180.0;
+        float cs = cos(tiltRad);
+        float sn = sin(tiltRad);
+        result = vec2(result.x * cs - result.y * sn,
+                      result.x * sn + result.y * cs);
+        float zoomFactor = 1.0 / max(1.0 + shakeZ, 0.1);
+        result *= zoomFactor;
+        result += center;
+        result.x += shakeX * 0.01;
+        result.y += shakeY * 0.01;
+        return result;
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float t = acTime;
+        float em = float(edgeMode);
+        float rgbRandXR = 0.0;
+        float rgbRandYR = 0.0;
+        float rgbRandZR = 0.0;
+        float rgbRandTiltR = 0.0;
+        float rgbRandXG = 0.0;
+        float rgbRandYG = 0.0;
+        float rgbRandZG = 0.0;
+        float rgbRandTiltG = 0.0;
+        float rgbRandXB = 0.0;
+        float rgbRandYB = 0.0;
+        float rgbRandZB = 0.0;
+        float rgbRandTiltB = 0.0;
+        if (rgbRandomness &gt; EPS) {
+            float rt = t * rgbFrequency;
+            rgbRandXR = getRandomShake(rt, 1.0, 0.0, 400.0, smoothness) * rgbRandomness * xRandAmp * amplitude * 0.01;
+            rgbRandYR = getRandomShake(rt, 1.0, 0.0, 410.0, smoothness) * rgbRandomness * yRandAmp * amplitude * 0.01;
+            rgbRandZR = getRandomShake(rt, 1.0, 0.0, 420.0, smoothness) * rgbRandomness * zRandAmp * amplitude;
+            rgbRandTiltR = getRandomShake(rt, 1.0, 0.0, 430.0, smoothness) * rgbRandomness * tiltRandAmp * amplitude;
+            rgbRandXG = getRandomShake(rt, 1.0, 0.0, 500.0, smoothness) * rgbRandomness * xRandAmp * amplitude * 0.01;
+            rgbRandYG = getRandomShake(rt, 1.0, 0.0, 510.0, smoothness) * rgbRandomness * yRandAmp * amplitude * 0.01;
+            rgbRandZG = getRandomShake(rt, 1.0, 0.0, 520.0, smoothness) * rgbRandomness * zRandAmp * amplitude;
+            rgbRandTiltG = getRandomShake(rt, 1.0, 0.0, 530.0, smoothness) * rgbRandomness * tiltRandAmp * amplitude;
+            rgbRandXB = getRandomShake(rt, 1.0, 0.0, 600.0, smoothness) * rgbRandomness * xRandAmp * amplitude * 0.01;
+            rgbRandYB = getRandomShake(rt, 1.0, 0.0, 610.0, smoothness) * rgbRandomness * yRandAmp * amplitude * 0.01;
+            rgbRandZB = getRandomShake(rt, 1.0, 0.0, 620.0, smoothness) * rgbRandomness * zRandAmp * amplitude;
+            rgbRandTiltB = getRandomShake(rt, 1.0, 0.0, 630.0, smoothness) * rgbRandomness * tiltRandAmp * amplitude;
+        }
+        bool needsSeparation = (abs(redAmp - 1.0) &gt; EPS || abs(greenAmp - 1.0) &gt; EPS || abs(blueAmp - 1.0) &gt; EPS ||
+                                abs(redPhase) &gt; EPS || abs(greenPhase) &gt; EPS || abs(bluePhase) &gt; EPS ||
+                                rgbRandomness &gt; EPS);
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 fin;
+        if (needsSeparation) {
+            vec2 uvR = applyShakeToUV(uv, t, redAmp, redPhase,
+                       rgbRandXR, rgbRandYR, rgbRandZR, rgbRandTiltR);
+            vec2 uvG = applyShakeToUV(uv, t, greenAmp, greenPhase,
+                       rgbRandXG, rgbRandYG, rgbRandZG, rgbRandTiltG);
+            vec2 uvB = applyShakeToUV(uv, t, blueAmp, bluePhase,
+                       rgbRandXB, rgbRandYB, rgbRandZB, rgbRandTiltB);
+            uvR = applyEdge(uvR, em);
+            uvG = applyEdge(uvG, em);
+            uvB = applyEdge(uvB, em);
+            float outR = 1.0;
+            float outG = 1.0;
+            float outB = 1.0;
+            if (em &lt; 1.5) {
+                outR = (uvR.x &lt; 0.0 || uvR.x &gt; 1.0 || uvR.y &lt; 0.0 || uvR.y &gt; 1.0) ? 0.0 : 1.0;
+                outG = (uvG.x &lt; 0.0 || uvG.x &gt; 1.0 || uvG.y &lt; 0.0 || uvG.y &gt; 1.0) ? 0.0 : 1.0;
+                outB = (uvB.x &lt; 0.0 || uvB.x &gt; 1.0 || uvB.y &lt; 0.0 || uvB.y &gt; 1.0) ? 0.0 : 1.0;
+            }
+            uvR = clamp(uvR, 0.0, 1.0);
+            uvG = clamp(uvG, 0.0, 1.0);
+            uvB = clamp(uvB, 0.0, 1.0);
+            float r = texture2DCv(inputImg.texture, uvR).r * outR;
+            float g = texture2DCv(inputImg.texture, uvG).g * outG;
+            float b = texture2DCv(inputImg.texture, uvB).b * outB;
+            fin = vec3(r, g, b);
+        } else {
+            vec2 shakenUV = applyShakeToUV(uv, t, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            float outBounds = 1.0;
+            if (em &lt; 1.5) {
+                outBounds = (shakenUV.x &lt; 0.0 || shakenUV.x &gt; 1.0 || shakenUV.y &lt; 0.0 || shakenUV.y &gt; 1.0) ? 0.0 : 1.0;
+            }
+            shakenUV = applyEdge(shakenUV, em);
+            shakenUV = clamp(shakenUV, 0.0, 1.0);
+            fin = texture2DCv(inputImg.texture, shakenUV).rgb * outBounds;
+        }
+        float dissolve = 1.0;
+        if (dissolveAmt &gt; EPS) {
+            float dRaw = dissolveAmt;
+            float dSpeed = dissolveSpeed;
+            float dCentered = (dRaw - 0.5) * dSpeed;
+            dCentered = clamp(dCentered + 0.5, 0.0, 1.0);
+            dissolve = 1.0 - pow(dCentered, dissolveCurve);
+        }
+        fin *= dissolve;
+        float finalAlpha = original.a * dissolve;
+        fin = mix(original.rgb, fin, globalMix);
+        finalAlpha = mix(original.a, finalAlpha, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+        gl_FragColor = vec4(fin, finalAlpha);
+    }
+    </shader>
+   
+</effect>

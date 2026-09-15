@@ -1,0 +1,221 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.hslsecondary" name="HSL Secondary" desc="Secondary color correction: keys a color range by hue, saturation, and luminance (with softness, denoise, expand, and invert refinements), then grades the keyed region — hue shift/rotate, saturation, vibrance, luminance, contrast, gamma, tint, temperature — with separate controls for the unkeyed area and key-view modes." category="colorlight" tags="hsl,secondary,color,isolate,key,grade,selective,manga,cinematic" thumb="thumb/Color/HSL Secondary.webp">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <color id="targetColor" label="Target Color" default="#FF0000" alpha="false" />
+        <slider id="hueCenter" label="Hue Center" default="0.0" min="0.0" max="360.0" step="1.0" type="float" />
+        <slider id="hueRange" label="Hue Range" default="30.0" min="1.0" max="180.0" step="1.0" type="float" />
+        <slider id="hueSoftness" label="Hue Softness" default="15.0" min="1.0" max="90.0" step="1.0" type="float" />
+        <switch id="useTargetColor" default="true" label="Use Target Color Picker" />
+
+        
+        <slider id="satMin" label="Sat Min" default="0.1" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="satMax" label="Sat Max" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="satSoftness" label="Sat Softness" default="0.1" min="0.0" max="0.5" step="0.01" type="float" />
+
+        
+        <slider id="lumMin" label="Lum Min" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="lumMax" label="Lum Max" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="lumSoftness" label="Lum Softness" default="0.1" min="0.0" max="0.5" step="0.01" type="float" />
+
+        
+        <slider id="keyDenoise" label="Denoise" default="0.05" min="0.0" max="0.5" step="0.01" type="float" />
+        <slider id="keyExpand" label="Expand/Shrink" default="0.0" min="-0.5" max="0.5" step="0.01" type="float" />
+        <slider id="keyBlur" label="Key Blur" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <switch id="keyInvert" default="false" label="Invert Key" />
+
+        
+        <slider id="gradeHueShift" label="Hue Shift" default="0.0" min="-180.0" max="180.0" step="1.0" type="float" />
+        <slider id="gradeHueRotate" label="Hue Rotate Speed" default="0.0" min="0.0" max="5.0" step="0.1" type="float" />
+
+        
+        <slider id="gradeSaturation" label="Saturation" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradeVibrance" label="Vibrance" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="gradeLuminance" label="Luminance" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradeContrast" label="Contrast" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradeGamma" label="Gamma" default="1.0" min="0.2" max="3.0" step="0.05" type="float" />
+
+        
+        <color id="gradeTint" label="Tint Color" default="#FFFFFF" alpha="false" />
+        <slider id="gradeTintStrength" label="Tint Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradeTemperature" label="Temperature" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="outsideSaturation" label="Outside Saturation" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="outsideLuminance" label="Outside Luminance" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="outsideContrast" label="Outside Contrast" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+
+        
+        <switch id="viewKey" default="false" label="View Key Mask" />
+        <switch id="viewIsolation" default="false" label="View Isolation" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+    float h2r(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0/6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+        return p;
+    }
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(
+            h2r(p, q, c.x + 1.0/3.0),
+            h2r(p, q, c.x),
+            h2r(p, q, c.x - 1.0/3.0)
+        );
+    }
+    float noiseHash(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+    float computeHueMask(float pixelHue, float centerHue, float range, float soft) {
+        float rangeNorm = range / 360.0;
+        float softNorm = soft / 360.0;
+        float dist = abs(pixelHue - centerHue);
+        dist = min(dist, 1.0 - dist);
+        float mask = 1.0 - smoothstep(rangeNorm - softNorm, rangeNorm + softNorm, dist);
+        return mask;
+    }
+    float computeRangeMask(float value, float minVal, float maxVal, float soft) {
+        float lower = smoothstep(minVal - soft, minVal + soft, value);
+        float upper = 1.0 - smoothstep(maxVal - soft, maxVal + soft, value);
+        return lower * upper;
+    }
+    float computeKey(vec3 hsl, float targetHue) {
+        float hueMask = computeHueMask(hsl.x, targetHue, hueRange, hueSoftness);
+        float satMask = computeRangeMask(hsl.y, satMin, satMax, satSoftness);
+        float lumMask = computeRangeMask(hsl.z, lumMin, lumMax, lumSoftness);
+        float key = hueMask * satMask * lumMask;
+        if (keyDenoise &gt; EPS) {
+            float threshold = keyDenoise;
+            key = smoothstep(threshold, threshold + 0.1, key);
+        }
+        if (abs(keyExpand) &gt; EPS) {
+            if (keyExpand &gt; 0.0) {
+                key = smoothstep(0.0, 1.0 - keyExpand, key);
+            } else {
+                key = smoothstep(-keyExpand, 1.0, key);
+            }
+        }
+        if (keyBlur &gt; EPS) {
+            float blurMix = keyBlur * 0.5;
+            key = mix(key, smoothstep(0.2, 0.8, key), blurMix);
+        }
+        if (keyInvert) {
+            key = 1.0 - key;
+        }
+        return clamp(key, 0.0, 1.0);
+    }
+    vec3 gradeInside(vec3 rgb, vec3 hsl) {
+        vec3 graded = hsl;
+        float hueShift = gradeHueShift / 360.0;
+        if (gradeHueRotate &gt; EPS) {
+            hueShift += acTime * gradeHueRotate;
+        }
+        graded.x = fract(graded.x + hueShift);
+        graded.y = clamp(graded.y + gradeSaturation, 0.0, 1.0);
+        if (abs(gradeVibrance) &gt; EPS) {
+            float currentSat = graded.y;
+            float vibranceMod = 1.0 - clamp(currentSat * 2.0, 0.0, 1.0);
+            graded.y = clamp(graded.y + gradeVibrance * vibranceMod, 0.0, 1.0);
+        }
+        graded.z = clamp(graded.z + gradeLuminance * 0.5, 0.0, 1.0);
+        if (abs(gradeContrast) &gt; EPS) {
+            float c = 1.0 + gradeContrast;
+            graded.z = clamp((graded.z - 0.5) * c + 0.5, 0.0, 1.0);
+        }
+        if (abs(gradeGamma - 1.0) &gt; EPS) {
+            graded.z = pow(max(graded.z, 0.0), 1.0 / max(gradeGamma, EPS));
+        }
+        vec3 result = hsl2rgb(graded);
+        if (gradeTintStrength &gt; EPS) {
+            result = mix(result, result * gradeTint.rgb, gradeTintStrength);
+        }
+        if (abs(gradeTemperature) &gt; EPS) {
+            result.r += gradeTemperature * 0.06;
+            result.b -= gradeTemperature * 0.04;
+        }
+        return result;
+    }
+    vec3 gradeOutside(vec3 rgb, vec3 hsl) {
+        vec3 graded = hsl;
+        graded.y = clamp(graded.y + outsideSaturation, 0.0, 1.0);
+        graded.z = clamp(graded.z + outsideLuminance * 0.5, 0.0, 1.0);
+        if (abs(outsideContrast) &gt; EPS) {
+            float c = 1.0 + outsideContrast;
+            graded.z = clamp((graded.z - 0.5) * c + 0.5, 0.0, 1.0);
+        }
+        return hsl2rgb(graded);
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 rgb = max(original.rgb, 0.0);
+        vec3 hsl = rgb2hsl(rgb);
+        float targetHue;
+        if (useTargetColor) {
+            vec3 targetHSL = rgb2hsl(targetColor.rgb);
+            targetHue = targetHSL.x;
+        } else {
+            targetHue = hueCenter / 360.0;
+        }
+        float key = computeKey(hsl, targetHue);
+        if (viewKey) {
+            gl_FragColor = vec4(vec3(key), 1.0);
+            return;
+        }
+        if (viewIsolation) {
+            gl_FragColor = vec4(rgb * key, original.a);
+            return;
+        }
+        vec3 insideGraded = gradeInside(rgb, hsl);
+        vec3 outsideGraded = gradeOutside(rgb, hsl);
+        vec3 result = mix(outsideGraded, insideGraded, key);
+        bool outsideActive = (abs(outsideSaturation) &gt; EPS ||
+                              abs(outsideLuminance) &gt; EPS ||
+                              abs(outsideContrast) &gt; EPS);
+        if (!outsideActive) {
+            result = mix(rgb, insideGraded, key);
+        }
+        result = mix(rgb, result, globalMix);
+        result = clamp(result, 0.0, 1.0);
+        gl_FragColor = vec4(result, original.a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

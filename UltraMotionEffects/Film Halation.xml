@@ -1,0 +1,329 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bcchalation" name="Film Halation" desc="Extracts highlights above a soft-knee threshold, tints them with a custom color or film-stock preset, blurs them at an inner and an outer radius in half-resolution buffers, and recombines them with per-channel red/green/blue bleed. Adds optional edge halation, gate weave and flicker, saturation/warmth/fade grading, dither, and Add/Screen/Soft Light compositing." category="colorlight" tags="halation,film,glow,bleed,scatter,analog,cinematic,highlights" thumb="thumb/Light and Glow/Film Halation.webp" overdraw="true" max-overdraw="1.5">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="halBufA" srcType="buffer" downsample="2" />
+        <texture id="halBufB" srcType="buffer" downsample="2" />
+        <texture id="halBufC" srcType="buffer" downsample="2" />
+        <texture id="halBufD" srcType="buffer" downsample="2" />
+
+        
+        <slider id="halStrength" label="Halation Strength" default="0.5" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="halRadius" label="Halation Radius" default="20.0" min="1.0" max="80.0" step="0.5" type="float" />
+        <slider id="halSoftness" label="Halation Softness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="halThreshold" label="Threshold" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="halKnee" label="Soft Knee" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="halGamma" label="Threshold Gamma" default="1.0" min="0.2" max="3.0" step="0.05" type="float" />
+
+        
+        <color id="halColor" label="Halation Color" default="#FF2200" alpha="false" />
+        <slider id="halColorStr" label="Color Strength" default="0.8" min="0.0" max="1.0" step="0.01" type="float" />
+        <switch id="useSourceColor" default="false" label="Use Source Color" />
+
+        
+        <menu id="filmStock" style="dropdown" default="1" label="Film Stock">
+            <menu label="Custom" value="1" />
+            <menu label="Kodak Vision3" value="2" />
+            <menu label="Fuji Eterna" value="3" />
+            <menu label="Kodak 5219" value="4" />
+            <menu label="CineStill 800T" value="5" />
+        </menu>
+
+        
+        <slider id="innerWeight" label="Inner Weight" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="outerWeight" label="Outer Weight" default="0.5" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="spreadRatio" label="Spread Ratio" default="2.5" min="1.5" max="6.0" step="0.1" type="float" />
+
+        
+        <slider id="redBleed" label="Red Bleed" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="greenBleed" label="Green Bleed" default="0.3" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="blueBleed" label="Blue Bleed" default="0.1" min="0.0" max="3.0" step="0.05" type="float" />
+
+        
+        <slider id="edgeHalStr" label="Edge Halation" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="edgeHalRadius" label="Edge Radius" default="3.0" min="0.5" max="10.0" step="0.5" type="float" />
+
+        
+        <slider id="gateWeave" label="Gate Weave" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="gateFlicker" label="Flicker" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="saturation" label="Saturation" default="1.0" min="0.0" max="2.0" step="0.05" type="float" />
+        <slider id="warmth" label="Warmth" default="0.0" min="-0.5" max="0.5" step="0.01" type="float" />
+        <slider id="fadedFilm" label="Film Fade" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+            <menu label="Add" value="1" />
+            <menu label="Screen" value="2" />
+            <menu label="Soft Light" value="3" />
+        </menu>
+
+        
+        <menu id="quality" style="radio" default="2" label="Quality">
+            <menu label="Low" value="1" />
+            <menu label="Medium" value="2" />
+            <menu label="High" value="3" />
+        </menu>
+
+        
+        <switch id="halOnly" default="false" label="Halation Only" />
+        <slider id="ditherAmt" label="Dither" default="0.008" min="0.0" max="0.03" step="0.001" type="float" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass target="halBufA" />
+        <pass target="halBufB" />
+        <pass target="halBufC" />
+        <pass target="halBufD" />
+        <pass />
+    </passes>
+    <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 srgbToLinear(vec3 s) {
+        vec3 lo = s / 12.92;
+        vec3 hi = pow((s + 0.055) / 1.055, vec3(2.4));
+        return mix(lo, hi, step(vec3(0.04045), s));
+    }
+    vec3 linearToSrgb(vec3 l) {
+        vec3 lo = l * 12.92;
+        vec3 hi = 1.055 * pow(max(l, 0.0), vec3(1.0 / 2.4)) - 0.055;
+        return mix(lo, hi, step(vec3(0.0031308), l));
+    }
+    float noiseHash(vec2 p) {
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+    float getTaps(float q) {
+        if (q &lt; 1.5) return 8.0;
+        if (q &lt; 2.5) return 14.0;
+        return 20.0;
+    }
+    vec4 blurPass(sampler2D tex, vec2 texOff, vec2 st, float numPx) {
+        if (numPx &lt;= 0.0) return texture2DCv(tex, st);
+        float sigma = numPx / 2.14596602;
+        sigma = max(sigma, EPS);
+        highp vec3 ig;
+        ig.x = 1.0 / (sqrt(2.0 * PI) * sigma);
+        ig.y = exp(-0.5 / (sigma * sigma));
+        ig.z = ig.y * ig.y;
+        vec4 avg = texture2DCv(tex, st) * ig.x;
+        float cSum = ig.x;
+        for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+            if (i &gt; numPx) break;
+            ig.xy *= ig.yz;
+            cSum += 2.0 * ig.x;
+            float w0 = ig.x;
+            ig.xy *= ig.yz;
+            cSum += 2.0 * ig.x;
+            float w1 = ig.x;
+            float wL = w0 + w1;
+            float oL = (i * w0 + (i + 1.0) * w1) / max(wL, EPS);
+            avg += texture2DCv(tex, clamp(st - oL * texOff, 0.0, 1.0)) * wL;
+            avg += texture2DCv(tex, clamp(st + oL * texOff, 0.0, 1.0)) * wL;
+        }
+        return avg / max(cSum, EPS);
+    }
+    vec3 getFilmStockColor(float stock) {
+        if (stock &lt; 1.5) return vec3(1.0);
+        if (stock &lt; 2.5) return vec3(1.0, 0.15, 0.05);
+        if (stock &lt; 3.5) return vec3(0.9, 0.2, 0.08);
+        if (stock &lt; 4.5) return vec3(1.0, 0.12, 0.03);
+        return vec3(1.0, 0.3, 0.15);
+    }
+    vec3 getFilmStockBleed(float stock) {
+        if (stock &lt; 1.5) return vec3(redBleed, greenBleed, blueBleed);
+        if (stock &lt; 2.5) return vec3(1.0, 0.25, 0.08);
+        if (stock &lt; 3.5) return vec3(0.9, 0.3, 0.1);
+        if (stock &lt; 4.5) return vec3(1.0, 0.2, 0.05);
+        return vec3(1.0, 0.4, 0.2);
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float taps = getTaps(float(quality));
+        float fs = float(filmStock);
+        float r1 = halRadius * 0.5;
+        float r2 = halRadius * spreadRatio * 0.5;
+
+        // PASS 0 — EXTRACT BRIGHT + APPLY HALATION COLOR
+        if (acPass == 0) {
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec3 rgb = max(src.rgb, 0.0);
+            vec3 lin = srgbToLinear(rgb);
+            float brightness = lum(lin);
+            brightness = pow(max(brightness, 0.0), halGamma);
+
+            float knee = max(halKnee, EPS);
+            float edge = brightness - halThreshold + knee;
+            edge = clamp(edge / (2.0 * knee), 0.0, 1.0);
+            edge *= edge;
+            float mask = max(edge, max(brightness - halThreshold, 0.0));
+            mask = mask / max(brightness, EPS);
+
+            vec3 extracted = rgb * mask;
+
+            // Apply halation color
+            vec3 hColor;
+            if (useSourceColor) {
+                hColor = extracted;
+            } else {
+                vec3 stockColor = getFilmStockColor(fs);
+                vec3 userColor = halColor.rgb;
+                hColor = (fs &lt; 1.5) ? userColor : stockColor;
+                float extractLum = lum(extracted);
+                hColor = hColor * extractLum * 2.0;
+                hColor = mix(extracted, hColor, halColorStr);
+            }
+
+            // Apply per-channel bleed
+            vec3 bleed = (fs &lt; 1.5) ? vec3(redBleed, greenBleed, blueBleed) : getFilmStockBleed(fs);
+            hColor *= bleed;
+
+            // Edge halation
+            if (edgeHalStr &gt; EPS) {
+                vec2 px = 1.0 / getTexSize(inputImg.size);
+                float edgeR = edgeHalRadius;
+                float c = lum(srgbToLinear(rgb));
+                float t = lum(srgbToLinear(max(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -px.y * edgeR), 0.0, 1.0)).rgb, 0.0)));
+                float b = lum(srgbToLinear(max(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, px.y * edgeR), 0.0, 1.0)).rgb, 0.0)));
+                float l = lum(srgbToLinear(max(texture2DCv(inputImg.texture, clamp(uv + vec2(-px.x * edgeR, 0.0), 0.0, 1.0)).rgb, 0.0)));
+                float r = lum(srgbToLinear(max(texture2DCv(inputImg.texture, clamp(uv + vec2(px.x * edgeR, 0.0), 0.0, 1.0)).rgb, 0.0)));
+                float edgeDetect = abs(t - b) + abs(l - r);
+                float edgeMask = smoothstep(0.1, 0.5, edgeDetect);
+                hColor += extracted * edgeMask * edgeHalStr * 0.5;
+            }
+
+            gl_FragColor = vec4(hColor, src.a);
+            return;
+        }
+
+        // PASS 1 — INNER BLUR H
+        if (acPass == 1) {
+            vec2 to = vec2(1.0 / getTexSize(halBufA.size).x, 0.0);
+            float ks = r1 * (taps / 10.0);
+            gl_FragColor = blurPass(halBufA.texture, to, uv, ks);
+            return;
+        }
+
+        // PASS 2 — INNER BLUR V
+        if (acPass == 2) {
+            vec2 to = vec2(0.0, 1.0 / getTexSize(halBufB.size).y);
+            float ks = r1 * (taps / 10.0);
+            gl_FragColor = blurPass(halBufB.texture, to, uv, ks);
+            return;
+        }
+
+        // PASS 3 — OUTER BLUR H
+        if (acPass == 3) {
+            vec2 to = vec2(1.0 / getTexSize(halBufA.size).x, 0.0);
+            float ks = r2 * (taps / 10.0);
+            gl_FragColor = blurPass(halBufA.texture, to, uv, ks);
+            return;
+        }
+
+        // PASS 4 — FINAL COMPOSITE
+        vec4 src = texture2DCv(inputImg.texture, uv);
+        vec3 baseRGB = max(src.rgb, 0.0);
+
+        // Gate weave
+        if (gateWeave &gt; EPS) {
+            float wv = gateWeave * 0.003;
+            float offX = sin(acTime * 7.0 + uv.y * 3.0) * wv;
+            float offY = cos(acTime * 5.0 + uv.x * 2.0) * wv * 0.5;
+            vec2 weaveUV = clamp(uv + vec2(offX, offY), 0.0, 1.0);
+            baseRGB = max(texture2DCv(inputImg.texture, weaveUV).rgb, 0.0);
+        }
+
+        // Flicker
+        if (gateFlicker &gt; EPS) {
+            float flick = 1.0 + (noiseHash(vec2(acTime * 15.0, 0.0)) - 0.5) * gateFlicker * 0.15;
+            baseRGB *= flick;
+        }
+
+        vec3 innerHal = max(texture2DCv(halBufC.texture, uv).rgb, 0.0);
+        vec3 outerHal = max(texture2DCv(halBufD.texture, uv).rgb, 0.0);
+
+        // Combine inner + outer
+        vec3 halLin = srgbToLinear(innerHal) * innerWeight
+                    + srgbToLinear(outerHal) * outerWeight;
+
+        // Softness blend
+        halLin = mix(srgbToLinear(innerHal), halLin, halSoftness);
+
+        // Master strength
+        halLin *= halStrength;
+
+        // Soft clip
+        halLin = 1.0 - exp(-halLin * 3.0);
+
+        vec3 halSRGB = linearToSrgb(max(halLin, 0.0));
+
+        // Halation only view
+        if (halOnly) {
+            gl_FragColor = vec4(clamp(halSRGB, 0.0, 1.0), 1.0);
+            return;
+        }
+
+        // Composite
+        vec3 baseLin = srgbToLinear(baseRGB);
+        vec3 halBlend = srgbToLinear(max(halSRGB, 0.0));
+        vec3 comp;
+        float bm = float(blendMode);
+
+        if (bm &lt; 1.5) {
+            comp = baseLin + halBlend;
+        } else if (bm &lt; 2.5) {
+            comp = srgbToLinear(1.0 - (1.0 - baseRGB) * (1.0 - clamp(halSRGB, 0.0, 1.0)));
+        } else {
+            vec3 gC = clamp(halSRGB, 0.0, 1.0);
+            vec3 r;
+            r.r = (gC.r&lt;0.5) ? 2.0*baseRGB.r*gC.r+baseRGB.r*baseRGB.r*(1.0-2.0*gC.r) : 2.0*baseRGB.r*(1.0-gC.r)+sqrt(max(baseRGB.r,0.0))*(2.0*gC.r-1.0);
+            r.g = (gC.g&lt;0.5) ? 2.0*baseRGB.g*gC.g+baseRGB.g*baseRGB.g*(1.0-2.0*gC.g) : 2.0*baseRGB.g*(1.0-gC.g)+sqrt(max(baseRGB.g,0.0))*(2.0*gC.g-1.0);
+            r.b = (gC.b&lt;0.5) ? 2.0*baseRGB.b*gC.b+baseRGB.b*baseRGB.b*(1.0-2.0*gC.b) : 2.0*baseRGB.b*(1.0-gC.b)+sqrt(max(baseRGB.b,0.0))*(2.0*gC.b-1.0);
+            comp = srgbToLinear(r);
+        }
+
+        vec3 fin = linearToSrgb(max(comp, 0.0));
+
+        // Film grade
+        if (abs(saturation - 1.0) &gt; EPS) {
+            float fl = lum(fin);
+            fin = mix(vec3(fl), fin, saturation);
+        }
+
+        if (abs(warmth) &gt; EPS) {
+            fin.r += warmth * 0.06;
+            fin.b -= warmth * 0.04;
+        }
+
+        if (fadedFilm &gt; EPS) {
+            fin = fin * (1.0 - fadedFilm * 0.15) + fadedFilm * 0.1;
+            float fl = lum(fin);
+            fin = mix(fin, vec3(fl), fadedFilm * 0.2);
+        }
+
+        // Dither
+        if (ditherAmt &gt; EPS) {
+            vec2 px = floor(getTexSize(inputImg.size) * uv);
+            float n1 = fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453);
+            float n2 = fract(sin(dot(px, vec2(24.123, 17.321))) * 12345.6789);
+            float n3 = fract(sin(dot(px, vec2(93.989, 67.345))) * 98765.4321);
+            fin += (vec3(n1, n2, n3) - 0.5) * ditherAmt;
+        }
+
+        // Mix
+        fin = mix(baseRGB, fin, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+
+        gl_FragColor = vec4(fin, src.a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

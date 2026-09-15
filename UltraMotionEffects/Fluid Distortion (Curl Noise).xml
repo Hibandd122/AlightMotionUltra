@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_fluid_pro" name="Fluid Distortion (Curl Noise)" desc="Fluid-look distortion that displaces the image along a curl-noise velocity field computed from FBM gradients in a single pass (no actual fluid simulation). Controls include strength, viscosity, vorticity swirl amount, advection, noise frequency, time evolution, speed, seed and tile/mirror/clamp edge handling." category="warp" tags="liquid,fluid,distortion,viscosity,vorticity,glitch" thumb="thumb/Distort and Warp/Fluid Distortion (Curl Noise).webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="intensity" default="0.5" min="0.0" max="2.0" step="0.01" label="Fluid Strength" />
+        <slider id="viscosity" default="0.4" min="0.01" max="1.0" step="0.01" label="Viscosity (Thickness)" />
+        <slider id="vorticity" default="0.6" min="0.0" max="2.0" step="0.01" label="Vorticity (Swirls)" />
+        <slider id="advection" default="0.5" min="0.0" max="1.0" label="Flow Advection" type="percent" />
+        
+        
+        <slider id="noiseScale" default="1.5" min="0.1" max="10.0" step="0.01" label="Noise Frequency" />
+        <slider id="evolution" default="0.0" min="0.0" max="100.0" step="0.01" label="Time Evolution" />
+        <slider id="speed" default="1.0" min="0.0" max="5.0" step="0.1" label="Flow Speed" />
+        <slider id="seed" default="0.0" min="0.0" max="5.0" step="0.01" label="Random Seed" />
+
+        
+        <menu id="edgeBehavior" style="dropdown" default="1" label="Edge Treatment">
+            <menu value="0" label="None" />
+            <menu value="1" label="Tile" />
+            <menu value="2" label="Mirror" />
+        </menu>
+        
+        
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Overall Blend" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // S_Fluid Pro - Velocity Field Reconstruction Shader
+        
+        // --- Alight Motion Native Noise Core ---
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        float noise(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), f.x),
+                       mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+        }
+
+        // FBM for multi-scale velocity swirls
+        float fbm(vec2 p, float time) {
+            float v = 0.0;
+            float a = 0.5;
+            mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+            for (int i = 0; i &lt; 4; i++) {
+                v += a * noise(p + time);
+                p = rot * p * 2.1;
+                a *= 0.5;
+            }
+            return v;
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            float aspect = acProjectSize.x / acProjectSize.y;
+            vec2 p = uv;
+            p.x *= aspect;
+            
+            float t = acTime * speed + evolution;
+            float s = seed * 137.51;
+
+            // 1. Velocity Field Calculation (Pseudo-Navier-Stokes)
+            // We use the gradient of two noise fields to simulate curl/vorticity
+            float eps = 0.02;
+            vec2 noiseUV = p * noiseScale;
+            
+            // Sample field to determine local vorticity (swirl)
+            float n1 = fbm(noiseUV, t * 0.1 + s);
+            float n2 = fbm(noiseUV + vec2(eps, 4.3), t * 0.15 + s);
+            
+            // Determine velocity vector via curl approximation
+            // v = (dn/dy, -dn/dx)
+            float dndx = (fbm(noiseUV + vec2(eps, 0.0), t) - n1) / eps;
+            float dndy = (fbm(noiseUV + vec2(0.0, eps), t) - n1) / eps;
+            
+            vec2 velocity = vec2(dndy, -dndx) * intensity * 0.1;
+            
+            // 2. Additive Swirls (Vorticity)
+            // High-frequency eddies based on the vorticity parameter
+            float curl = (dndy + dndx) * vorticity;
+            velocity += vec2(cos(n1 * 6.28), sin(n2 * 6.28)) * curl * 0.02;
+
+            // 3. Flow Advection (Viscosity)
+            // Lower viscosity = more fluid/faster flow
+            float flowScale = mix(1.0, 0.1, viscosity);
+            vec2 advectedUV = uv + (velocity * advection * flowScale);
+            
+            // 4. Edge Handling
+            vec2 sampleUV = advectedUV;
+            if(edgeBehavior == 1) { // Tile
+                sampleUV = fract(sampleUV);
+            } else if(edgeBehavior == 2) { // Mirror
+                sampleUV = abs(mod(sampleUV - 1.0, 2.0) - 1.0);
+            } else { // None (Clamp)
+                sampleUV = clamp(sampleUV, 0.0, 1.0);
+            }
+
+            // 5. Final Sampling &amp; Blend
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec4 fluid = texture2DCv(inputImg.texture, sampleUV);
+            
+            // If advected UV is outside bounds and edge is 'None', use original
+            if(edgeBehavior == 0 &amp;&amp; (advectedUV.x &lt; 0.0 || advectedUV.x &gt; 1.0 || advectedUV.y &lt; 0.0 || advectedUV.y &gt; 1.0)) {
+                fluid = src;
+            }
+
+            vec3 result = mix(src.rgb, fluid.rgb, blend);
+            gl_FragColor = vec4(result, src.a * fluid.a);
+        }
+    </shader>
+</effect>

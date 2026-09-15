@@ -1,0 +1,265 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.holomatrix2" name="Holomatrix II" desc="Single-pass hologram/glitch stylization with toggleable modules: shadow/midtone/highlight colorization, scan lines, scrolling bright lines, 4-tap glow, static noise, RGB color separation, block glitch displacement, flicker, low-resolution pixelation and TV wave distortion." category="procedural" tags="hologram,glitch,scifi,hud,scanline,distort" thumb="thumb/Stylize/Holomatrix II.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <slider id="moreDamage" default="1.0" min="0.0" max="5.0" step="0.1" label="More Damage" />
+        <slider id="moreOften" default="0.5" min="0.0" max="1.0" step="0.01" label="More Often" />
+        <switch id="punchIt" default="false" label="Punch It" />
+        <slider id="effectScale" default="1.0" min="0.1" max="3.0" step="0.1" label="Effect Scale" />
+        <slider id="randomSeed" default="0.5" min="0.0" max="1.0" step="0.001" label="Random Seed" />
+
+        
+        <switch id="colorizeOn" default="true" label="Colorization" />
+        <slider id="srcBrightness" default="0.0" min="-1.0" max="1.0" step="0.01" label="Source Brightness" />
+        <slider id="srcContrast" default="0.0" min="-1.0" max="1.0" step="0.01" label="Source Contrast" />
+        <slider id="highlightR" default="0.6" min="0.0" max="1.0" step="0.01" label="Highlight R" />
+        <slider id="highlightG" default="0.8" min="0.0" max="1.0" step="0.01" label="Highlight G" />
+        <slider id="highlightB" default="1.0" min="0.0" max="1.0" step="0.01" label="Highlight B" />
+        <slider id="midtoneR" default="0.1" min="0.0" max="1.0" step="0.01" label="Midtone R" />
+        <slider id="midtoneG" default="0.4" min="0.0" max="1.0" step="0.01" label="Midtone G" />
+        <slider id="midtoneB" default="0.9" min="0.0" max="1.0" step="0.01" label="Midtone B" />
+        <slider id="shadowR" default="0.0" min="0.0" max="1.0" step="0.01" label="Shadow R" />
+        <slider id="shadowG" default="0.0" min="0.0" max="1.0" step="0.01" label="Shadow G" />
+        <slider id="shadowB" default="0.0" min="0.0" max="1.0" step="0.01" label="Shadow B" />
+        <slider id="colorizeAmt" default="0.8" min="0.0" max="1.0" step="0.01" label="Colorize %" />
+
+        
+        <switch id="glowOn" default="true" label="Glow" />
+        <slider id="glowThresh" default="0.4" min="0.0" max="1.0" step="0.01" label="Glow Threshold" />
+        <slider id="glowRadius" default="1.0" min="0.0" max="5.0" step="0.1" label="Glow Radius" />
+        <slider id="glowIntensity" default="1.5" min="0.0" max="5.0" step="0.1" label="Glow Intensity" />
+
+        
+        <switch id="scanLinesOn" default="true" label="Scan Lines" />
+        <slider id="scanDistance" default="4.0" min="1.0" max="20.0" step="0.1" label="Scan Distance" />
+        <slider id="scanThickness" default="1.5" min="0.1" max="10.0" step="0.1" label="Scan Thickness" />
+        <menu id="scanDir" style="dropdown" default="0" label="Scan Direction">
+            <menu value="0" label="Horizontal" />
+            <menu value="1" label="Vertical" />
+            <menu value="2" label="H and V" />
+        </menu>
+
+        
+        <switch id="linesOn" default="true" label="Lines" />
+        <slider id="lineSpeed" default="0.5" min="0.0" max="3.0" step="0.1" label="Line Speed" />
+        <slider id="lineHeight" default="0.08" min="0.01" max="0.5" step="0.01" label="Line Height" />
+
+        
+        <switch id="colorSepOn" default="false" label="Color Separation" />
+        <slider id="colorSepAmt" default="0.01" min="0.0" max="0.05" step="0.001" label="Amount" />
+        <slider id="colorSepChance" default="0.3" min="0.0" max="1.0" step="0.01" label="% Chance" />
+
+        
+        <switch id="staticOn" default="true" label="Static" />
+        <slider id="staticOpacity" default="0.1" min="0.0" max="1.0" step="0.01" label="Static Opacity" />
+
+        
+        <switch id="glitchOn" default="false" label="Glitch" />
+        <slider id="glitchChance" default="0.2" min="0.0" max="1.0" step="0.01" label="% Chance" />
+        <slider id="glitchAmt" default="0.5" min="0.0" max="1.0" step="0.01" label="Glitch Amount" />
+        <slider id="glitchSize" default="0.05" min="0.01" max="0.3" step="0.01" label="Glitch Size" />
+        <slider id="glitchSpeed" default="3.0" min="0.0" max="10.0" step="0.1" label="Glitch Speed" />
+
+        
+        <switch id="flickerOn" default="false" label="Flicker" />
+        <slider id="flickerMin" default="0.7" min="0.0" max="1.0" step="0.01" label="Flicker Min" />
+        <slider id="flickerChance" default="0.2" min="0.0" max="1.0" step="0.01" label="% Chance" />
+
+        
+        <switch id="lowResOn" default="false" label="Low Resolution" />
+        <slider id="lowResPct" default="0.3" min="0.05" max="1.0" step="0.01" label="Low-Res %" />
+
+        
+        <switch id="tvDistOn" default="false" label="TV Distortion" />
+        <slider id="tvDistAmt" default="0.03" min="0.0" max="0.1" step="0.001" label="Distort Amount" />
+
+        
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend with Original" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        float hashV(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        float noiseV(vec2 p) {
+            vec2 i = floor(p);
+            vec2 f = fract(p);
+            f = f*f*(3.0-2.0*f);
+            return mix(
+                mix(hashV(i),           hashV(i+vec2(1,0)), f.x),
+                mix(hashV(i+vec2(0,1)), hashV(i+vec2(1,1)), f.x),
+                f.y
+            );
+        }
+
+        void main() {
+            vec2 uv  = acScreenNorm;
+            float t  = acTime;
+            float sc = effectScale;
+            vec4 src = texture2DCv(inputImg.texture, clamp(uv, 0.0, 1.0));
+
+            // -----------------------------------------------
+            // LOW RESOLUTION — snap UV to block grid
+            // -----------------------------------------------
+            vec2 sampleUV = uv;
+            if (lowResOn) {
+                float res = max(lowResPct, 0.05);
+                vec2 blockSize = vec2(1.0) / (acPreviewSize * res);
+                sampleUV = floor(uv / blockSize) * blockSize + blockSize * 0.5;
+                sampleUV = clamp(sampleUV, 0.0, 1.0);
+            }
+
+            // -----------------------------------------------
+            // TV DISTORTION — full screen wave warp
+            // -----------------------------------------------
+            if (tvDistOn) {
+                float tvWave = noiseV(vec2(uv.y * 5.0, t * 2.0)) * 2.0 - 1.0;
+                sampleUV.x += tvWave * tvDistAmt * moreDamage;
+                sampleUV = clamp(sampleUV, 0.0, 1.0);
+            }
+
+            vec3 col = texture2DCv(inputImg.texture, sampleUV).rgb;
+
+            // -----------------------------------------------
+            // GLITCH — block displacement
+            // FIXED: no dynamic indexing, pure math only
+            // -----------------------------------------------
+            if (glitchOn) {
+                float gTime  = floor(t * glitchSpeed);
+                float bSize  = glitchSize * sc;
+                vec2  block  = floor(uv / max(bSize, 0.01));
+                float gRnd   = hashV(block + vec2(gTime, randomSeed * 100.0));
+                float thresh = 1.0 - glitchAmt * moreOften;
+                float fired  = step(thresh, gRnd);
+                // Chance check
+                float cRnd   = hashV(vec2(gTime + 5.0, randomSeed));
+                fired *= step(1.0 - glitchChance * 2.0, cRnd);
+                float dispX  = (hashV(block + vec2(gTime + 1.0, 0.5)) * 2.0 - 1.0) * bSize * 3.0;
+                vec3  gCol   = texture2DCv(inputImg.texture,
+                               clamp(sampleUV + vec2(dispX * fired, 0.0), 0.0, 1.0)).rgb;
+                col = mix(col, gCol, fired);
+            }
+
+            // -----------------------------------------------
+            // COLOR SEPARATION — RGB channel split
+            // -----------------------------------------------
+            if (colorSepOn) {
+                float cRnd  = hashV(vec2(floor(t * 4.0), randomSeed + 7.0));
+                float fired = step(1.0 - colorSepChance * 2.0, cRnd);
+                float ca    = colorSepAmt * moreDamage * fired;
+                col.r = mix(col.r,
+                    texture2DCv(inputImg.texture, clamp(sampleUV + vec2( ca, 0), 0.0, 1.0)).r,
+                    fired);
+                col.b = mix(col.b,
+                    texture2DCv(inputImg.texture, clamp(sampleUV - vec2( ca, 0), 0.0, 1.0)).b,
+                    fired);
+            }
+
+            // -----------------------------------------------
+            // COLORIZATION — shadow/mid/highlight toning
+            // -----------------------------------------------
+            float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
+            luma = clamp(luma + srcBrightness, 0.0, 1.0);
+            luma = clamp((luma - 0.5) * (1.0 + srcContrast) + 0.5, 0.0, 1.0);
+
+            if (colorizeOn) {
+                vec3 shadow    = vec3(shadowR,    shadowG,    shadowB);
+                vec3 midtone   = vec3(midtoneR,   midtoneG,   midtoneB);
+                vec3 highlight = vec3(highlightR, highlightG, highlightB);
+                vec3 colorized = mix(shadow, midtone,   smoothstep(0.0, 0.5, luma));
+                colorized      = mix(colorized, highlight, smoothstep(0.5, 1.0, luma));
+                col = mix(col, colorized, colorizeAmt);
+            }
+
+            // -----------------------------------------------
+            // GLOW — 4-tap only, no loop
+            // -----------------------------------------------
+            if (glowOn) {
+                float gr    = glowRadius * 15.0 * sc;
+                vec2  px    = vec2(gr / acPreviewSize.x, gr / acPreviewSize.y);
+                float lumaC = dot(col, vec3(0.2126, 0.7152, 0.0722));
+                float gmask = smoothstep(glowThresh - 0.1, glowThresh + 0.1, lumaC);
+
+                vec3 g0 = texture2DCv(inputImg.texture, clamp(sampleUV+vec2( px.x, 0.0), 0.0, 1.0)).rgb;
+                vec3 g1 = texture2DCv(inputImg.texture, clamp(sampleUV-vec2( px.x, 0.0), 0.0, 1.0)).rgb;
+                vec3 g2 = texture2DCv(inputImg.texture, clamp(sampleUV+vec2(0.0,  px.y), 0.0, 1.0)).rgb;
+                vec3 g3 = texture2DCv(inputImg.texture, clamp(sampleUV-vec2(0.0,  px.y), 0.0, 1.0)).rgb;
+                vec3 gBlur = (g0 + g1 + g2 + g3) * 0.25 * gmask;
+                vec3 glow  = gBlur * glowIntensity * moreDamage;
+                col = 1.0 - (1.0 - col) * (1.0 - glow * 0.7);
+            }
+
+            // -----------------------------------------------
+            // SCAN LINES — modulo math, no texture
+            // -----------------------------------------------
+            if (scanLinesOn) {
+                float sd  = float(scanDir);
+                float sDist = max(scanDistance * sc, 1.0);
+                float sThk  = scanThickness / sDist * 0.5;
+                sThk = clamp(sThk, 0.01, 0.49);
+
+                float hMask = 1.0;
+                float vMask = 1.0;
+
+                if (sd &lt; 0.5 || sd &gt; 1.5) {
+                    float hp = fract(uv.y * acPreviewSize.y / sDist);
+                    hMask = mix(0.25, 1.0,
+                        1.0 - smoothstep(sThk*0.5, sThk, hp) * (1.0 - smoothstep(1.0-sThk, 1.0-sThk*0.5, hp)));
+                }
+                if (sd &gt; 0.5) {
+                    float vp = fract(uv.x * acPreviewSize.x / sDist);
+                    vMask = mix(0.25, 1.0,
+                        1.0 - smoothstep(sThk*0.5, sThk, vp) * (1.0 - smoothstep(1.0-sThk, 1.0-sThk*0.5, vp)));
+                }
+
+                col *= hMask * vMask;
+            }
+
+            // -----------------------------------------------
+            // MOVING LINES — bright bands scrolling
+            // -----------------------------------------------
+            if (linesOn) {
+                // Up
+                float luPos  = fract(uv.y + t * lineSpeed);
+                float luMask = smoothstep(0.0, lineHeight, luPos) *
+                               (1.0 - smoothstep(lineHeight, lineHeight*1.1, luPos));
+                // Down
+                float ldPos  = fract(uv.y - t * lineSpeed * 0.7);
+                float ldMask = smoothstep(0.0, lineHeight, ldPos) *
+                               (1.0 - smoothstep(lineHeight, lineHeight*1.1, ldPos));
+
+                float lineMask = max(luMask, ldMask);
+                col = mix(col, col * 1.5, lineMask * 0.6);
+            }
+
+            // -----------------------------------------------
+            // STATIC — hash noise, no texture
+            // -----------------------------------------------
+            if (staticOn) {
+                float sNoise = hashV(vec2(
+                    floor(uv.x * acPreviewSize.x) + floor(t * 30.0) * 1000.0,
+                    floor(uv.y * acPreviewSize.y) + randomSeed * 500.0
+                ));
+                col += (sNoise - 0.5) * staticOpacity * moreDamage;
+            }
+
+            // -----------------------------------------------
+            // FLICKER — opacity pulse, no texture
+            // -----------------------------------------------
+            if (flickerOn) {
+                float fRnd  = hashV(vec2(floor(t * 15.0), randomSeed * 30.0));
+                float fired = step(1.0 - flickerChance * 2.0, fRnd);
+                float flOp  = mix(1.0, flickerMin, fired);
+                col *= flOp;
+            }
+
+            col = clamp(col, 0.0, 1.0);
+            gl_FragColor = vec4(mix(src.rgb, col, blend), src.a);
+        }
+    </shader>
+</effect>

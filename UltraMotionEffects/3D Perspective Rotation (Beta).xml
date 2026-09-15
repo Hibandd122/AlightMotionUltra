@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.3dperception" name="3D Plane Rotation (Beta)" desc="Projects the layer onto a flat plane viewed by a perspective camera, tilting it in 3D. Rotation X/Y tilt the plane, Z sets camera distance; optional X/Y toggles mirror the sampled image." category="warp" tags="transform" thumb="thumb/Move and Transform/3D Perspective Rotation (Beta).webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <point id="ROT" label="Rotation" default="0.0,0.0" />
+        
+        <slider id="MIRX" default="0" min="0" max="1" label="X" type="integer" step="1" />
+        <slider id="MIRY" default="0" min="0" max="1" label="Y" type="integer" step="1" />
+        
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+             vec2 uv = acScreenNorm.st;
+             uv = uv * 2.0 - 1.0;
+             uv.x *= iResolution.x / iResolution.y;
+         
+             float nearPlane = 1.0;
+             float rotX = ROT.y * 0.01;
+             float rotY = ROT.x * 0.01;
+             float rotZ = ROT.z * 0.01;
+         
+             vec3 rayOrigin = vec3(0.0, 0.0, rotZ);
+             vec3 rayDir = normalize(vec3(uv, -nearPlane));
+         
+             // Matriks rotasi X
+             float cosX = cos(rotX);
+             float sinX = sin(rotX);
+             mat3 rotXMat = mat3(
+                 1.0,   0.0,    0.0,
+                 0.0,  cosX,  -sinX,
+                 0.0,  sinX,   cosX
+             );
+         
+             // Matriks rotasi Y
+             float cosY = cos(rotY);
+             float sinY = sin(rotY);
+             mat3 rotYMat = mat3(
+                 cosY, 0.0, sinY,
+                 0.0,  1.0, 0.0,
+                -sinY, 0.0, cosY
+             );
+         
+             // Gabungan rotasi
+             rayDir = rotYMat * rotXMat * rayDir;
+         
+             // Hit bidang z = 0
+             float t = -rayOrigin.z / rayDir.z;
+             vec3 hitPos = rayOrigin + rayDir * t;
+         
+             vec2 texUV = hitPos.xy;
+             texUV.x /= (iResolution.x / iResolution.y);
+             texUV = texUV * 0.5 + 0.5;
+         
+             // --- Efek cermin ---
+             float flipX = mod(floor(rotX / 3.14159265), 2.0); // 0 atau 1 setiap π
+             float flipY = mod(floor(rotY / 3.14159265), 2.0);
+         
+             if (MIRX &gt; 0.1) {
+             // if (flipX == 1.0) {
+                 texUV.x = 1.0 - texUV.x;
+             }
+         
+             if (MIRY &gt; 0.1) {
+             // if (flipY == 1.0) {
+                 texUV.y = 1.0 - texUV.y;
+             }
+         
+             vec4 color = texture2DCv(inputImg.texture, texUV);
+         
+             if (texUV.x &lt; 0.0 || texUV.x &gt; 1.0 || texUV.y &lt; 0.0 || texUV.y &gt; 1.0) {
+                 color = vec4(0.0);
+             }
+         
+             fragColor = color;
+             gl_FragColor = fragColor * color.a;
+         
+    }
+
+
+    </shader>
+
+</effect>

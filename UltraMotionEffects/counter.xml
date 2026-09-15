@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.counter" name="@am:string/effect_counter_name" desc="@am:string/effect_counter_desc" affinity="text!" type="text" tags="text,utility,propadjust" category="text" thumb="thumb/countdown.webp">
+
+    <params>
+        <slider id="offset" default="0" min="-100000" max="100000" step="1" label="@am:string/effect_param_add" ticks="0" />
+        <slider id="scale" default="1" min="-2" max="2" step=".01" label="@am:string/effect_param_multiply" ticks="1" />
+    </params>
+
+
+    
+
+</effect>

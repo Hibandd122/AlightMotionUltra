@@ -1,0 +1,217 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.mojo" name="Mojo" desc="Cinematic color grade combining contrast punch, bleach bypass, fade, cool shadow tint (blue squeeze), white balance and exposure controls, with HSV-based skin tone detection for targeted saturation and hue adjustment. A master Mojo strength blends the graded result with the original; optional highlight preservation." category="colorlight" tags="extra" thumb="thumb/Color/Mojo.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        
+        <slider id="mojo" default="50.0" min="0.0" max="100.0" step="1.0" label="Mojo" type="percent" />
+        <slider id="tint" default="0.0" min="-100.0" max="100.0" step="1.0" label="Tint" type="percent" />
+        
+        
+        
+        <slider id="punch" default="15.0" min="-100.0" max="100.0" step="1.0" label="Punch" type="percent" />
+        <slider id="bleach" default="10.0" min="-100.0" max="100.0" step="1.0" label="Bleach" type="percent" />
+        <slider id="fade" default="5.0" min="-100.0" max="100.0" step="1.0" label="Fade" type="percent" />
+        
+        
+        
+        <slider id="blueSqueeze" default="30.0" min="0.0" max="100.0" step="1.0" label="Blue Squeeze" type="percent" />
+        <slider id="skinSqueeze" default="20.0" min="0.0" max="100.0" step="1.0" label="Skin Squeeze" type="percent" />
+        
+        
+        
+        <slider id="exposure" default="0.0" min="-2.0" max="2.0" step="0.1" label="Exposure" />
+        <slider id="coolWarm" default="-10.0" min="-100.0" max="100.0" step="1.0" label="Cool/Warm" type="percent" />
+        <slider id="greenMagenta" default="0.0" min="-100.0" max="100.0" step="1.0" label="Green/Magenta" type="percent" />
+        
+        
+        
+        <slider id="skinYellowPink" default="0.0" min="-100.0" max="100.0" step="1.0" label="Skin Yellow/Pink" type="percent" />
+        
+        
+        
+        <switch id="preserveHighlights" default="true" label="Preserve Highlights" />
+        <switch id="protectSkinTones" default="true" label="Protect Skin Tones" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Mojo Cinematic Color Grading Effect
+        // Professional blockbuster look with enhanced skin tones
+        
+        // Utility functions
+        vec3 rgb2hsv(vec3 c) {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        
+        vec3 hsv2rgb(vec3 c) {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+        
+        // Skin tone detection
+        bool isSkinTone(vec3 rgb) {
+            vec3 hsv = rgb2hsv(rgb);
+            float h = hsv.x; // Already in 0-1 range
+            float s = hsv.y;
+            float v = hsv.z;
+            
+            // Skin tone hue range (orange-red to yellow-orange) - normalized to 0-1
+            // Expanded range to catch more skin tones
+            bool hueRange = (h &gt; 0.02 &amp;&amp; h &lt; 0.16); // 7-58 degrees normalized
+            bool satRange = (s &gt; 0.1 &amp;&amp; s &lt; 0.85); // More forgiving saturation range
+            bool valRange = (v &gt; 0.15 &amp;&amp; v &lt; 0.95); // More forgiving brightness range
+            
+            return hueRange &amp;&amp; satRange &amp;&amp; valRange;
+        }
+        
+        // Mojo color transformation
+        vec3 applyMojo(vec3 rgb) {
+            float mojoStrength = mojo * 0.01;
+            
+            // Apply exposure (always applied, not dependent on mojo strength)
+            rgb *= pow(2.0, exposure);
+            
+            // Apply cool/warm temperature shift
+            if (coolWarm != 0.0) {
+                float temp = coolWarm * 0.01 * mojoStrength;
+                rgb.r += temp * 0.15;
+                rgb.b -= temp * 0.15;
+                rgb = clamp(rgb, 0.0, 1.0);
+            }
+            
+            // Apply green/magenta tint
+            if (greenMagenta != 0.0) {
+                float tint = greenMagenta * 0.01 * mojoStrength;
+                rgb.g += tint * 0.15;
+                rgb = clamp(rgb, 0.0, 1.0);
+            }
+            
+            // Apply punch (contrast enhancement)
+            if (punch != 0.0) {
+                float punchStrength = punch * 0.01 * mojoStrength;
+                vec3 contrast = mix(vec3(0.5), rgb, 1.0 + punchStrength * 0.5);
+                rgb = contrast;
+                rgb = clamp(rgb, 0.0, 1.0);
+            }
+            
+            // Apply bleach bypass effect
+            if (bleach != 0.0) {
+                float bleachStrength = bleach * 0.01 * mojoStrength;
+                float luminance = dot(rgb, vec3(0.299, 0.587, 0.114));
+                vec3 bleachColor = mix(rgb, vec3(luminance), 0.5 * bleachStrength);
+                rgb = mix(rgb, bleachColor, mojoStrength);
+                rgb = clamp(rgb, 0.0, 1.0);
+            }
+            
+            // Apply fade
+            if (fade != 0.0) {
+                float fadeStrength = fade * 0.01 * mojoStrength;
+                vec3 fadeColor = mix(rgb, vec3(0.5, 0.5, 0.5), fadeStrength);
+                rgb = fadeColor;
+                rgb = clamp(rgb, 0.0, 1.0);
+            }
+            
+            // Apply blue squeeze (cooler shadows)
+            if (blueSqueeze != 0.0) {
+                float luminance = dot(rgb, vec3(0.299, 0.587, 0.114));
+                float blueSqueezeStrength = blueSqueeze * 0.01 * mojoStrength;
+                
+                // Cooler shadows and midtones
+                if (luminance &lt; 0.7) {
+                    float shadowFactor = (0.7 - luminance) / 0.7;
+                    rgb.b += blueSqueezeStrength * shadowFactor * 0.2;
+                    rgb.r -= blueSqueezeStrength * shadowFactor * 0.1;
+                    rgb = clamp(rgb, 0.0, 1.0);
+                }
+            }
+            
+            // Apply skin tone squeeze
+            if (skinSqueeze != 0.0) {
+                if (isSkinTone(rgb)) {
+                    float skinSqueezeStrength = skinSqueeze * 0.01 * mojoStrength;
+                    vec3 hsv = rgb2hsv(rgb);
+                    
+                    // Enhance skin tone saturation
+                    hsv.y = mix(hsv.y, min(hsv.y * 1.3, 1.0), skinSqueezeStrength);
+                    
+                    // Adjust skin tone hue towards warmer tones
+                    if (hsv.x &lt; 0.04) { // Too red
+                        hsv.x = mix(hsv.x, 0.08, skinSqueezeStrength * 0.3);
+                    } else if (hsv.x &gt; 0.13) { // Too yellow
+                        hsv.x = mix(hsv.x, 0.10, skinSqueezeStrength * 0.3);
+                    }
+                    
+                    rgb = hsv2rgb(hsv);
+                    rgb = clamp(rgb, 0.0, 1.0);
+                }
+            }
+            
+            // Apply skin yellow/pink adjustment
+            if (skinYellowPink != 0.0) {
+                if (isSkinTone(rgb)) {
+                    float skinAdjust = skinYellowPink * 0.01 * mojoStrength;
+                    vec3 hsv = rgb2hsv(rgb);
+                    
+                    // Yellow (lower hue) vs Pink (higher hue)
+                    hsv.x = clamp(hsv.x + skinAdjust * 0.08, 0.03, 0.14);
+                    
+                    rgb = hsv2rgb(hsv);
+                    rgb = clamp(rgb, 0.0, 1.0);
+                }
+            }
+            
+            // Apply overall tint
+            if (tint != 0.0) {
+                float tintStrength = tint * 0.01 * mojoStrength;
+                vec3 tintColor = vec3(1.0 + tintStrength * 0.2, 1.0, 1.0 - tintStrength * 0.2);
+                rgb *= tintColor;
+                rgb = clamp(rgb, 0.0, 1.0);
+            }
+            
+            return rgb;
+        }
+        
+        // Highlight protection
+        vec3 protectHighlights(vec3 rgb) {
+            if (preserveHighlights) {
+                float maxChannel = max(max(rgb.r, rgb.g), rgb.b);
+                if (maxChannel &gt; 0.95) {
+                    float highlightReduction = (maxChannel - 0.95) / 0.05;
+                    rgb = mix(rgb, clamp(rgb, 0.0, 0.95), highlightReduction * 0.5);
+                }
+            }
+            return rgb;
+        }
+        
+        void main() {
+            vec2 uv = acScreenNorm;
+            vec4 original = texture2DCv(inputImg.texture, uv);
+            vec3 rgb = original.rgb;
+            
+            // Apply mojo transformation with all parameters
+            vec3 mojoColor = applyMojo(rgb);
+            
+            // Protect highlights
+            mojoColor = protectHighlights(mojoColor);
+            
+            // Apply final blend with mojo strength
+            vec3 finalColor = mix(rgb, mojoColor, mojo * 0.01);
+            
+            // Ensure we don't exceed valid color ranges
+            finalColor = clamp(finalColor, 0.0, 1.0);
+            
+            // Preserve original alpha
+            gl_FragColor = vec4(finalColor, original.a);
+        }
+    </shader>
+
+</effect>

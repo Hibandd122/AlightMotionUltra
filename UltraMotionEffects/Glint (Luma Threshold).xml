@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.glintx" name="Glint (Luma Threshold)" desc="Extracts image regions above a luminance threshold with adjustable feathering and tints them with a solid color or a positionable radial two-color gradient, replacing the layer content. Useful as a glint/shine or glow source." category="colorlight" tags="other" thumb="thumb/Matte and Mask/Glint (Luma Threshold).webp" experimental="true">
+
+    <params>
+        <switch id="gradColor" default="false" label="Gradient Color" />
+        <color id="color1" default="#FFFFFFFF" label="@am:string/effect_param_color1" alpha="true" />
+        <color id="color2" default="#FFFF0000" label="@am:string/effect_param_color2" alpha="true" />
+        <slider id="angle" default="0.0" min="0.0" max="3600.0" label="@am:string/effect_param_angle" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+        <point id="offset" label="@am:string/effect_param_offset" />
+        <slider id="scale" default="1.0" min="0.1" max="10.0" label="@am:string/effect_param_scale" step="0.01" ticks="1.0" />
+        <slider id="threshold" default="0.4" min="0.0" max="1.0" label="@am:string/effect_param_threshold" />
+        <slider id="feathera" default="0.0" min="0.0" max="1.0" label="Threshold Feather" />
+        <slider id="lowThreshold" default="0.05" min="0" max="1" step="0.005" label="Threshold" type="percent" />
+        <float id="highThreshold" value="1.0" />
+        <float id="featherb" value="3.0" />
+        <slider id="bright" default="1.0" min="1.0" max="3.0" step="0.01" label="Brightness" type="percent" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <menu id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
+            <menu label="NORMAL" value="0" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        <texture id="inputImg" srcType="content" />
+        <texture id="xdist" srcType="buffer" downsample="2" />
+
+    </params>
+        
+    <passes>
+        <pass target="xdist" />
+        <pass />
+    </passes>
+    
+    
+        
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) {
+    return a * (1. - b.a) + b;
+    }
+    
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+   
+   
+   /////////////////////////
+    void main ()
+    {
+        if( acPass == 0 ) {
+            gl_FragColor = texture2DCv(inputImg.texture, acScreenNorm.st);
+            }
+        else if( acPass==1 ) {
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 umefx;
+        umefx = acScreenNorm; 
+        /////////////////////////
+            	
+            const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+            //////////////////////////
+            float luminance = dot(texColor.rgb, luminanceWeighting);
+            float f = max(min((feathera/4.),abs(0.5-(1.-threshold))),0.00196);
+            float t = (((1.-threshold)-0.5)*(1.003+f*2.))+0.5;
+            float p = smoothstep(t-f, t+f, luminance);
+
+            vec3 rgb = vec3(p,p,p);
+
+            vec4 trisolt = vec4(rgb,texColor.a);
+            //////////////////////////
+            vec4 targetLuma = trisolt ;
+            float luma = dot(targetLuma.rgb, luminanceWeighting);
+            float lowThresholdB = (lowThreshold*(1.0+featherb))-0.0001;
+            float lowThresholdA = lowThresholdB-max(featherb,0.00001);
+            float highThresholdA = (highThreshold*(1.0+featherb)-featherb)+0.0001;
+            float highThresholdB = highThresholdA+max(featherb,0.00001);
+            float lowBlend = smoothstep( lowThresholdA, lowThresholdB, luma );
+            float highBlend = 1. - smoothstep( highThresholdA, highThresholdB, luma );
+            float lumafx = min(lowBlend,highBlend);
+            vec4 antiblack = targetLuma * lumafx;
+            
+            float a = angle * 0.0174533;
+            vec2 st = acLayerNorm;
+            st -= 0.5;
+            st -= (offset*vec2(1,-1)) / 500.;
+            st /= scale;
+            st *= mat2(sin(a), -cos(a), cos(a), sin(a));
+            st += 0.5;
+            float tx = length( st - 0.5 ) * 2.0;
+            tx = clamp(tx,0.0,1.0);
+
+            vec4 color = mix(color1, color2, tx);
+            
+            antiblack = vec4(antiblack.rgb*(gradColor? color.rgb : color1.rgb), antiblack.a);
+            
+    	gl_FragColor = mix(texColor, antiblack, alpha);
+    	}
+    	
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

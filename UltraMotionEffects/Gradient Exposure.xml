@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.gradexposure" name="Gradient Exposure" desc="Splits the frame along a linear, radial, elliptical, diamond, or angular gradient and applies separate exposure, contrast, saturation, gamma, highlight/shadow, tint, and temperature grades to each side, plus master adjustments and a gradient preview." category="colorlight" tags="gradient,exposure,light,grade,vignette,radial,directional,manga" thumb="thumb/Color/Gradient Exposure.webp">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <menu id="gradientMode" style="dropdown" default="1" label="Gradient Mode">
+            <menu label="Linear" value="1" />
+            <menu label="Radial" value="2" />
+            <menu label="Elliptical" value="3" />
+            <menu label="Diamond" value="4" />
+            <menu label="Angular" value="5" />
+        </menu>
+        <slider id="gradAngle" label="Gradient Angle" default="0.0" min="-360.0" max="360.0" step="1.0" type="float" />
+        <slider id="gradCenterX" label="Center X" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradCenterY" label="Center Y" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradScale" label="Gradient Scale" default="1.0" min="0.1" max="5.0" step="0.05" type="float" />
+        <slider id="gradSoftness" label="Gradient Softness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="gradOffset" label="Gradient Offset" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <switch id="gradInvert" default="false" label="Invert Gradient" />
+        <slider id="gradAspect" label="Aspect Ratio" default="1.0" min="0.1" max="3.0" step="0.05" type="float" />
+
+        
+        <slider id="brightExposure" label="Exposure" default="0.5" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="brightContrast" label="Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="brightSaturation" label="Saturation" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="brightGamma" label="Gamma" default="1.0" min="0.2" max="3.0" step="0.05" type="float" />
+        <slider id="brightHighlights" label="Highlights" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="brightShadows" label="Shadows" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <color id="brightTint" label="Tint Color" default="#FFFFFF" alpha="false" />
+        <slider id="brightTintStr" label="Tint Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="brightTemp" label="Temperature" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+
+        
+        <slider id="darkExposure" label="Exposure" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="darkContrast" label="Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="darkSaturation" label="Saturation" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="darkGamma" label="Gamma" default="1.0" min="0.2" max="3.0" step="0.05" type="float" />
+        <slider id="darkHighlights" label="Highlights" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="darkShadows" label="Shadows" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <color id="darkTint" label="Tint Color" default="#FFFFFF" alpha="false" />
+        <slider id="darkTintStr" label="Tint Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="darkTemp" label="Temperature" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+
+        
+        <slider id="masterExposure" label="Master Exposure" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="masterContrast" label="Master Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="masterSaturation" label="Master Saturation" default="100.0" min="0.0" max="200.0" step="1.0" type="float" />
+
+        
+        <switch id="viewGradient" default="false" label="View Gradient" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    float getGradient(vec2 uv) {
+        float gm = float(gradientMode);
+        vec2 center = vec2(gradCenterX, gradCenterY);
+        vec2 p = uv - center;
+        p.x *= gradAspect;
+        float g = 0.0;
+        if (gm &lt; 1.5) {
+            float ang = gradAngle * PI / 180.0;
+            vec2 dir = vec2(cos(ang), sin(ang));
+            g = dot(p, dir) / max(gradScale, EPS) + 0.5;
+        } else if (gm &lt; 2.5) {
+            float dist = length(p);
+            g = dist / max(gradScale * 0.5, EPS);
+        } else if (gm &lt; 3.5) {
+            float dist = length(p);
+            float ang = gradAngle * PI / 180.0;
+            float cs = cos(ang);
+            float sn = sin(ang);
+            vec2 rp = vec2(p.x * cs + p.y * sn, -p.x * sn + p.y * cs);
+            rp.y *= 0.6;
+            dist = length(rp);
+            g = dist / max(gradScale * 0.5, EPS);
+        } else if (gm &lt; 4.5) {
+            float ang = gradAngle * PI / 180.0;
+            float cs = cos(ang);
+            float sn = sin(ang);
+            vec2 rp = vec2(p.x * cs + p.y * sn, -p.x * sn + p.y * cs);
+            float dist = abs(rp.x) + abs(rp.y);
+            g = dist / max(gradScale * 0.5, EPS);
+        } else {
+            float ang = atan(p.y, p.x + EPS);
+            float targetAng = gradAngle * PI / 180.0;
+            float diff = ang - targetAng;
+            diff = mod(diff + PI, 2.0 * PI) - PI;
+            g = abs(diff) / PI;
+        }
+        g += gradOffset;
+        float soft = max(gradSoftness, 0.01);
+        g = smoothstep(0.5 - soft, 0.5 + soft, g);
+        if (gradInvert) {
+            g = 1.0 - g;
+        }
+        return clamp(g, 0.0, 1.0);
+    }
+    vec3 gradeZone(vec3 rgb, float exposure, float contrast, float saturation,
+                   float gamma, float highlights, float shadows,
+                   vec3 tintCol, float tintStr, float temp) {
+        vec3 result = rgb;
+        if (abs(exposure) &gt; EPS) {
+            result *= pow(2.0, exposure);
+        }
+        if (abs(contrast) &gt; 0.5) {
+            float c = contrast / 100.0;
+            float factor = 1.0 + c;
+            result = (result - 0.18) * factor + 0.18;
+            if (c &gt; 0.0) {
+                float s = c * 0.3;
+                result = result + s * (result - 0.5) * (1.0 - abs(result - 0.5) * 2.0);
+            }
+        }
+        if (abs(highlights) &gt; 0.5 || abs(shadows) &gt; 0.5) {
+            float l = lum(result);
+            float hlMask = smoothstep(0.5, 1.0, l);
+            hlMask *= hlMask;
+            float shMask = 1.0 - smoothstep(0.0, 0.5, l);
+            shMask *= shMask;
+            float hlAdj = highlights / 100.0 * 0.4;
+            float shAdj = shadows / 100.0 * 0.4;
+            float origLum = max(l, EPS);
+            float newLum = l + hlAdj * hlMask + shAdj * shMask;
+            result *= max(newLum, 0.0) / origLum;
+        }
+        if (abs(gamma - 1.0) &gt; EPS) {
+            result = pow(max(result, 0.0), vec3(1.0 / max(gamma, EPS)));
+        }
+        if (abs(saturation) &gt; 0.5) {
+            float s = 1.0 + saturation / 100.0;
+            float l = lum(result);
+            result = mix(vec3(l), result, s);
+        }
+        if (abs(temp) &gt; 0.5) {
+            float t = temp / 100.0 * 0.08;
+            result.r += t;
+            result.b -= t;
+            result.g += t * 0.15;
+        }
+        if (tintStr &gt; EPS) {
+            result = mix(result, result * tintCol, tintStr);
+        }
+        return result;
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 rgb = max(original.rgb, 0.0);
+        vec3 baseRGB = rgb;
+        float grad = getGradient(uv);
+        if (viewGradient) {
+            gl_FragColor = vec4(vec3(grad), 1.0);
+            return;
+        }
+        vec3 brightGraded = gradeZone(rgb,
+            brightExposure, brightContrast, brightSaturation,
+            brightGamma, brightHighlights, brightShadows,
+            brightTint.rgb, brightTintStr, brightTemp);
+        vec3 darkGraded = gradeZone(rgb,
+            darkExposure, darkContrast, darkSaturation,
+            darkGamma, darkHighlights, darkShadows,
+            darkTint.rgb, darkTintStr, darkTemp);
+        vec3 result = mix(darkGraded, brightGraded, grad);
+        if (abs(masterExposure) &gt; EPS) {
+            result *= pow(2.0, masterExposure);
+        }
+        if (abs(masterContrast) &gt; 0.5) {
+            float mc = masterContrast / 100.0;
+            result = (result - 0.18) * (1.0 + mc) + 0.18;
+        }
+        if (abs(masterSaturation - 100.0) &gt; 0.5) {
+            float ms = masterSaturation / 100.0;
+            float l = lum(result);
+            result = mix(vec3(l), result, ms);
+        }
+        result = mix(baseRGB, result, globalMix);
+        result = clamp(result, 0.0, 1.0);
+        gl_FragColor = vec4(result, original.a);
+    }
+    </shader>
+    <switch name="color" />
+</effect>

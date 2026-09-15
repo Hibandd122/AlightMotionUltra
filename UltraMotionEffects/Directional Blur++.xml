@@ -1,0 +1,268 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect thumb="thumb/Blur and Sharpen/Directional Blur++.webp" id="com.custom.effects.directional_blur_adv" name="Directional Blur++" desc="Directional (linear) blur with selectable kernel shape (Gaussian, Linear, Box, Sinc), up to 64 taps along an adjustable angle. Advanced options include one-side blurring, angle spread cone, sample spread/thin, luminance threshold masking, pixel displacement, edge clamping, radial falloff mask and blend modes." category="blur" tags="blur,directional,motion,speed,streak,smear,linear" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    
+    <slider id="blurLength" label="Blur Length" default="0.0" min="0.0" max="500.0" step="0.5" />
+    <slider id="direction" label="Direction" default="0.0" min="-180.0" max="180.0" step="0.5" />
+    <slider id="samples" label="Samples" default="32.0" min="4.0" max="64.0" step="1.0" type="integer" ticks="8,16,32,48,64" snap="8,16,32,48,64" />
+
+    
+    
+    <menu id="blurShape" style="dropdown" default="0" label="Blur Shape">
+      <menu label="Gaussian" value="0" />
+      <menu label="Linear" value="1" />
+      <menu label="Box" value="2" />
+      <menu label="Sinc" value="3" />
+    </menu>
+    <slider id="falloff" label="Falloff" default="1.0" min="0.1" max="4.0" step="0.05" />
+
+    
+    
+    <menu id="sideMode" style="dropdown" default="0" label="Side Mode">
+      <menu label="Both Sides" value="0" />
+      <menu label="One Side" value="1" />
+      <menu label="Other Side" value="2" />
+    </menu>
+    <slider id="angleSpread" label="Angle Spread" default="0.0" min="0.0" max="90.0" step="0.5" />
+    <slider id="spread" label="Spread" default="0.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    <slider id="thin" label="Thin" default="0.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    <slider id="threshold" label="Blur Threshold" default="0.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    <switch id="displacePixels" label="Displace Pixels" default="false" />
+    <switch id="clampEdges" label="Clamp Edges" default="true" />
+
+    
+    
+    <slider id="centerX" label="Blur Center X" default="0.5" min="0.0" max="1.0" step="0.005" />
+    <slider id="centerY" label="Blur Center Y" default="0.5" min="0.0" max="1.0" step="0.005" />
+    <slider id="radialFalloff" label="Radial Falloff" default="0.0" min="0.0" max="1.0" step="0.01" type="percent" />
+
+    
+    
+    <slider id="mixAmount" label="Mix with Original" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    <menu id="blendMode" style="dropdown" default="0" label="Blend Mode">
+      <menu label="Normal" value="0" />
+      <menu label="Add" value="1" />
+      <menu label="Screen" value="2" />
+      <menu label="Multiply" value="3" />
+    </menu>
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    #define PI  3.14159265359
+
+    /* ── Sample with edge clamping or repeat ────────────── */
+    vec4 sampleTex(vec2 uv){
+      if(clampEdges){
+        uv = clamp(uv, 0.0, 1.0);
+      }
+      return texture2DCv(inputImg.texture, uv);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       KERNEL WEIGHT FUNCTIONS
+       Each returns weight for a sample at position t (-1..1)
+       where t=0 is the pixel itself.
+    ══════════════════════════════════════════════════════ */
+
+    float weightGaussian(float t, float fo){
+      /* Standard Gaussian: smooth bell, no ringing.
+         Identical to AE's Directional Blur quality.
+         falloff controls sigma width.                    */
+      float sigma = 0.4 / max(fo, 0.01);
+      return exp(-(t*t) / (2.0*sigma*sigma));
+    }
+
+    float weightLinear(float t, float fo){
+      /* Triangle: linear falloff from center */
+      return max(0.0, 1.0 - abs(t) * fo);
+    }
+
+    float weightBox(float t){
+      /* Uniform: every sample equal weight (classic box blur) */
+      return 1.0;
+    }
+
+    float weightSinc(float t, float fo){
+      /* Lanczos-like: sharper but slight ringing at edges.
+         Great for motion blur with crisp edges.           */
+      if(abs(t) &lt; 0.001) return 1.0;
+      float x = t * fo * PI * 2.5;
+      float sinc = sin(x) / x;
+      /* Lanczos window */
+      float lx = t * fo * PI;
+      float window = (abs(lx) &lt; PI) ? (sin(lx)/lx) : 0.0;
+      return clamp(sinc * window, 0.0, 1.0);
+    }
+
+    float getWeight(float t){
+      if(blurShape==0) return weightGaussian(t, falloff);
+      if(blurShape==1) return weightLinear(t, falloff);
+      if(blurShape==2) return weightBox(t);
+      return weightSinc(t, falloff);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MULTI-ANGLE SAMPLING
+       For angleSpread &gt; 0, we sample across a cone of
+       directions centred on the main blur direction.
+       This softens the blur edges for a more organic look.
+    ══════════════════════════════════════════════════════ */
+    vec4 blurSample(vec2 uv, vec2 blurVec, float halfLen,
+                    float sampleCount, int side){
+
+      vec4  acc   = vec4(0.0);
+      float wsum  = 0.0;
+      float N     = sampleCount;
+
+      /* Thin: skip every nth sample (reduces smoothness,
+         creates "double vision" like BCC Thin parameter)   */
+      float thinStep = 1.0 + thin * 3.0;
+
+      for(float i = 0.0; i &lt; 64.0; i += 1.0){
+        if(i &gt;= N) break;
+        if(mod(i, max(thinStep, 1.0)) &gt; 0.5 &amp;&amp; i &gt; 0.0) continue;
+
+        /* t in range 0..1 along sample line */
+        float t = (N &lt;= 1.0) ? 0.0 : i / (N - 1.0);
+
+        /* Map t to signed position based on side mode */
+        float signedT;
+        if(side == 0){
+          /* Both sides: t goes -1 → +1 centered at 0 */
+          signedT = t * 2.0 - 1.0;
+        } else if(side == 1){
+          /* One side: t goes 0 → +1 */
+          signedT = t;
+        } else {
+          /* Other side: t goes -1 → 0 */
+          signedT = -t;
+        }
+
+        /* Spread: distort sample positions outward */
+        if(spread &gt; 0.001){
+          signedT = sign(signedT) * pow(abs(signedT), 1.0 - spread * 0.7);
+        }
+
+        /* Pixel offset */
+        vec2 offset = blurVec * signedT * halfLen;
+
+        /* Displace Pixels: shift the sampling origin */
+        vec2 sampleUV;
+        if(displacePixels){
+          sampleUV = uv + blurVec * halfLen + offset;
+        } else {
+          sampleUV = uv + offset;
+        }
+
+        vec4  s = sampleTex(sampleUV);
+
+        /* Weight from kernel function */
+        float w = getWeight(signedT);
+
+        acc   += s * w;
+        wsum  += w;
+      }
+
+      return (wsum &gt; 0.0) ? acc / wsum : sampleTex(uv);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════════════════════ */
+    void main(){
+      vec2 uv     = acScreenNorm;
+      vec4 orig   = texture2DCv(inputImg.texture, uv);
+      vec2 res    = acScreenSize;
+
+      /* ── Skip if no blur ──────────────────────────────── */
+      if(blurLength &lt; 0.1){
+        gl_FragColor = orig;
+        return;
+      }
+
+      /* ── Direction → UV blur vector ───────────────────── */
+      /* AE: blur applied equally on both sides of pixel.
+         Direction 180° = same result as 0° (bidirectional).
+         We normalise to UV space so blur is resolution-aware. */
+      float dirRad  = direction * PI / 180.0;
+      vec2  blurDir = vec2(cos(dirRad), -sin(dirRad));
+
+      /* Convert pixel length to UV length */
+      float halfLen = (blurLength * 0.5) / res.x;
+
+      /* ── Radial falloff mask ──────────────────────────── */
+      float radMask = 1.0;
+      if(radialFalloff &gt; 0.001){
+        vec2  ctr  = vec2(centerX, centerY);
+        float dist = length((uv - ctr) * vec2(1.0, res.y/res.x));
+        radMask = 1.0 - smoothstep(0.0, radialFalloff, dist);
+        radMask = clamp(radMask, 0.0, 1.0);
+      }
+
+      /* ── Accumulate blur across angle spread ──────────── */
+      vec4  blurred = vec4(0.0);
+      float totalW  = 0.0;
+
+      int   spreadSteps = (angleSpread &gt; 0.5) ? 3 : 1;
+      float spreadRad   = angleSpread * PI / 180.0;
+
+      for(int ai = 0; ai &lt; 3; ai++){
+        if(ai &gt;= spreadSteps) break;
+
+        float aOffset = 0.0;
+        if(spreadSteps == 3){
+          aOffset = (float(ai) - 1.0) * spreadRad * 0.5;
+        }
+
+        float ang = dirRad + aOffset;
+        vec2  bv  = vec2(cos(ang), -sin(ang));
+
+        float angleW = (ai == 1) ? 0.5 : 1.0; /* centre angle stronger */
+
+        blurred += blurSample(uv, bv, halfLen, samples, sideMode) * angleW;
+        totalW  += angleW;
+      }
+
+      blurred /= max(totalW, 0.001);
+
+      /* ── Apply radial mask: centre = blurred, edge = sharp ─ */
+      if(radialFalloff &gt; 0.001){
+        blurred = mix(orig, blurred, radMask);
+      }
+
+      /* ── Threshold: only blur pixels that change enough ─ */
+      if(threshold &gt; 0.001){
+        float origL   = dot(orig.rgb, vec3(0.299,0.587,0.114));
+        float blurL   = dot(blurred.rgb, vec3(0.299,0.587,0.114));
+        float diff    = abs(origL - blurL);
+        float tMask   = smoothstep(0.0, threshold, diff);
+        blurred = mix(orig, blurred, tMask);
+      }
+
+      /* ── Mix with original ────────────────────────────── */
+      vec4 result = mix(orig, blurred, mixAmount);
+
+      /* ── Blend modes ──────────────────────────────────── */
+      vec3 origRGB   = orig.rgb   / max(orig.a,   0.001);
+      vec3 resultRGB = result.rgb / max(result.a, 0.001);
+
+      if(blendMode == 1){
+        resultRGB = origRGB + resultRGB;
+      } else if(blendMode == 2){
+        resultRGB = 1.0-(1.0-origRGB)*(1.0-resultRGB);
+      } else if(blendMode == 3){
+        resultRGB = origRGB * resultRGB;
+      }
+
+      resultRGB = clamp(resultRGB, 0.0, 1.0);
+      gl_FragColor = vec4(resultRGB, orig.a) * orig.a;
+    }
+
+  </shader>
+
+</effect>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.zigzag" name="Zig Zag" desc="Displaces pixels radially from a center point using an animated triangle wave, creating sharp-crested concentric ripples. Controls: center, amplitude, ridge frequency, and speed." category="procedural" thumb="thumb/Distort and Warp/Zig Zag.webp" tags="distort,ripple,zigzag,raster,animated">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="amount" default="0.5" min="0.0" max="1.0" label="Amplitude" />
+        <slider id="freq" default="12.0" min="2.0" max="40.0" label="Ridges" />
+        <slider id="speed" default="1.5" min="0.0" max="6.0" label="Speed" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            float r = length(d);
+            float z = abs(fract(r*freq - acTime*speed)*2.0 - 1.0) - 0.5;
+            vec2 uv = acScreenNorm + normalize(d+0.0001)*z*amount*0.08;
+            gl_FragColor = texture2DCv(inputImg.texture, uv);
+        }
+    </shader>
+
+</effect>

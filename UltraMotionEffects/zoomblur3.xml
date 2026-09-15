@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.zoomblur3" name="@am:string/effect_zoomblur_name" desc="@am:string/effect_zoomblur_desc" category="blur" tags="blur,raster,membersOnly" thumb="thumb/zoomblur.webp">
+
+    
+        
+            
+            
+            
+            
+        
+    
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="centerPoint" label="@am:string/effect_param_center" />
+        <slider id="strength" default="0.15" min="0.0" max="1.0" step="0.01" label="@am:string/effect_param_strength" />
+        
+        
+        
+        <switch id="adaptive" default="true" label="@am:string/effect_param_adaptive" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        void main() {
+            vec2 texelSize = 1.0 / getTexSize(inputImg.size);
+            vec2 center = vec2(0.5 + centerPoint.x/500., 0.5 - centerPoint.y/500.);
+            vec2 v = acScreenNorm.st - (vec4(center,0.0,1.0) * acLayerToScreen).xy;
+            float speed = length(strength / 2.0 / texelSize);
+            if(adaptive)
+                speed *= length( acLayerNorm.st - center );
+            else
+                speed *= smoothstep( 0.0, length(texelSize)*5.0, length( acLayerNorm.st - center ));
+            int nSamples = int(clamp(speed, 1.01, 100.01));
+            vec4 outColor = texture2DCv(inputImg.texture,acScreenNorm.st);
+            vec2 vnorm = normalize(v)*texelSize*speed;
+            vec2 offsetScale = vec2(1., 1.);
+            if( acScreenSize.y &gt; acScreenSize.x ) {
+                offsetScale.x *= acScreenSize.x / acScreenSize.y;
+            } else {
+                offsetScale.y *= acScreenSize.y / acScreenSize.x;
+            }
+
+            for(int i=1; i&lt;nSamples; i++ ) {
+                vec2 offset = vnorm * (float(i) / float(nSamples - 1) - 0.5);
+                offset *= offsetScale;
+
+                outColor += texture2DCv(inputImg.texture, acScreenNorm.st-offset);
+            }
+            gl_FragColor = outColor/float(nSamples);
+        }
+
+    </shader>
+
+</effect>

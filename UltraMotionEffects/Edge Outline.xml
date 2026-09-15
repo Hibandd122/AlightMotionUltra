@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.sobel-outline" name="Edge Outline" desc="Applies a 3x3 Sobel operator to image luminance and draws the detected edges in a chosen line color. Strength scales edge response and Keep Image blends the dimmed source underneath." category="drawingedge" thumb="thumb/Stylize/Edge Outline.webp" tags="stylize,edge,outline,sobel,raster" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="color" default="#FF00FF9D" label="Line Color" alpha="false" />
+        <slider id="strength" default="1.5" min="0.2" max="5.0" label="Strength" />
+        <slider id="bg" default="0.2" min="0.0" max="1.0" label="Keep Image" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec2 px = 1.0/acScreenSize;
+            float tl=dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(-px.x,-px.y)).rgb,vec3(0.333));
+            float t =dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(0.0,-px.y)).rgb,vec3(0.333));
+            float tr=dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(px.x,-px.y)).rgb,vec3(0.333));
+            float l =dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(-px.x,0.0)).rgb,vec3(0.333));
+            float r =dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(px.x,0.0)).rgb,vec3(0.333));
+            float bl=dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(-px.x,px.y)).rgb,vec3(0.333));
+            float bb=dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(0.0,px.y)).rgb,vec3(0.333));
+            float br=dot(texture2DCv(inputImg.texture,acScreenNorm+vec2(px.x,px.y)).rgb,vec3(0.333));
+            float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
+            float gy = -tl - 2.0*t - tr + bl + 2.0*bb + br;
+            float g = clamp(length(vec2(gx,gy))*strength, 0.0, 1.0);
+            vec4 src = texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 base = (src.a&gt;0.0? src.rgb/src.a : src.rgb)*bg;
+            vec3 outc = mix(base, color.rgb, g);
+            gl_FragColor = vec4(outc,1.0)*max(src.a, g);
+        }
+    </shader>
+
+</effect>

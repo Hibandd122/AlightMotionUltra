@@ -1,0 +1,230 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.custom.effects.normal_map" name="Normal Map" desc="Builds a tangent-space normal map from the layer by running a 3x3 Sobel gradient over a height field taken from luminance, a single RGBA channel or saturation, with optional Gaussian pre-smoothing. Output modes show the encoded normals, the height map, or a Blinn-Phong lighting preview (light direction, color, ambient, specular) over the original." category="drawingedge" tags="normal,map,bump,lighting,3d,surface,technical" overdraw="false" experimental="false" thumb="thumb/Stylize/Normal Map.webp" deprecated="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <menu id="heightSource" style="dropdown" default="1" label="Height Source">
+      <menu label="Luminance" value="0" />
+      <menu label="Red Channel" value="1" />
+      <menu label="Green Channel" value="2" />
+      <menu label="Blue Channel" value="3" />
+      <menu label="Alpha" value="4" />
+      <menu label="Saturation" value="5" />
+    </menu>
+    <slider id="strength" label="Strength" default="3.0" min="0.1" max="20.0" step="0.1" />
+    <slider id="sampleRadius" label="Sample Radius" default="1.0" min="0.5" max="8.0" step="0.1" />
+    <switch id="invertHeight" label="Invert Height" default="false" />
+    <switch id="smoothNormal" label="Smooth Normals" default="true" />
+
+    
+    <menu id="outputMode" style="dropdown" default="0" label="Output">
+      <menu label="Normal Map (RGB)" value="0" />
+      <menu label="Normal + Lighting" value="1" />
+      <menu label="Height Map Only" value="2" />
+      <menu label="Overlay on Original" value="3" />
+      <menu label="Lighting Only" value="4" />
+    </menu>
+
+    
+    <slider id="lightX" label="Light X" default="1.0" min="-1.0" max="1.0" step="0.01" />
+    <slider id="lightY" label="Light Y" default="1.0" min="-1.0" max="1.0" step="0.01" />
+    <slider id="lightZ" label="Light Z" default="1.0" min="0.1" max="3.0" step="0.05" />
+    <color id="lightColor" label="Light Color" default="#ffffff" />
+    <color id="ambientColor" label="Ambient Color" default="#223355" />
+    <slider id="specular" label="Specular" default="0.5" min="0.0" max="2.0" step="0.01" type="percent" />
+    <slider id="specPower" label="Specular Hardness" default="32.0" min="1.0" max="256.0" step="1.0" />
+    <slider id="ambient" label="Ambient Amount" default="0.3" min="0.0" max="1.0" step="0.01" type="percent" />
+
+    
+    <slider id="mixAmount" label="Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    #define PI 3.14159265359
+
+    /* ── Helpers ─────────────────────────────────────────── */
+    float luma(vec3 c){ return dot(c,vec3(0.2126,0.7152,0.0722)); }
+
+    vec4 tex(vec2 uv){
+      return texture2DCv(inputImg.texture, clamp(uv,0.0,1.0));
+    }
+    vec3 texRGB(vec2 uv){ return tex(uv).rgb; }
+
+    /* ── RGB to HSV ──────────────────────────────────────── */
+    vec3 rgb2hsv(vec3 c){
+      vec4 K=vec4(0.0,-1.0/3.0,2.0/3.0,-1.0);
+      vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g));
+      vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r));
+      float d=q.x-min(q.w,q.y);
+      return vec3(abs(q.z+(q.w-q.y)/(6.0*d+1e-10)),d/(q.x+1e-10),q.x);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       HEIGHT VALUE from pixel based on selected source
+    ══════════════════════════════════════════════════════ */
+    float getHeight(vec2 uv){
+      vec4 c = tex(uv);
+      float h;
+      if(heightSource==0)      h = luma(c.rgb);
+      else if(heightSource==1) h = c.r;
+      else if(heightSource==2) h = c.g;
+      else if(heightSource==3) h = c.b;
+      else if(heightSource==4) h = c.a;
+      else                     h = rgb2hsv(c.rgb).y; /* saturation */
+      return invertHeight ? 1.0-h : h;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       SMOOTH HEIGHT (3x3 Gaussian pre-filter)
+       Reduces noise before taking gradient →
+       gives cleaner normal map without speckles
+    ══════════════════════════════════════════════════════ */
+    float getHeightSmooth(vec2 uv, vec2 ts){
+      if(!smoothNormal) return getHeight(uv);
+
+      float acc=0.0, ws=0.0;
+      for(float x=-1.0;x&lt;=1.0;x+=1.0){
+        for(float y=-1.0;y&lt;=1.0;y+=1.0){
+          float w=exp(-(x*x+y*y)*0.5);
+          acc+=getHeight(uv+vec2(x,y)*ts)*w;
+          ws +=w;
+        }
+      }
+      return acc/ws;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       NORMAL MAP GENERATION
+       Uses Sobel filter on height field to get surface normal.
+
+       Sobel gives us the gradient (dH/dx, dH/dy).
+       From gradient we construct the surface normal:
+         tangent  = (2*texelSize, 0, dH/dx * strength)
+         binormal = (0, 2*texelSize, dH/dy * strength)
+         normal   = cross(tangent, binormal) → normalize
+
+       Result: XY = tangent space normal, Z = up
+       Encoded to color: normal*0.5+0.5 (0..1 range)
+       Standard normal map colors:
+         Flat surface pointing up = (128,128,255) = blue/purple
+         Left tilt = red channel increases
+         Right tilt = red channel decreases
+    ══════════════════════════════════════════════════════ */
+    vec3 computeNormal(vec2 uv){
+      vec2 ts = 1.0 / acScreenSize * sampleRadius;
+
+      /* Sobel kernel 3×3 */
+      float tl = getHeightSmooth(uv+vec2(-ts.x, ts.y), ts);
+      float t  = getHeightSmooth(uv+vec2(   0.0, ts.y), ts);
+      float tr = getHeightSmooth(uv+vec2( ts.x, ts.y), ts);
+      float l  = getHeightSmooth(uv+vec2(-ts.x,  0.0), ts);
+      float r  = getHeightSmooth(uv+vec2( ts.x,  0.0), ts);
+      float bl = getHeightSmooth(uv+vec2(-ts.x,-ts.y), ts);
+      float b  = getHeightSmooth(uv+vec2(   0.0,-ts.y), ts);
+      float br = getHeightSmooth(uv+vec2( ts.x,-ts.y), ts);
+
+      /* Sobel gradient */
+      float dX = (-tl - 2.0*l - bl + tr + 2.0*r + br);
+      float dY = (-tl - 2.0*t - tr + bl + 2.0*b  + br);
+
+      /* Scale by strength */
+      dX *= strength;
+      dY *= strength;
+
+      /* Construct normal from gradient */
+      vec3 normal = normalize(vec3(-dX, dY, 1.0));
+
+      return normal;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       LIGHTING MODEL
+       Phong shading using the computed normal map.
+       Gives a preview of what the normal map looks like
+       when actually used for lighting.
+    ══════════════════════════════════════════════════════ */
+    vec3 applyLighting(vec3 normal, vec3 albedo){
+      /* Normalize light direction */
+      vec3 lightDir = normalize(vec3(lightX, lightY, lightZ));
+
+      /* Diffuse (NdotL) */
+      float NdL     = max(dot(normal, lightDir), 0.0);
+
+      /* Specular (Blinn-Phong half vector) */
+      vec3  viewDir = vec3(0.0, 0.0, 1.0); /* camera pointing toward us */
+      vec3  halfDir = normalize(lightDir + viewDir);
+      float NdH     = max(dot(normal, halfDir), 0.0);
+      float spec    = pow(NdH, specPower) * specular;
+
+      /* Colors */
+      vec3 lCol  = vec3(lightColor.r,  lightColor.g,  lightColor.b);
+      vec3 aCol  = vec3(ambientColor.r, ambientColor.g, ambientColor.b);
+
+      /* Combine */
+      vec3 result = albedo * (aCol * ambient + lCol * NdL)
+                  + lCol * spec;
+
+      return clamp(result, 0.0, 1.0);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════════════════════ */
+    void main(){
+      vec2 uv      = acScreenNorm;
+      vec4 srcTex  = tex(uv);
+      vec3 original = srcTex.rgb / max(srcTex.a, 0.001);
+
+      /* ── Compute normal ───────────────────────────────── */
+      vec3 normal  = computeNormal(uv);
+
+      /* ── Encode normal to RGB (standard normal map format) ─
+         Normal range -1..1 → color range 0..1
+         Flat surface = (0.5, 0.5, 1.0) = blue/purple         */
+      vec3 normalRGB = normal * 0.5 + 0.5;
+
+      /* ── Height map ───────────────────────────────────── */
+      vec2  ts       = 1.0/acScreenSize*sampleRadius;
+      float height   = getHeightSmooth(uv, ts);
+      vec3  heightRGB = vec3(height);
+
+      /* ── Output mode ──────────────────────────────────── */
+      vec3 result;
+
+      if(outputMode == 0){
+        /* Pure normal map RGB — classic blue/purple look */
+        result = normalRGB;
+
+      } else if(outputMode == 1){
+        /* Normal map + lighting preview on original colors */
+        result = applyLighting(normal, original);
+
+      } else if(outputMode == 2){
+        /* Height map only — greyscale */
+        result = heightRGB;
+
+      } else if(outputMode == 3){
+        /* Overlay normal map on original with mix */
+        vec3 lit = applyLighting(normal, original);
+        result   = mix(original, lit, 0.7);
+        /* Tint with normal map color for that stylized look */
+        result   = mix(result, normalRGB, 0.3);
+
+      } else {
+        /* Lighting only — black albedo, only light */
+        result = applyLighting(normal, vec3(0.8));
+      }
+
+      /* ── Final mix with original ──────────────────────── */
+      result = mix(original, result, mixAmount);
+      result = clamp(result, 0.0, 1.0);
+
+      gl_FragColor = vec4(result, srcTex.a) * srcTex.a;
+    }
+
+  </shader>
+
+</effect>

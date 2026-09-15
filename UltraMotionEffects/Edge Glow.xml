@@ -1,0 +1,339 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bccedgeglow" name="Edge Glow" desc="Detects image edges (luminance, Sobel, color, or Laplacian) and renders them as a colored glow with separate inner and outer glow controls, gradient color mapping, pulse and hue-rotation animation, and Add/Screen/Soft Light/Replace compositing." category="colorlight" tags="edge,glow,outline,neon,sobel,laplacian,cinematic" thumb="thumb/Stylize/Edge Glow.webp" overdraw="true" max-overdraw="1.5">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="edgeBuf" srcType="buffer" downsample="2" />
+        <texture id="glowH" srcType="buffer" downsample="2" />
+        <texture id="glowV" srcType="buffer" downsample="2" />
+
+        
+        <slider id="edgeStrength" label="Edge Strength" default="1.0" min="0.0" max="5.0" step="0.05" type="float" />
+        <slider id="edgeThickness" label="Edge Thickness" default="1.0" min="0.5" max="5.0" step="0.1" type="float" />
+        <slider id="edgeThreshold" label="Edge Threshold" default="0.1" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="edgeSoftness" label="Edge Softness" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <menu id="edgeType" style="dropdown" default="1" label="Edge Type">
+            <menu label="Luminance" value="1" />
+            <menu label="Sobel" value="2" />
+            <menu label="Color" value="3" />
+            <menu label="Laplacian" value="4" />
+        </menu>
+
+        
+        <slider id="glowAmount" label="Glow Amount" default="1.0" min="0.0" max="5.0" step="0.05" type="float" />
+        <slider id="glowRadius" label="Glow Radius" default="10.0" min="1.0" max="40.0" step="0.5" type="float" />
+        <slider id="glowFalloff" label="Glow Falloff" default="1.5" min="0.5" max="5.0" step="0.1" type="float" />
+
+        
+        <slider id="innerGlow" label="Inner Glow" default="0.5" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="innerRadius" label="Inner Radius" default="3.0" min="0.5" max="15.0" step="0.5" type="float" />
+        <slider id="innerSoftness" label="Inner Softness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="outerGlow" label="Outer Glow" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="outerSpread" label="Outer Spread" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+
+        
+        <color id="edgeColor" label="Edge Color" default="#00AAFF" alpha="false" />
+        <slider id="edgeColorStrength" label="Color Strength" default="1.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <switch id="useSourceColor" default="false" label="Use Source Color" />
+        <slider id="edgeSaturation" label="Edge Saturation" default="1.0" min="0.0" max="3.0" step="0.05" type="float" />
+
+        
+        <color id="glowColorCore" label="Core Color" default="#FFFFFF" alpha="false" />
+        <color id="glowColorMid" label="Mid Color" default="#00AAFF" alpha="false" />
+        <color id="glowColorOuter" label="Outer Color" default="#0044AA" alpha="false" />
+        <slider id="colorMapStrength" label="Color Map Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+
+        
+        <slider id="edgeBoost" label="Edge Boost" default="0.0" min="0.0" max="3.0" step="0.05" type="float" />
+        <slider id="edgeContrast" label="Edge Contrast" default="0.0" min="-1.0" max="1.0" step="0.01" type="float" />
+        <slider id="edgeGamma" label="Edge Gamma" default="1.0" min="0.3" max="3.0" step="0.05" type="float" />
+        <switch id="edgeInvert" default="false" label="Invert Edges" />
+
+        
+        <slider id="pulseSpeed" label="Pulse Speed" default="0.0" min="0.0" max="10.0" step="0.1" type="float" />
+        <slider id="pulseAmount" label="Pulse Amount" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hueRotateSpeed" label="Hue Rotate Speed" default="0.0" min="0.0" max="5.0" step="0.1" type="float" />
+
+        
+        <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+            <menu label="Add" value="1" />
+            <menu label="Screen" value="2" />
+            <menu label="Soft Light" value="3" />
+            <menu label="Replace" value="4" />
+        </menu>
+
+        
+        <menu id="quality" style="radio" default="2" label="Quality">
+            <menu label="Low" value="1" />
+            <menu label="Medium" value="2" />
+            <menu label="High" value="3" />
+        </menu>
+
+        
+        <switch id="edgeOnly" default="false" label="Edge Only" />
+        <switch id="glowOnly" default="false" label="Glow Only" />
+        <slider id="ditherAmt" label="Dither" default="0.006" min="0.0" max="0.03" step="0.001" type="float" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass target="edgeBuf" />
+        <pass target="glowH" />
+        <pass target="glowV" />
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+    float h2r(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0/6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+        return p;
+    }
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(h2r(p,q,c.x+1.0/3.0), h2r(p,q,c.x), h2r(p,q,c.x-1.0/3.0));
+    }
+    float getTaps(float q) {
+        if (q &lt; 1.5) return 10.0;
+        if (q &lt; 2.5) return 18.0;
+        return 28.0;
+    }
+    vec4 separableBlur(sampler2D tex, vec2 uv, vec2 dir, float radius, float taps) {
+        if (radius &lt;= 0.5) return texture2DCv(tex, uv);
+        float sigma = radius / 2.14596602;
+        sigma = max(sigma, EPS);
+        float baseCoeff = 1.0 / (sqrt(2.0 * PI) * sigma);
+        float decayRate = exp(-0.5 / (sigma * sigma));
+        float decaySq = decayRate * decayRate;
+        vec4 acc = texture2DCv(tex, uv) * baseCoeff;
+        float wSum = baseCoeff;
+        float coeff = baseCoeff;
+        float decay = decayRate;
+        for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+            if (i &gt; taps) break;
+            float p0 = i;
+            float p1 = i + 1.0;
+            coeff *= decay;
+            wSum += 2.0 * coeff;
+            float w0 = coeff;
+            coeff *= decay;
+            decay *= decaySq;
+            wSum += 2.0 * coeff;
+            float w1 = coeff;
+            float wPair = w0 + w1;
+            float oPair = (p0*w0 + p1*w1) / max(wPair, EPS);
+            vec2 uvA = clamp(uv - oPair * dir, 0.0, 1.0);
+            vec2 uvB = clamp(uv + oPair * dir, 0.0, 1.0);
+            acc += texture2DCv(tex, uvA) * wPair;
+            acc += texture2DCv(tex, uvB) * wPair;
+        }
+        return acc / max(wSum, EPS);
+    }
+    float detectEdgeLuminance(vec2 uv, vec2 px, float thick) {
+        vec2 o = px * thick;
+        float c = lum(texture2DCv(inputImg.texture, uv).rgb);
+        float t = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -o.y), 0.0, 1.0)).rgb);
+        float b = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, o.y), 0.0, 1.0)).rgb);
+        float l = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(-o.x, 0.0), 0.0, 1.0)).rgb);
+        float r = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(o.x, 0.0), 0.0, 1.0)).rgb);
+        float edge = abs(t - b) + abs(l - r);
+        return edge;
+    }
+    float detectEdgeSobel(vec2 uv, vec2 px, float thick) {
+        vec2 o = px * thick;
+        float tl = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(-o.x, -o.y), 0.0, 1.0)).rgb);
+        float tc = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -o.y), 0.0, 1.0)).rgb);
+        float tr = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(o.x, -o.y), 0.0, 1.0)).rgb);
+        float ml = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(-o.x, 0.0), 0.0, 1.0)).rgb);
+        float mr = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(o.x, 0.0), 0.0, 1.0)).rgb);
+        float bl = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(-o.x, o.y), 0.0, 1.0)).rgb);
+        float bc = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, o.y), 0.0, 1.0)).rgb);
+        float br = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(o.x, o.y), 0.0, 1.0)).rgb);
+        float gx = -tl - 2.0*ml - bl + tr + 2.0*mr + br;
+        float gy = -tl - 2.0*tc - tr + bl + 2.0*bc + br;
+        return sqrt(gx*gx + gy*gy);
+    }
+    float detectEdgeColor(vec2 uv, vec2 px, float thick) {
+        vec2 o = px * thick;
+        vec3 c = texture2DCv(inputImg.texture, uv).rgb;
+        vec3 t = texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -o.y), 0.0, 1.0)).rgb;
+        vec3 b = texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, o.y), 0.0, 1.0)).rgb;
+        vec3 l = texture2DCv(inputImg.texture, clamp(uv + vec2(-o.x, 0.0), 0.0, 1.0)).rgb;
+        vec3 r = texture2DCv(inputImg.texture, clamp(uv + vec2(o.x, 0.0), 0.0, 1.0)).rgb;
+        float edge = length(t - b) + length(l - r);
+        return edge;
+    }
+    float detectEdgeDepthLike(vec2 uv, vec2 px, float thick) {
+        vec2 o = px * thick * 2.0;
+        float c = lum(texture2DCv(inputImg.texture, uv).rgb);
+        float t = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, -o.y), 0.0, 1.0)).rgb);
+        float b = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(0.0, o.y), 0.0, 1.0)).rgb);
+        float l = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(-o.x, 0.0), 0.0, 1.0)).rgb);
+        float r = lum(texture2DCv(inputImg.texture, clamp(uv + vec2(o.x, 0.0), 0.0, 1.0)).rgb);
+        float laplacian = abs(t + b + l + r - 4.0 * c);
+        return laplacian * 2.0;
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float taps = getTaps(float(quality));
+        if (acPass == 0) {
+            vec2 px = 1.0 / getTexSize(inputImg.size);
+            float et = float(edgeType);
+            float edge = 0.0;
+            if (et &lt; 1.5) {
+                edge = detectEdgeLuminance(uv, px, edgeThickness);
+            } else if (et &lt; 2.5) {
+                edge = detectEdgeSobel(uv, px, edgeThickness);
+            } else if (et &lt; 3.5) {
+                edge = detectEdgeColor(uv, px, edgeThickness);
+            } else {
+                edge = detectEdgeDepthLike(uv, px, edgeThickness);
+            }
+            edge *= edgeStrength;
+            float soft = max(edgeSoftness, 0.01);
+            edge = smoothstep(edgeThreshold - soft * 0.5, edgeThreshold + soft * 0.5, edge);
+            if (abs(edgeContrast) &gt; EPS) {
+                float c = 1.0 + edgeContrast;
+                edge = clamp((edge - 0.5) * c + 0.5, 0.0, 1.0);
+            }
+            if (abs(edgeGamma - 1.0) &gt; EPS) {
+                edge = pow(max(edge, 0.0), 1.0 / max(edgeGamma, EPS));
+            }
+            if (edgeBoost &gt; EPS) {
+                edge = min(edge * (1.0 + edgeBoost), 1.0);
+            }
+            if (edgeInvert) {
+                edge = 1.0 - edge;
+            }
+            vec3 srcColor = texture2DCv(inputImg.texture, uv).rgb;
+            vec3 eColor;
+            if (useSourceColor) {
+                eColor = srcColor;
+            } else {
+                eColor = edgeColor.rgb;
+            }
+            if (abs(edgeSaturation - 1.0) &gt; EPS) {
+                float eL = lum(eColor);
+                eColor = mix(vec3(eL), eColor, edgeSaturation);
+            }
+            eColor = mix(vec3(1.0), eColor, edgeColorStrength);
+            vec3 edgeRGB = eColor * edge;
+            gl_FragColor = vec4(edgeRGB, edge);
+            return;
+        }
+        if (acPass == 1) {
+            vec2 dir = vec2(1.0 / getTexSize(edgeBuf.size).x, 0.0);
+            gl_FragColor = separableBlur(edgeBuf.texture, uv, dir, glowRadius, taps);
+            return;
+        }
+        if (acPass == 2) {
+            vec2 dir = vec2(0.0, 1.0 / getTexSize(glowH.size).y);
+            gl_FragColor = separableBlur(glowH.texture, uv, dir, glowRadius, taps);
+            return;
+        }
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 baseRGB = max(original.rgb, 0.0);
+        vec4 edgeData = texture2DCv(edgeBuf.texture, uv);
+        vec3 edgeRGB = edgeData.rgb;
+        float edgeMask = edgeData.a;
+        vec4 glowData = texture2DCv(glowV.texture, uv);
+        vec3 glowRGB = max(glowData.rgb, 0.0);
+        float glowMask = max(glowData.a, 0.0);
+        float pulse = 1.0;
+        if (pulseSpeed &gt; EPS) {
+            pulse = 1.0 - pulseAmount * 0.5 + pulseAmount * 0.5 * sin(acTime * pulseSpeed * PI * 2.0);
+        }
+        vec3 innerG = edgeRGB * innerGlow * pulse;
+        if (innerSoftness &gt; EPS) {
+            innerG *= smoothstep(0.0, innerSoftness, edgeMask);
+        }
+        if (abs(glowFalloff - 1.0) &gt; EPS) {
+            glowRGB = pow(max(glowRGB, 0.0), vec3(glowFalloff * 0.5));
+        }
+        vec3 outerG = glowRGB * outerGlow * outerSpread * pulse;
+        vec3 totalGlow = innerG + outerG * glowAmount;
+        if (colorMapStrength &gt; EPS) {
+            float glowIntensity = lum(totalGlow);
+            vec3 mapped;
+            if (glowIntensity &gt; 0.66) {
+                float t = (glowIntensity - 0.66) / 0.34;
+                mapped = mix(glowColorMid.rgb, glowColorCore.rgb, t);
+            } else if (glowIntensity &gt; 0.33) {
+                float t = (glowIntensity - 0.33) / 0.33;
+                mapped = mix(glowColorOuter.rgb, glowColorMid.rgb, t);
+            } else {
+                float t = glowIntensity / 0.33;
+                mapped = mix(vec3(0.0), glowColorOuter.rgb, t);
+            }
+            mapped *= max(glowIntensity * 2.0, 0.0);
+            totalGlow = mix(totalGlow, mapped, colorMapStrength);
+        }
+        if (hueRotateSpeed &gt; EPS) {
+            vec3 glowHSL = rgb2hsl(max(totalGlow, 0.0));
+            glowHSL.x = fract(glowHSL.x + acTime * hueRotateSpeed);
+            totalGlow = hsl2rgb(glowHSL);
+        }
+        if (edgeOnly) {
+            gl_FragColor = vec4(clamp(edgeRGB, 0.0, 1.0), edgeMask);
+            return;
+        }
+        if (glowOnly) {
+            gl_FragColor = vec4(clamp(totalGlow, 0.0, 1.0), clamp(lum(totalGlow) * 3.0, 0.0, 1.0));
+            return;
+        }
+        vec3 composited;
+        float bm = float(blendMode);
+        if (bm &lt; 1.5) {
+            composited = baseRGB + totalGlow;
+        } else if (bm &lt; 2.5) {
+            composited = 1.0 - (1.0 - baseRGB) * (1.0 - clamp(totalGlow, 0.0, 1.0));
+        } else if (bm &lt; 3.5) {
+            vec3 gS = clamp(totalGlow, 0.0, 1.0);
+            vec3 r;
+            r.r = (gS.r&lt;0.5) ? 2.0*baseRGB.r*gS.r+baseRGB.r*baseRGB.r*(1.0-2.0*gS.r) : 2.0*baseRGB.r*(1.0-gS.r)+sqrt(max(baseRGB.r,0.0))*(2.0*gS.r-1.0);
+            r.g = (gS.g&lt;0.5) ? 2.0*baseRGB.g*gS.g+baseRGB.g*baseRGB.g*(1.0-2.0*gS.g) : 2.0*baseRGB.g*(1.0-gS.g)+sqrt(max(baseRGB.g,0.0))*(2.0*gS.g-1.0);
+            r.b = (gS.b&lt;0.5) ? 2.0*baseRGB.b*gS.b+baseRGB.b*baseRGB.b*(1.0-2.0*gS.b) : 2.0*baseRGB.b*(1.0-gS.b)+sqrt(max(baseRGB.b,0.0))*(2.0*gS.b-1.0);
+            composited = r;
+        } else {
+            composited = mix(baseRGB, totalGlow, clamp(lum(totalGlow) * 2.0, 0.0, 1.0));
+        }
+        if (ditherAmt &gt; EPS) {
+            vec2 px = floor(getTexSize(inputImg.size) * uv);
+            float n1 = fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453);
+            float n2 = fract(sin(dot(px, vec2(24.123, 17.321))) * 12345.6789);
+            float n3 = fract(sin(dot(px, vec2(93.989, 67.345))) * 98765.4321);
+            composited += (vec3(n1, n2, n3) - 0.5) * ditherAmt;
+        }
+        composited = mix(baseRGB, composited, globalMix);
+        composited = clamp(composited, 0.0, 1.0);
+        gl_FragColor = vec4(composited, original.a);
+    }
+    </shader>
+   
+</effect>

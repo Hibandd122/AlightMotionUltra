@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.procedural_plasma_isolines" name="Procedural Plasma Isolines" desc="Generates glowing, morphing contour isolines from 6-octave 3D value-noise FBM over an evolving colored plasma background, masked by the layer's alpha. Single Alpha control." category="colorlight" tags="plasma,isolines,noise,fbm,procedural" thumb="thumb/Procedural/Procedural Plasma Isolines.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    // Procedural Plasma Isolines – AM official style
+    // - 3D value noise (hash + trilinear)
+    // - Fixed-iteration FBM (6 octaves)
+    // - No dynamic loops/arrays; only AM built-ins
+
+    float rand3(vec3 st){
+      return fract(sin(dot(st, vec3(12.9898, 78.233, 45.543))) * 43758.5453123);
+    }
+
+    float noise3(vec3 st){
+      vec3 i=floor(st); vec3 f=fract(st);
+      vec3 u=f*f*(3.0-2.0*f);
+      float a=rand3(i);
+      float b=rand3(i+vec3(1.0,0.0,0.0));
+      float c=rand3(i+vec3(0.0,1.0,0.0));
+      float d=rand3(i+vec3(1.0,1.0,0.0));
+      float e=rand3(i+vec3(0.0,0.0,1.0));
+      float f0=rand3(i+vec3(1.0,0.0,1.0));
+      float g=rand3(i+vec3(0.0,1.0,1.0));
+      float h=rand3(i+vec3(1.0,1.0,1.0));
+      float bottom = mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
+      float top    = mix(mix(e,f0,u.x), mix(g,h,u.x), u.y);
+      return mix(bottom, top, u.z);
+    }
+
+    float fbm6(vec3 st){
+      float v=0.0; float amp=0.5;
+      v += amp * noise3(st); st*=2.0; amp*=0.5;
+      v += amp * noise3(st); st*=2.0; amp*=0.5;
+      v += amp * noise3(st); st*=2.0; amp*=0.5;
+      v += amp * noise3(st); st*=2.0; amp*=0.5;
+      v += amp * noise3(st); st*=2.0; amp*=0.5;
+      v += amp * noise3(st);
+      return v;
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+      uv.x *= acScreenSize.x / max(acScreenSize.y, 1.0);
+      float time = acTime * 0.25;
+
+      // Background
+      float bgN = fbm6(vec3(uv * 0.8, time));
+      vec3 col = vec3(0.05, 0.10, 0.20);
+      col = mix(col, vec3(0.10, 0.35, 0.40), smoothstep(0.4, 0.6, bgN));
+      col = mix(col, vec3(0.70, 0.50, 0.40), smoothstep(0.65, 0.8, bgN));
+
+      // Isolines
+      float lineN = fbm6(vec3(uv * 1.4, time * 1.5));
+      float iso = fract(lineN * 5.0);
+      float dline = min(iso, 1.0 - iso);
+      float line = smoothstep(0.03, 0.02, dline);
+      line += smoothstep(0.10, 0.00, dline) * 0.4;
+
+      vec3 finalRGB = col + line * vec3(1.0, 0.95, 0.90);
+
+      float a = texture2DCv(inputImg.texture, acScreenNorm).a * alpha;
+      gl_FragColor = vec4(finalRGB, 1.0) * a;
+    }
+  </shader>
+
+</effect>

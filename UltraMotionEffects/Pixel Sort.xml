@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_pixelsort_v4" name="Pixel Sort" desc="Pixel-sorting-style streak smear: pixels above (or below) a luma or channel threshold are replaced by the extreme value found along the sort angle within an 80-sample search, producing sorted-looking glitch bars. Soften-threshold, random-restart, seed, and mix controls." category="procedural" tags="glitch,pixelsort,sort,digital,streak" thumb="thumb/Stylize/Pixel Sort.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        
+        <slider id="threshold" default="0.3" min="0.0" max="1.0" label="Threshold" type="percent" />
+        <slider id="sortAngle" default="0.0" min="-180.0" max="180.0" label="Sort Angle" />
+        
+        <menu id="sortDirection" style="dropdown" default="0" label="Sort Direction">
+            <menu value="0" label="Sort Above Threshold" />
+            <menu value="1" label="Sort Below Threshold" />
+        </menu>
+
+        <menu id="sortType" style="dropdown" default="0" label="Sort Type">
+            <menu value="0" label="Monochrome" />
+            <menu value="1" label="Red Channel" />
+            <menu value="2" label="Green Channel" />
+            <menu value="3" label="Blue Channel" />
+        </menu>
+
+        <slider id="randomlyRestart" default="0.0" min="0.0" max="1.0" label="Randomly Restart" type="percent" />
+        <slider id="softenThreshold" default="0.1" min="0.0" max="1.0" label="Soften Threshold" type="percent" />
+        <slider id="seed" default="0.0" min="0.0" max="100.0" label="Seed" />
+        
+        
+        <slider id="blurMatte" default="0.0" min="0.0" max="1.0" label="Blur Matte" type="percent" />
+        <slider id="mixWithSource" default="0.0" min="0.0" max="1.0" label="Mix With Source" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // s_pixelsort v4 - Ultra Fidelity AE Logic
+        
+        #define PI 3.14159265359
+
+        float getVal(vec3 col, int type) {
+            if (type == 1) return col.r;
+            if (type == 2) return col.g;
+            if (type == 3) return col.b;
+            return dot(col, vec3(0.2126, 0.7152, 0.0722)); // Monochrome/Luma
+        }
+
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            float rad = sortAngle * (PI / 180.0);
+            vec2 dir = vec2(cos(rad), sin(rad));
+            
+            // Seed influence on the base sampling pattern
+            vec2 seedOff = vec2(hash(vec2(seed, seed * 0.5)));
+            
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            float val = getVal(src.rgb, int(sortType));
+            
+            float soft = max(softenThreshold, 0.001);
+            float tLow = threshold - soft * 0.5;
+            float tHigh = threshold + soft * 0.5;
+            
+            float weight = (sortDirection == 0) ? smoothstep(tLow, tHigh, val) : 1.0 - smoothstep(tLow, tHigh, val);
+            
+            vec3 res = src.rgb;
+
+            if (weight &gt; 0.01) {
+                // Intense search for high-contrast streaks (Sapphire "Smear" style)
+                float stepSize = 0.0012; 
+                int iterations = 80; // Maximum depth for thick glitch bars
+                
+                vec3 streakCol = src.rgb;
+                float extremeVal = (sortDirection == 0) ? -1.0 : 2.0;
+
+                for (int i = 1; i &lt; 80; i++) {
+                    float d = float(i) * stepSize;
+                    vec2 sampleUv = uv - dir * d;
+                    
+                    if(sampleUv.x &lt; 0.0 || sampleUv.x &gt; 1.0 || sampleUv.y &lt; 0.0 || sampleUv.y &gt; 1.0) break;
+
+                    vec4 sampleCol = texture2DCv(inputImg.texture, sampleUv);
+                    float sampleVal = getVal(sampleCol.rgb, int(sortType));
+                    
+                    bool inRange = (sortDirection == 0) ? (sampleVal &gt; tLow) : (sampleVal &lt; tHigh);
+                    
+                    if (inRange) {
+                        if (sortDirection == 0) {
+                            if (sampleVal &gt; extremeVal) {
+                                extremeVal = sampleVal;
+                                streakCol = sampleCol.rgb;
+                            }
+                        } else {
+                            if (sampleVal &lt; extremeVal) {
+                                extremeVal = sampleVal;
+                                streakCol = sampleCol.rgb;
+                            }
+                        }
+                    } else {
+                        break;
+                    }
+                    
+                    // Break based on Randomly Restart + Seed + Temporal Jitter
+                    if (randomlyRestart &gt; 0.0 &amp;&amp; hash(sampleUv + seedOff + acTime * 0.01) &lt; randomlyRestart * 0.2) {
+                        break;
+                    }
+                }
+                
+                if (blurMatte &gt; 0.0) {
+                    vec4 blurSample = texture2DCv(inputImg.texture, uv + dir * 0.005 * blurMatte);
+                    streakCol = mix(streakCol, blurSample.rgb, blurMatte * 0.4);
+                }
+                
+                res = mix(src.rgb, streakCol, weight);
+            }
+
+            res = mix(res, src.rgb, mixWithSource);
+            gl_FragColor = vec4(res, src.a);
+        }
+    </shader>
+</effect>

@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.smoothspeedlines" name="Radial Spike Lines" desc="Draws anime-style radial speed lines: simplex noise sampled around the screen center produces spiky rays whose amount, reach and density are adjustable. Progress animates the flicker; two colors, transform controls and blend modes are included." category="colorlight" tags="procedural" thumb="thumb/Procedural/Radial Spike Lines.webp" experimental="false">
+
+    <params>
+        
+        <color id="color1" default="#00000000" label="Color BG" alpha="true" />
+        <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />
+        <switch id="autop" default="true" label="Auto Progress" />
+        <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
+        <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="AMT" label="Amount" default="20" min="0.0" max="100.0" step="0.1" type="percent" />
+        <slider id="DTC" label="Distance" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />
+        <slider id="DNT" label="Density" default="0.3" min="0.0" max="100.0" step="0.01" type="percent" />
+        
+        <slider id="scale" default="1.0" min="0.1" max="50.0" step="0.01" label="Scale" type="percent" />
+        <slider id="angle" default="0.0" min="-3600" max="3600" ticks="-180,-135,-90,-45,-30,-15,0,15,30,45,90,135,180" label="Rotate" step="0.5" type="angle" />
+        <point id="position" label="@am:string/effect_param_offset" />
+        <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+        <slider id="hardness" default="1.0" min="1.0" max="3.0" step="0.01" label="Hard/Brightness" type="percent" />
+        <menu id="blendMode" style="radio" default="3">
+            <menu label="NORMAL" value="0" />
+            <menu label="LAYER" value="3" />
+            <menu label="MULTIPLY" value="1" />
+            <menu label="SCREEN" value="2" />
+        </menu>
+        
+        <texture id="inputImg" srcType="content" />
+        <texture id="buff1" srcType="buffer" />
+
+    </params>
+    
+    <passes><pass target="buff1" /><pass /></passes>
+    
+    <shader type="fragment" precision="high">
+    
+    vec4 newLayer( vec4 a, vec4 b) { return a * (1. - b.a) + b;  }
+    mat2 rot2m(float a){ float s = sin(a); float c = cos(a); return mat2(c, -s, s, c); }
+    vec2 l2s( vec2 v ) { return (vec4(v,0.,1.)*acLayerToScreen).xy; }
+    #define fragCoord gl_FragCoord.xy
+    
+   /////////////////////////
+   
+         vec3 hash33(vec3 p3)
+         {
+         	p3 = fract(p3 * vec3(.1031, .1030, .0973));
+             p3 += dot(p3, p3.yxz+33.33);
+             return fract((p3.xxy + p3.yxx) * p3.zyx) - 0.5;
+         }
+         
+         // From Nikita Miropolskiy (MIT licensed): https://www.shadertoy.com/view/XsX3zB
+         float simplex3d(vec3 p) {
+         	 vec3 s = floor(p + dot(p, vec3(0.3333333)));
+         	 vec3 x = p - s + dot(s, vec3(0.1666667));
+         	 vec3 e = step(vec3(0.0), x - x.yzx);
+         	 vec3 i1 = e * (1.0 - e.zxy);
+         	 vec3 i2 = 1.0 - e.zxy * (1.0 - e);
+         	 vec3 x1 = x - i1 + 0.1666666;
+         	 vec3 x2 = x - i2 + 0.3333333;
+         	 vec3 x3 = x - 0.5;
+         	 vec4 w, d;
+         	 w.x = dot(x, x);
+         	 w.y = dot(x1, x1);
+         	 w.z = dot(x2, x2);
+         	 w.w = dot(x3, x3);
+         	 w = max(0.6 - w, 0.0);
+         	 d.x = dot(hash33(s), x);
+         	 d.y = dot(hash33(s + i1), x1);
+         	 d.z = dot(hash33(s + i2), x2);
+         	 d.w = dot(hash33(s + 1.0), x3);
+         	 w *= w;
+         	 w *= w;
+         	 d *= w;
+         	 return dot(d, vec4(52.0));
+         }
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 image_size = getTexSize(inputImg.size);
+        vec2 iResolution = vec2(acScreenSize.x, acScreenSize.y);
+        vec3 iMouse = vec3(0.5, 0.5, 0.5);
+        float iTime = autop? PROGRESS + (acTime*SPEED) : PROGRESS;
+        
+        vec2 umefx;
+        // umefx = acScreenNorm; 
+        umefx = ((vec2(acScreenNorm.x,1.0-acScreenNorm.y)*acScreenSize)-acLayerCenter)/acLayerSize;
+        umefx.y*=acLayerSize.y/acLayerSize.x;
+        
+        umefx /= scale;
+        umefx *= rot2m((0.0+angle)*0.0174533);
+        umefx += vec2((0.0+position.x), (0.0+position.y))*vec2(-1.,1.)/500.;
+        vec2 scaleVec;
+        scaleVec = vec2(scale*stretch.x,scale*stretch.y);
+        umefx /= scaleVec;
+        
+        /////////////////////////
+        
+    	vec4 fragColor;
+    	
+             float time = iTime * 2.0;
+             float mr = min(iResolution.x, iResolution.y);
+             vec2 uv = umefx;
+             vec2 p = vec2(0.5) + normalize(uv) * min(length(uv), 0.05);
+             
+             vec3 p3 = AMT * vec3(p.xy, 0) + vec3(0, 0, time * 0.025);
+             float noise = simplex3d(p3 * 32.0) * DTC + 0.5;
+             float dist = abs(clamp(length(uv) / 12.0, 0.0, 1.0)*noise*2.-1.);
+             
+             float eee = DNT;
+             float stepped = smoothstep(eee - 0.5, eee + 0.5, noise * (1.0 - pow(dist, 4.0)));
+             float final = smoothstep(eee - 0.05, eee + 0.05, noise*stepped);
+         	
+             fragColor = mix(color1, color2, final) * texColor.a;
+        
+    	    vec4 factor = mix(texColorX,fragColor,1.0);
+
+        vec4 resultfinal;
+          if( blendMode==0 ) { resultfinal = (factor * hardness) * texColor.a; }
+          else if( blendMode==1 ) { factor *= hardness;
+            vec4 c = factor + vec4(1.)*(1.-factor.a);
+            resultfinal = vec4((texColor.rgb/texColor.a)*c.rgb,1.0) * texColor.a; }
+            // resultfinal = min(factor, texColor) * texColor.a; }
+          else if( blendMode==2 ) { factor *= hardness; 
+            resultfinal = vec4( 1.-((1.-(texColor.rgb/texColor.a))*(1.-factor.rgb)),1.0) * texColor.a; }
+              // resultfinal = max(factor, texColor) * texColor.a; }
+          else if( blendMode==3 ) { factor *= hardness; resultfinal = (newLayer(texColor, factor) * hardness) * texColor.a; }
+            
+    	gl_FragColor = mix(texColor, resultfinal, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

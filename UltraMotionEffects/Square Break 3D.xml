@@ -1,0 +1,202 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.custom.effects.square_break_3d" name="Square Break 3D" desc="Breaks the layer into a grid of square tiles that zoom toward the camera with perspective scaling and outward parallax as Progress increases, then fade out. Break order can be random, center-out, directional, or corner-out, with per-tile speed variation, delay spread, and gap size. Cost rises steeply with row/column count." category="warp" tags="break,shatter,squares,3d,z,depth,zoom,forward,fly,tiles,perspective" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/Distort and Warp/Square Break 3D.webp" deprecated="false">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="colCount" label="Columns" default="6.0" min="1.0" max="30.0" step="1.0" />
+    <slider id="rowCount" label="Rows" default="6.0" min="1.0" max="30.0" step="1.0" />
+    <slider id="gapSize" label="Gap Size" default="0.01" min="0.0" max="0.1" step="0.002" />
+
+    
+    <slider id="progress" label="Progress" default="0.0" min="0.0" max="1.0" step="0.005" type="percent" />
+    <slider id="zDepth" label="Z Depth (zoom)" default="5.0" min="1.0" max="20.0" step="0.1" />
+    <slider id="speedVar" label="Speed Variation" default="0.5" min="0.0" max="1.0" step="0.01" type="percent" />
+    <slider id="delaySpread" label="Delay Spread" default="0.4" min="0.0" max="1.0" step="0.01" type="percent" />
+
+    
+    <menu id="breakOrder" style="dropdown" default="0" label="Break Order">
+      <menu label="Random" value="0" />
+      <menu label="Center Out" value="1" />
+      <menu label="Left to Right" value="2" />
+      <menu label="Top to Bottom" value="3" />
+      <menu label="Corner Out" value="4" />
+    </menu>
+
+    
+    <slider id="fadeOut" label="Fade Out" default="0.8" min="0.0" max="1.0" step="0.01" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    #define PI 3.14159265359
+
+    float hash1(float n){ return fract(sin(n*127.1)*43758.5453); }
+    float hash2(vec2 p){  return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+
+    vec4 sampleTex(vec2 uv){
+      return texture2DCv(inputImg.texture, clamp(uv,0.0,1.0));
+    }
+
+    /* ── Per-tile delay ──────────────────────────────────── */
+    float tileDelay(vec2 id, vec2 grid){
+      vec2 norm = id / max(grid-1.0, 1.0);
+      vec2 c    = norm - 0.5;
+      if(breakOrder==0) return hash2(id);
+      if(breakOrder==1) return length(c)*1.414;
+      if(breakOrder==2) return norm.x;
+      if(breakOrder==3) return norm.y;
+      return length(norm)*1.414; /* corner out */
+    }
+
+    void main(){
+      vec2  uv     = acScreenNorm;
+      float aspect = acScreenSize.x / acScreenSize.y;
+
+      vec2  grid   = vec2(colCount, rowCount);
+      float cols   = colCount;
+      float rows   = rowCount;
+
+      /* ── Tile cell size in UV space ──────────────────── */
+      float cellW = 1.0 / cols;
+      float cellH = 1.0 / rows;
+
+      /* Gaps always transparent */
+      vec4 bg = vec4(0.0);
+
+      /* ── Accumulate: find which tile covers this pixel ───
+         Because tiles ZOOM (scale up), multiple tiles could
+         overlap at this pixel. We draw the FRONT-MOST tile
+         (highest Z = most progressed = largest scale).
+         We iterate all tiles and check.
+         For performance: only check tiles whose original
+         center is near this pixel.                          */
+
+      vec4  bestColor = bg;
+      float bestZ     = -1.0; /* track front-most tile */
+
+      /* Only check nearby tiles for performance */
+      /* Each tile can scale up to zDepth times its size,
+         so we need to check tiles within that radius.       */
+      float searchR = ceil(max(cols,rows) * 0.5);
+
+      /* Find candidate tile based on current pixel */
+      vec2  approxCell = uv * grid;
+      float ix0 = max(floor(approxCell.x) - 3.0, 0.0);
+      float ix1 = min(floor(approxCell.x) + 3.0, cols-1.0);
+      float iy0 = max(floor(approxCell.y) - 3.0, 0.0);
+      float iy1 = min(floor(approxCell.y) + 3.0, rows-1.0);
+
+      for(float cy = 0.0; cy &lt; 30.0; cy++){
+        if(cy &gt; rowCount-1.0) break;
+        float iy = cy;
+
+        for(float cx = 0.0; cx &lt; 30.0; cx++){
+          if(cx &gt; colCount-1.0) break;
+          float ix = cx;
+
+          vec2 cellID = vec2(ix, iy);
+
+          /* Original tile center in UV space */
+          vec2 origCenter = (cellID + 0.5) / grid;
+
+          /* Per-tile random */
+          float rnd     = hash2(cellID);
+          float rndSpd  = 1.0 + (rnd - 0.5)*2.0*speedVar;
+
+          /* Tile delay: when does it start moving */
+          float del     = tileDelay(cellID, grid) * delaySpread;
+          /* Tile local progress */
+          float tileT   = clamp(
+            (progress - del) / max(1.0 - del, 0.001),
+            0.0, 1.0
+          );
+
+          /* Easing: smooth acceleration */
+          float eased   = tileT * tileT * (3.0 - 2.0*tileT);
+
+          /* ── Z position: how far toward camera ─────────
+             Z=0 = original position
+             Z=zDepth = fully zoomed toward camera         */
+          float zPos    = eased * zDepth * rndSpd;
+
+          /* ── Perspective scale ──────────────────────────
+             As Z increases (comes toward camera), tile
+             appears BIGGER on screen. This is the core 3D effect.
+             scale = focalLength / (focalLength - Z)
+             Using focal length = perspective constant.    */
+          float focalLen = 2.0;
+          float scale    = focalLen / max(focalLen - zPos * 0.5, 0.001);
+
+          /* ── Projected center position on screen ────────
+             As tile comes closer, it also drifts away from
+             center (parallax) — tiles near edges fly outward */
+          vec2  parallaxDir = origCenter - 0.5;
+          vec2  projCenter  = 0.5 + parallaxDir * scale;
+
+          /* ── Tile screen bounds ──────────────────────────
+             Original tile half-size scaled by perspective  */
+          float halfW = cellW * 0.5 * scale;
+          float halfH = cellH * 0.5 * scale;
+
+          /* Gap: shrink tile bounds inward — pixels outside are transparent */
+          float gap = gapSize * 0.5;
+          vec2  diff = uv - projCenter;
+          float inW  = halfW - gap;
+          float inH  = halfH - gap;
+
+          if(abs(diff.x) &lt;= inW &amp;&amp; abs(diff.y) &lt;= inH){
+            if(zPos &gt; bestZ){
+              bestZ = zPos;
+
+              /* Reverse-project to source UV */
+              vec2 localUV  = (uv - projCenter) / scale + origCenter;
+              vec4 tileCol  = sampleTex(localUV);
+
+              /* Fade out as tile zooms past camera */
+              float fade    = 1.0 - eased * fadeOut;
+              tileCol.a    *= clamp(fade, 0.0, 1.0);
+              tileCol.rgb   = clamp(tileCol.rgb, 0.0, 1.0);
+              bestColor     = tileCol;
+            }
+          }
+        }
+      }
+
+      /* Output */
+      if(bestZ &lt; 0.0){
+        /* Gap pixel — transparent normally,
+           show guide grid when effect panel is open */
+        if(acShowGuides){
+          /* Draw white grid lines so user can see the grid layout */
+          vec2  gridUV   = fract(uv * vec2(colCount, rowCount));
+          float gridLine = 1.0 - step(gapSize + 0.01, min(
+            min(gridUV.x, 1.0 - gridUV.x),
+            min(gridUV.y, 1.0 - gridUV.y)
+          ));
+          gl_FragColor = vec4(1.0, 1.0, 1.0, gridLine * 0.5);
+        } else {
+          gl_FragColor = vec4(0.0);
+        }
+      } else {
+        /* Tile pixel */
+        float a = bestColor.a;
+        if(acShowGuides){
+          /* Tint tile edges cyan so user can see tile boundaries */
+          vec2  cellID2  = floor(uv * vec2(colCount, rowCount));
+          vec2  cellFr   = fract(uv * vec2(colCount, rowCount));
+          float edge     = 1.0 - smoothstep(0.0, 0.06,
+            min(min(cellFr.x, 1.0-cellFr.x),
+                min(cellFr.y, 1.0-cellFr.y)));
+          vec3  guideCol = mix(bestColor.rgb, vec3(0.0, 0.8, 1.0), edge * 0.6);
+          gl_FragColor   = vec4(guideCol * a, a);
+        } else {
+          gl_FragColor = vec4(bestColor.rgb * a, a);
+        }
+      }
+    }
+
+  </shader>
+
+</effect>

@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.edgeblur" name="Edge Blur" desc="Detects edges with a Sobel operator and blurs only those areas using a 9x9 box blur, leaving flat regions sharp. Threshold and intensity shape the edge mask; blur amount sets the sample spread." category="blur" tags="edge,blur,soften" thumb="thumb/Blur and Sharpen/Edge Blur.jpg" overdraw="true" max-overdraw="1.5">
+
+    
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="edgeThreshold" default="0.29" min="0.0" max="0.5" step="0.01" label="@string/edgeThreshold" />
+        <slider id="edgeGain" default="4.80" min="1.0" max="20.0" step="0.1" label="@string/edgeIntensity" />
+        <slider id="blurRadius" default="4.70" min="0.0" max="10.0" step="0.1" label="@string/blurAmount" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            
+            // 1. Setup
+            // Aspect correct pixel size for sampling
+            vec2 texel = vec2(1.0) / getTexSize(inputImg.size);
+            
+            // --- 2. Edge Detection (Sobel Operator) ---
+            float gx = 0.0;
+            float gy = 0.0;
+            
+            // Iterate over 3x3 kernel
+            for(int i = -1; i &lt;= 1; i++){
+                for(int j = -1; j &lt;= 1; j++){
+                    // Sample neighbor pixel
+                    vec3 s = texture2DCv(inputImg.texture, uv + vec2(float(i), float(j)) * texel).rgb;
+                    // Convert to grayscale intensity (Luma)
+                    float intensity = dot(s, vec3(0.299, 0.587, 0.114));
+                    
+                    // Sobel X Kernel: 
+                    // -1  0  1
+                    // -2  0  2
+                    // -1  0  1
+                    if(i != 0) gx += intensity * float(i) * ((j == 0) ? 2.0 : 1.0);
+                    
+                    // Sobel Y Kernel:
+                    // -1 -2 -1
+                    //  0  0  0
+                    //  1  2  1
+                    if(j != 0) gy += intensity * float(j) * ((i == 0) ? 2.0 : 1.0);
+                }
+            }
+            
+            // Calculate gradient magnitude
+            float edge = sqrt(gx*gx + gy*gy);
+            
+            // Create a smooth mask based on threshold and gain
+            // 0.0 = Flat area, 1.0 = Edge
+            float mask = smoothstep(edgeThreshold, edgeThreshold + 0.1, edge * edgeGain);
+            mask = clamp(mask, 0.0, 1.0);
+
+            // --- 3. Blur Calculation ---
+            // We calculate a blurred color for the current pixel
+            vec3 blurCol = vec3(0.0);
+            float total = 0.0;
+            
+            // Fixed loop for consistent performance
+            // We simulate a larger radius by spreading the samples
+            const int R = 4; 
+            
+            // Adjust sample spacing based on the blurRadius uniform
+            vec2 blurStep = texel * (blurRadius / float(R)); 
+            
+            for(int x = -R; x &lt;= R; x++) {
+                for(int y = -R; y &lt;= R; y++) {
+                    blurCol += texture2DCv(inputImg.texture, uv + vec2(float(x), float(y)) * blurStep).rgb;
+                    total += 1.0;
+                }
+            }
+            blurCol /= total;
+            
+            // --- 4. Composite ---
+            vec4 original = texture2DCv(inputImg.texture, uv);
+            
+            // Mix the original image with the blurred version using the edge mask
+            // The edges become blurred, while non-edges stay sharp.
+            vec3 col = mix(original.rgb, blurCol, mask);
+            
+            // Output
+            gl_FragColor = vec4(col, original.a);
+        }
+
+    </shader>
+
+</effect>

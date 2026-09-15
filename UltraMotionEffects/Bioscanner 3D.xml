@@ -1,0 +1,206 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.bioscanner" name="Bioscanner 3D" desc="Procedural sci-fi scanner overlay: weaving sine-wave strands with pseudo-3D depth, noise distortion, glitch tearing with optional invert, crosshair target, border and tick-mark UI, grain, and glow. Can screen over the source footage or replace it." category="procedural" tags="scifi,ui,scanner,noise,glitch,sine,hud,3d,strands" thumb="thumb/Procedural/Bioscanner 3D.webp">
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    
+    <slider id="depth3D" default="1.0" min="0.0" max="2.0" step="0.01" label="3D Depth" />
+    <slider id="depthSpeed" default="1.0" min="0.0" max="4.0" step="0.01" label="Depth Weave Speed" />
+
+    
+    
+    <slider id="strandCount" type="integer" default="8" min="1" max="16" ticks="15" label="Strand Count" />
+    <slider id="waveAmplitude" default="0.2" min="0.0" max="1.0" step="0.01" label="Wave Amplitude" />
+    <slider id="waveFrequency" default="5.0" min="0.5" max="20.0" step="0.1" label="Wave Frequency" />
+    <slider id="waveSpeed" default="1.0" min="0.0" max="5.0" step="0.01" label="Wave Speed" />
+    <slider id="lineThickness" default="0.003" min="0.0005" max="0.02" step="0.0005" label="Line Thickness" />
+    <slider id="flowDirection" default="0.0" min="-180.0" max="180.0" step="1.0" label="Flow Direction (deg)" />
+    <slider id="strandSpread" default="0.0" min="0.0" max="3.0" step="0.01" label="Strand Spread" />
+    <slider id="organicAmount" default="0.5" min="0.0" max="2.0" step="0.01" label="Organic Wiggle" />
+    <slider id="organicFrequency" default="3.0" min="0.2" max="15.0" step="0.1" label="Organic Frequency" />
+
+    
+    
+    <switch id="useTarget" default="false" label="Manual Target" />
+    <slider id="targetX" default="0.0" min="-1.0" max="1.0" step="0.01" label="Target X" />
+    <slider id="targetY" default="0.0" min="-1.0" max="1.0" step="0.01" label="Target Y" />
+    <switch id="showCrosshair" default="true" label="Show Crosshair" />
+    <slider id="crosshairBoxSize" default="0.15" min="0.02" max="0.5" step="0.01" label="Crosshair Box Size" />
+
+    
+    
+    <slider id="distortAmount" default="1.0" min="0.0" max="3.0" step="0.01" label="Distortion Amount" />
+    <slider id="distortFrequency" default="10.0" min="1.0" max="40.0" step="0.5" label="Distortion Frequency" />
+    <slider id="distortSpeed" default="3.0" min="0.0" max="10.0" step="0.1" label="Distortion Speed" />
+
+    
+    
+    <slider id="glitchSpeed" default="0.3" min="0.0" max="3.0" step="0.01" label="Glitch Speed" />
+    <slider id="glitchNoise" default="0.2" min="0.0" max="1.0" step="0.01" label="Glitch Noise" />
+    <slider id="glitchBias" default="-0.6" min="-1.5" max="0.5" step="0.01" label="Glitch Frequency (bias)" />
+    <slider id="glitchWidth" default="0.15" min="0.0" max="0.5" step="0.01" label="Glitch Tear Width" />
+    <switch id="invertOnGlitch" default="true" label="Invert On Glitch" />
+
+    
+    
+    <switch id="showBorder" default="true" label="Show Border" />
+    <switch id="showTicks" default="true" label="Show Tick Marks" />
+    <slider id="tickDensity" default="100.0" min="10.0" max="300.0" step="1.0" label="Tick Density" />
+    <slider id="tickPosition" default="0.475" min="0.0" max="0.5" step="0.005" label="Tick Position" />
+    <slider id="uiBrightness" default="2.0" min="0.0" max="5.0" step="0.05" label="UI Brightness" />
+
+    
+    
+    <slider id="grainAmount" default="1.0" min="0.0" max="1.0" step="0.01" label="Grain" type="percent" />
+    <slider id="glowAmount" default="1.0" min="0.0" max="2.0" step="0.01" label="Noise Glow" />
+    <switch id="overSource" default="false" label="Screen Over Footage" />
+    <slider id="intensity" default="1.0" min="0.0" max="1.0" step="0.01" label="Intensity" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    #define pi 3.14159
+    #define oz vec2(1,0)
+
+    float toRad(float d){ return pi * d / 180.0; }
+
+    // random [0,1]
+    float hash12(vec2 p){
+        vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+        p3 += dot(p3, p3.yzx + 33.33);
+        return fract((p3.x + p3.y) * p3.z);
+    }
+
+    // random normalized vector
+    vec2 randVec(vec2 p){
+        float a = hash12(p);
+        a *= 2.0*pi;
+        a += acTime;
+        return vec2(sin(a), cos(a));
+    }
+
+    // perlin noise
+    float perlin(vec2 p){
+        vec2 f = fract(p);
+        vec2 s = smoothstep(0.0, 1.0, f);
+        vec2 i = floor(p);
+        float a = dot(randVec(i), f);
+        float b = dot(randVec(i+oz.xy), f-oz.xy);
+        float c = dot(randVec(i+oz.yx), f-oz.yx);
+        float d = dot(randVec(i+oz.xx), f-oz.xx);
+        return mix(mix(a, b, s.x), mix(c, d, s.x), s.y)/0.707107;
+    }
+
+    // fractal noise
+    float fbm(vec2 p){
+        float a = 0.5;
+        float r = 0.0;
+        for(int i = 0; i &lt; 8; i++){
+            r += a*perlin(p);
+            a *= 0.5;
+            p *= 2.0;
+        }
+        return r;
+    }
+
+    // 2D square sdf
+    float square(vec2 p, vec2 s){
+        vec2 d = abs(p)-s;
+        return length(max(d, 0.0)) + min(0.0, max(d.x,d.y));
+    }
+
+    void main(){
+        vec2 res = acScreenSize;
+        vec2 fragCoord = acScreenNorm * res;
+        float iTime = acTime;
+
+        // pixel size: exact replacement for fwidth() (AM has no derivatives)
+        float px  = 1.0/res.y;
+        float px2 = 2.0*px;
+
+        // coordinates
+        vec2 uv = fragCoord.xy/res.y;
+        uv.y = 1.0-uv.y;
+        float ar = res.x/res.y;
+        uv -= vec2(ar/2.0,0.5);
+        float uxy = uv.x+uv.y;
+
+        // distortion noise
+        float n = fbm(vec2(distortFrequency*uv.y, distortSpeed*iTime));
+        float g = glitchNoise*n + glitchBias + sin(glitchSpeed*iTime);
+        uv.x += distortAmount * smoothstep(glitchWidth, 0.0, abs(g))*n;
+
+        // wave anchor
+        float s = perlin(vec2(0.3*iTime));
+        vec2 p = vec2(perlin(vec2(0.5*iTime)), 0.5*perlin(vec2(-iTime)))*0.5*(res.xy - vec2(300, 300))/res.y;
+        p.y -= 0.1*sin(6.0*p.x+iTime);
+
+        // mouse target -&gt; optional manual target for Alight Motion
+        if(useTarget){
+            vec2 m = vec2(targetX, targetY);
+            m.x = clamp(ar*0.35*m.x, -ar*0.35, ar*0.35);
+            m.y = clamp(0.25*m.y, -0.25, 0.25);
+            p = m;
+        }
+
+        float a = smoothstep(-0.5, -0.1, s)*smoothstep(mix(0.01, 0.9, smoothstep(-0.5, 0.5, s)), 0.0, length(uv-p));
+
+        // ===== organic 3D strands =====
+        float ang = toRad(flowDirection);
+        float ca = cos(ang), sa = sin(ang);
+        float along  =  uv.x*ca + uv.y*sa;   // direction of flow
+        float across = -uv.x*sa + uv.y*ca;   // perpendicular (line position)
+
+        float r = 0.0;
+        for(float i = 1.0; i &lt;= 16.0; i++){
+            if(i &gt; strandCount) break;
+
+            // 3D depth for this strand from its index, animated over time
+            float z = 0.5 + 0.5*sin(i*1.3 + iTime*0.8*depthSpeed);   // 0 (back) .. 1 (front)
+
+            float f = across;
+            // core wave (same math, now along the chosen direction):
+            f += waveAmplitude*sin(waveFrequency*along + iTime*waveSpeed + a*sin(i+iTime)*1.25*cos(waveFrequency*along + 0.5*i));
+            // organic wiggle so strands look hand-drawn / living:
+            f += organicAmount * 0.12 * perlin(vec2(along*organicFrequency + i*2.0, iTime*0.6));
+            // spread strands apart:
+            f += (i - (strandCount+1.0)*0.5) * strandSpread * 0.04;
+            // 3D vertical weave by depth:
+            f += (z - 0.5) * 0.08 * depth3D;
+
+            // depth-based thickness &amp; brightness:
+            float thick  = lineThickness * mix(1.0, mix(0.55, 1.6, z), depth3D);
+            float bright = mix(1.0, mix(0.6, 1.35, z), depth3D);
+            r += (thick/abs(f)) * bright;
+        }
+
+        // ===== UI / border / ticks / crosshair =====
+        float ob = square(uv, 0.5*vec2(0.9*ar,1.0-0.1*ar));
+        float border = 1.5*smoothstep(px2, -px2, abs(ob));
+        if(!showBorder) border = 0.0;
+        float ms = step(ob, -0.005) * smoothstep(0.01, 0.005, abs(abs(uv.y)-tickPosition*(1.0-0.1*ar)));
+        ms *= smoothstep(px2, px, fract(uv.x*tickDensity)/tickDensity);
+        if(!showTicks) ms = 0.0;
+        float ui = max(border, ms);
+        float cr = smoothstep(px2, 0.0, abs(min(abs(uv.x-p.x), abs(uv.y-p.y))));
+        cr = max(cr, 3.0*smoothstep(px2, -px2, abs(square(uv-p, (0.1+smoothstep(-0.25, 0.5, s))*vec2(crosshairBoxSize)))));
+        cr *= smoothstep(0.0, -0.1, ob);
+        if(!showCrosshair) cr = 0.0;
+        ui = max(ui, cr);
+        r = max(r, uiBrightness*ui);
+
+        // grain + glow
+        r *= mix(1.0, 2.0*pow(0.5+0.5*n, 2.0), glowAmount);
+        r *= mix(1.0, 0.5+0.5*hash12(fragCoord.xy+iTime), grainAmount);
+        r = clamp(r, 0.0, 1.0);
+
+        float val = invertOnGlitch ? mix(r, pow(1.0-r, 3.0), smoothstep(-0.025, 0.025, g)) : r;
+
+        vec3 scan = vec3(val);
+        vec3 orig = texture2DCv(inputImg.texture, acScreenNorm).rgb;
+        vec3 outc = overSource ? (1.0 - (1.0-orig)*(1.0-scan)) : scan;
+        gl_FragColor = vec4(mix(orig, outc, intensity), 1.0);
+    }
+  </shader>
+</effect>

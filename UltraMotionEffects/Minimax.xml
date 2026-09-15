@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.minimaxblur" compat="acScreenNorm-y" name="Minimax" desc="Morphological min/max filter (erode or dilate) with a square kernel, applied as separable horizontal and vertical passes. Operates on a chosen channel or full color, with adjustable radius, direction and edge preservation." category="blur" tags="extra" thumb="thumb/Blur and Sharpen/Minimax.webp" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
+
+  
+  <params>
+
+    
+    <texture id="inputImg" srcType="content" />
+
+    
+    <texture id="hblur" srcType="buffer" />
+
+    
+    <menu id="operation" default="1" label="Operation" style="dropdown">
+      <menu label="Minimum" value="0" />
+      <menu label="Maximum" value="1" />
+    </menu>
+
+    
+    <slider id="radius" default="5.0" min="0.0" max="50.0" step="0.5" label="Radius" />
+
+    
+    <menu id="channel" default="4" label="Channel" style="dropdown">
+      <menu label="R" value="0" />
+      <menu label="G" value="1" />
+      <menu label="B" value="2" />
+      <menu label="Alpha" value="3" />
+      <menu label="Color" value="4" />
+    </menu>
+
+    
+    <menu id="direction" default="0" label="Direction" style="dropdown">
+      <menu label="Horizontal and Vertical" value="0" />
+      <menu label="Horizontal" value="1" />
+      <menu label="Vertical" value="2" />
+    </menu>
+
+    
+    <switch id="keepEdge" default="false" label="Keep Edge" />
+
+  </params>
+
+  
+  <passes>
+    <pass target="hblur" blend="overwrite" />
+    <pass blend="overwrite" />
+  </passes>
+
+  
+  <shader type="fragment" precision="high">
+
+    // Apply minimax along one axis
+    vec4 applyMinimax(sampler2D tex, vec2 coord, vec2 step, int operation, int channel) {
+      vec2 texelSize = 1.0 / getTexSize(inputImg.size);
+      int r = int(radius);
+      vec4 result = texture2DCv(tex, coord);
+
+      for (int i = -50; i &lt;= 50; i++) {
+        if (i &lt; -r || i &gt; r) continue;
+        vec2 offset = step * float(i) * texelSize;
+        vec4 s = texture2DCv(tex, coord + offset);
+
+        if (channel == 4) {
+          // Color: apply per-channel
+          if (operation == 1) {
+            result = max(result, s);
+          } else {
+            result = min(result, s);
+          }
+        } else {
+          // Single channel comparison
+          float rv = (channel == 0) ? result.r :
+                     (channel == 1) ? result.g :
+                     (channel == 2) ? result.b : result.a;
+          float sv = (channel == 0) ? s.r :
+                     (channel == 1) ? s.g :
+                     (channel == 2) ? s.b : s.a;
+          if (operation == 1) {
+            if (sv &gt; rv) result = s;
+          } else {
+            if (sv &lt; rv) result = s;
+          }
+        }
+      }
+
+      return result;
+    }
+
+    void main() {
+      vec2 coord = acScreenNorm.st;
+      vec4 original = texture2DCv(inputImg.texture, coord);
+
+      if (acPass == 0) {
+        // PASS 0: Horizontal pass (skip if vertical only)
+        if (direction == 2) {
+          // Vertical only: pass through unchanged
+          gl_FragColor = texture2DCv(inputImg.texture, coord);
+        } else {
+          gl_FragColor = applyMinimax(inputImg.texture, coord, vec2(1.0, 0.0), operation, channel);
+        }
+
+      } else {
+        // PASS 1: Vertical pass (or horizontal if direction == 1)
+        if (direction == 1) {
+          // Horizontal only: read from hblur as-is (already processed)
+          gl_FragColor = texture2DCv(hblur.texture, coord);
+        } else {
+          // Vertical pass on top of horizontal result
+          vec4 result = applyMinimax(hblur.texture, coord, vec2(0.0, 1.0), operation, channel);
+
+          if (keepEdge == true) {
+            // Blend edges with original
+            vec2 texelSize = 1.0 / getTexSize(inputImg.size);
+            float edgeFactor = clamp(radius * texelSize.x * 10.0, 0.0, 1.0);
+            result = mix(original, result, edgeFactor);
+          }
+
+          gl_FragColor = result;
+        }
+      }
+    }
+
+  </shader>
+
+  
+
+</effect>

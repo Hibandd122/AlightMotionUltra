@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.spot_exposure" name="Spot Exposure" desc="Multiplies the image by Base Exposure everywhere and adds Spot Boost inside an aspect-corrected circular region. Spot Radius and Spot Softness shape the smoothstep falloff and Center X/Y place the spot; alpha is left unchanged." category="colorlight" tags="color,exposure,spot,mask" thumb="thumb/Color/Spot Exposure.webp">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        
+        <slider id="exposure" default="0.85" min="0.0" max="5.0" step="0.01" label="Base Exposure" />
+        <slider id="spotBoost" default="1.00" min="0.0" max="10.0" step="0.01" label="Spot Boost" />
+        <slider id="spotRadius" default="0.38" min="0.0" max="1.0" step="0.01" label="Spot Radius" />
+        <slider id="spotSoftness" default="0.50" min="0.001" max="1.0" step="0.01" label="Spot Softness" />
+        
+        
+        <slider id="centerX" default="0.5" min="0.0" max="1.0" step="0.001" label="Center X" />
+        <slider id="centerY" default="0.5" min="0.0" max="1.0" step="0.001" label="Center Y" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main() {
+            // Normalized screen coordinates (0 to 1)
+            vec2 uv = acScreenNorm;
+
+            // Fix aspect ratio so the spot is a perfect circle
+            float aspect = acScreenSize.x / acScreenSize.y;
+            vec2 p = uv;
+            p.x *= aspect;
+
+            // Handle center position
+            vec2 m = vec2(centerX, centerY);
+            m.x *= aspect;
+
+            // Calculate distance from center
+            float dist = length(p - m);
+
+            // Create the spot mask using smoothstep for softness
+            // 1.0 inside the spot, falling off to 0.0 outside
+            float spotMask = smoothstep(spotRadius + spotSoftness, spotRadius, dist);
+
+            // Sample the input channel
+            vec4 texColor = texture2DCv(inputImg.texture, uv);
+
+            // Calculate final exposure
+            // Mixes between Base Exposure and (Base + Boost) based on the mask
+            float currentExposure = exposure + (spotBoost * spotMask);
+
+            // Apply exposure to the color (preserving alpha)
+            vec3 finalColor = texColor.rgb * currentExposure;
+
+            // Output to screen
+            gl_FragColor = vec4(finalColor, texColor.a);
+        }
+    </shader>
+
+</effect>

@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.motion_wiggle" name="2D Camera Shake (Wiggle)" desc="Procedural camera-shake transform driven by fractal (fBm) noise: wiggles position, rotation, and scale with adjustable amplitude, frequency, octaves, roughness, and seed. Optional mirrored edges and auto-expand hide the borders revealed by the shake." category="warp" tags="shake,wiggle,handheld,transform" thumb="thumb/Move and Transform/2D Camera Shake (Wiggle).webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="ampPosX" default="20.0" min="0.0" max="2000.0" step="0.1" label="Position X (px)" />
+    <slider id="ampPosY" default="20.0" min="0.0" max="2000.0" step="0.1" label="Position Y (px)" />
+    <slider id="ampRot" default="3.0" min="0.0" max="90.0" step="0.01" label="Rotation (deg)" />
+    <slider id="ampScale" default="0.02" min="0.0" max="1.0" step="0.001" label="Scale" />
+
+    
+    <slider id="frequency" default="3.0" min="0.01" max="30.0" step="0.01" label="Frequency (Hz)" />
+    <slider id="octaves" default="3.0" min="1.0" max="6.0" step="1.0" label="Octaves" />
+    <slider id="roughness" default="0.5" min="0.0" max="1.0" step="0.01" label="Roughness" />
+    <slider id="seed" default="0.0" min="-10000.0" max="10000.0" step="1.0" label="Seed" />
+    <slider id="strength" default="1.0" min="0.0" max="2.0" step="0.01" label="Strength" />
+
+    
+    <slider id="pivotX" default="0.5" min="0.0" max="1.0" step="0.001" label="Pivot X (0..1)" />
+    <slider id="pivotY" default="0.5" min="0.0" max="1.0" step="0.001" label="Pivot Y (0..1)" />
+
+    
+    <switch id="mirrorEdges" default="true" label="Mirror Edges (reduce borders)" />
+    <slider id="expand" default="0.05" min="0.0" max="0.5" step="0.001" label="Auto Expand (relative)" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec4 sampleTex(sampler2D t, vec2 uv){ return texture2DCv(t, uv); }
+
+    // Hash and value noise
+    float hash(float n){ return fract(sin(n)*43758.5453123); }
+    float noise1(float x){
+      float i = floor(x), f = fract(x);
+      float u = f*f*(3.0-2.0*f);
+      return mix(hash(i+seed), hash(i+1.0+seed), u);
+    }
+    // Fractal brownian motion
+    float fbm(float x, float oct, float rough){
+      float a = 1.0, f = 1.0, sum = 0.0, norm = 0.0;
+      for(int i=0;i&lt;8;i++){
+        if(float(i) &gt;= oct) break;
+        sum += noise1(x*f) * a;
+        norm += a;
+        a *= clamp(rough, 0.0, 1.0);
+        f *= 2.0;
+      }
+      return (norm&gt;0.0)? sum/norm : 0.0;
+    }
+
+    mat2 rot2(float a){ float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+
+    // Mirror-edge UV helper
+    vec2 mirror(vec2 uv){ return abs(fract(uv*0.5+0.5)*2.0-1.0); }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+
+      // Noise timebase
+      float t = acTime * frequency;
+      float oct = clamp(octaves, 1.0, 6.0);
+
+      // Generate 3 channels of fbm for x,y,rot,scale using offsets
+      float nX = fbm(t + 37.17, oct, roughness) * 2.0 - 1.0;
+      float nY = fbm(t + 91.73, oct, roughness) * 2.0 - 1.0;
+      float nR = fbm(t + 153.11, oct, roughness) * 2.0 - 1.0;
+      float nS = fbm(t + 241.57, oct, roughness) * 2.0 - 1.0;
+
+      // Amplitudes
+      vec2 posPx = vec2(ampPosX*nX, ampPosY*nY) * strength;
+      float rotDeg = ampRot * nR * strength;
+      float scl = 1.0 + ampScale * nS * strength;
+
+      // Convert pixel translation to UV
+      vec2 texSize = getTexSize(inputImg.size);
+      vec2 posUV = posPx / max(texSize, vec2(1.0));
+
+      // Pivot
+      vec2 pivot = vec2(pivotX, pivotY);
+
+      // Auto expand to hide borders (scale up slightly)
+      float autoS = 1.0 + expand;
+
+      // For each screen uv, compute source uv by applying inverse transform
+      // Forward T: scale*scl -&gt; rotate(rot) -&gt; translate(posUV), also autoS
+      // Inverse: undo translate, then rotate(-rot), then scale by 1/(scl*autoS)
+      float rot = radians(rotDeg);
+      vec2 rel = uv - pivot;
+      rel -= posUV;                // undo translation
+      rel = rot2(-rot) * rel;      // undo rotation
+      rel /= max(scl*autoS, 1e-6); // undo scale
+      vec2 srcUV = pivot + rel;
+
+      // Edge handling
+      vec4 col;
+      if(mirrorEdges){
+        col = sampleTex(inputImg.texture, mirror(srcUV));
+      } else {
+        if(any(lessThan(srcUV, vec2(0.0))) || any(greaterThan(srcUV, vec2(1.0)))){
+          col = vec4(0.0);
+        } else {
+          col = sampleTex(inputImg.texture, srcUV);
+        }
+      }
+
+      gl_FragColor = col;
+    }
+  </shader>
+
+</effect>

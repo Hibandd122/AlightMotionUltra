@@ -1,0 +1,255 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.electricedges_saber" name="Saber" desc="Draws a glowing energy outline along the layer's alpha edges using a blurred distance field, with 10 selectable saber styles (electric, plasma, fire, laser, etc.). Controls include core/glow color and size, noise distortion, pulse, flicker, a turbulence mask, and optional contour lines." category="drawingedge" thumb="thumb/Drawing/Saber.webp" tags="drawing,edge,neon,saber">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="blurBuf" srcType="buffer" />
+        <texture id="comp" srcType="comp" />
+
+        <slider id="distance" default="0.3" min="0.0" max="1.0" step="0.001" label="Distance" />
+        <slider id="thickness" default="0.8" min="0.0" max="1.0" step="0.001" label="Thickness" />
+        <slider id="complexity" default="2.0" min="0.0" max="20.0" step="0.01" label="Detail" />
+        <slider id="disort" default="0.5" min="-1.0" max="1.0" step="0.01" label="Distortion" />
+
+        <color id="color1" default="#FFFF77FF" label="Core Color" alpha="true" />
+        <color id="color2" default="#FFDDBBAA" label="Glow Color" alpha="true" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Core Alpha" type="percent" />
+        <slider id="glowAlpha" default="0.5" min="0.0" max="1.0" step="0.01" label="Glow Alpha" type="percent" />
+
+        <slider id="seed" default="0.0" min="0.0" max="5.0" step="0.01" label="Seed" />
+        <slider id="evolution" default="0.0" min="-999" max="999" step="0.01" label="Evolution" />
+
+        <slider id="fill" default="1.0" min="0.0" max="1.0" step="0.01" label="Fill" type="percent" />
+        <color id="maskColor" default="#FFEEDD55" label="Mask Color" alpha="true" />
+        <slider id="maskStrength" default="0.0" min="0.0" max="1.0" step="0.01" label="Mask Strength" />
+        <slider id="maskEvolution" default="0.0" min="-50" max="50" label="Mask Evolution" step="0.01" />
+        <slider id="maskScale" default="1.0" min="0.01" max="50.0" label="Mask Scale" step="0.01" />
+        <slider id="maskSeed" default="0.0" min="0.0" max="5.0" step="0.01" label="Mask Seed" />
+
+        
+        <menu id="saberType" style="dropdown" default="0" label="Type">
+            <menu label="Electric" value="0" />
+            <menu label="Solar" value="1" />
+            <menu label="Energy" value="2" />
+            <menu label="Plasma" value="3" />
+            <menu label="Arc" value="4" />
+            <menu label="Nebula" value="5" />
+            <menu label="Fire" value="6" />
+            <menu label="Laser" value="7" />
+            <menu label="Neon" value="8" />
+            <menu label="Lightning" value="9" />
+        </menu>
+        <slider id="pulseSpeed" default="0.6" min="0.0" max="10.0" step="0.01" label="Pulse Speed" />
+        <slider id="coreScale" default="1.0" min="0.1" max="3.0" step="0.01" label="Core Scale" />
+        <slider id="glowSize" default="1.0" min="0.1" max="3.0" step="0.01" label="Glow Size" />
+        <slider id="glowBrightness" default="1.0" min="0.0" max="5.0" step="0.01" label="Glow Brightness" />
+        <slider id="brightness" default="1.0" min="0.0" max="5.0" step="0.01" label="Overall Brightness" />
+        <slider id="flickerAmount" default="0.0" min="0.0" max="1.0" step="0.01" label="Flicker Amount" />
+        <slider id="coreSoftness" default="1.0" min="0.1" max="3.0" step="0.01" label="Core Softness" />
+        <slider id="glowFalloff" default="1.0" min="0.1" max="3.0" step="0.01" label="Glow Falloff" />
+        <slider id="glowSpread" default="0.0" min="-2.0" max="2.0" step="0.01" label="Glow Spread" />
+        <slider id="colorBoost" default="1.0" min="0.0" max="3.0" step="0.01" label="Color Boost" />
+        <slider id="gammaExp" default="1.0" min="0.2" max="2.2" step="0.01" label="Gamma" />
+
+        
+        <switch id="renderContours" label="Render Contours" default="false" />
+        <slider id="contourCount" default="20.0" min="0.0" max="200.0" step="0.1" label="Count" />
+        <slider id="contourOffset" default="0.0" min="-999.0" max="999.0" step="0.001" label="Phase" />
+        <slider id="contourAngle" default="0.0" min="-3600.0" max="3600.0" step="0.1" label="Angle" type="angle" />
+    </params>
+
+    <passes>
+        <pass target="blurBuf" effect="com.alightcreative.effects.gaussianblur" />
+        <pass />
+    </passes>
+
+    <shader type="fragment" precision="high">
+        vec2 random2( vec2 p ) { return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453); }
+        vec2 noise (in vec2 st) {
+            vec2 i = floor(st);
+            vec2 f = fract(st);
+            vec2 a = random2(i);
+            vec2 b = random2(i + vec2(1.0, 0.0));
+            vec2 c = random2(i + vec2(0.0, 1.0));
+            vec2 d = random2(i + vec2(1.0, 1.0));
+            vec2 u = f;
+            return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+        vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+        float rand(vec2 co){ return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
+        float snoise(vec3 v){
+          const vec2  C = vec2(1.0/6.0, 1.0/3.0);
+          const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+          vec3 i  = floor(v + dot(v, C.yyy));
+          vec3 x0 = v - i + dot(i, C.xxx);
+          vec3 g = step(x0.yzx, x0.xyz);
+          vec3 l = 1.0 - g;
+          vec3 i1 = min( g.xyz, l.zxy );
+          vec3 i2 = max( g.xyz, l.zxy );
+          vec3 x1 = x0 - i1 + C.xxx;
+          vec3 x2 = x0 - i2 + C.yyy;
+          vec3 x3 = x0 - D.yyy;
+          i = mod289(i);
+          vec4 p = permute( permute( permute( i.z + vec4(0.0, i1.z, i2.z, 1.0 )) + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+          float n_ = 0.142857142857;
+          vec3  ns = n_ * D.wyz - D.xzx;
+          vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+          vec4 x_ = floor(j * ns.z);
+          vec4 y_ = floor(j - 7.0 * x_ );
+          vec4 x = x_ *ns.x + ns.yyyy;
+          vec4 y = y_ *ns.x + ns.yyyy;
+          vec4 h = 1.0 - abs(x) - abs(y);
+          vec4 b0 = vec4( x.xy, y.xy );
+          vec4 b1 = vec4( x.zw, y.zw );
+          vec4 s0 = floor(b0)*2.0 + 1.0;
+          vec4 s1 = floor(b1)*2.0 + 1.0;
+          vec4 sh = -step(h, vec4(0.0));
+          vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+          vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+          vec3 p0 = vec3(a0.xy,h.x);
+          vec3 p1 = vec3(a0.zw,h.y);
+          vec3 p2 = vec3(a1.xy,h.z);
+          vec3 p3 = vec3(a1.zw,h.w);
+          vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+          p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+          vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+          m = m * m;
+          return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
+        }
+        float turbulence (in vec2 st, in int OCTAVES, in vec2 parallax, in float evolution) {
+            float value = 0.0; float amplitude = .5; for (int i = 0; i &lt; OCTAVES; i++) { value += amplitude * abs(snoise(vec3(st,evolution))); st *= 2.; st += parallax; amplitude *= .5; } return value;
+        }
+        mat2 rot2d(float a) { float s = sin(a); float c = cos(a); return mat2(c,s,-s,c); }
+
+        void main() {
+            vec2 st = acLayerNorm; st -= 0.5; st.x *= acLayerSize.x/acLayerSize.y;
+            vec2 evoseed = vec2(3.)*(evolution + acTime * pulseSpeed) + vec2(62.5587,137.1935)*seed;
+            vec2 pixelSize = vec2(1.) / acScreenSize;
+
+            float dMul = 1.0; float cMul = 1.0; float gMul = glowBrightness;
+            int tp = int(saberType);
+            if (tp==0){ dMul=1.2; cMul=1.5; gMul*=1.2; }
+            else if (tp==1){ dMul=0.7; cMul=0.9; gMul*=1.5; }
+            else if (tp==2){ dMul=1.0; cMul=1.2; gMul*=1.1; }
+            else if (tp==3){ dMul=1.4; cMul=2.0; gMul*=1.3; }
+            else if (tp==4){ dMul=1.1; cMul=1.3; gMul*=1.25; }
+            else if (tp==5){ dMul=0.8; cMul=1.8; gMul*=1.4; }
+            else if (tp==6){ dMul=1.3; cMul=1.6; gMul*=1.6; }
+            else if (tp==7){ dMul=1.5; cMul=2.4; gMul*=0.9; }
+            else if (tp==8){ dMul=0.9; cMul=1.0; gMul*=1.8; }
+            else if (tp==9){ dMul=1.6; cMul=2.2; gMul*=1.5; }
+
+            vec2 l1 = noise(evoseed + st * rot2d(0.1) * 2. * complexity * cMul);
+            vec2 l2 = noise(evoseed + st * rot2d(0.3) * 4. * complexity * cMul);
+            vec2 l3 = noise(evoseed + st * rot2d(1.42) * 8. * complexity * cMul);
+            vec2 l4 = noise(evoseed + st * rot2d(2.534) * 16. * complexity * cMul);
+            vec2 offs = abs(abs(l1 - l2) - abs(l3 - l4));
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+            vec4 blurTexColorMid = texture2DCv(blurBuf.texture,acScreenNorm);
+            vec4 blurTexColorUp = texture2DCv(blurBuf.texture,acScreenNorm + pixelSize*vec2(0.,-4.));
+            vec4 blurTexColorLeft = texture2DCv(blurBuf.texture,acScreenNorm + pixelSize*vec2(-4.,0.));
+            vec4 compColor = texture2DCv(comp.texture,acScreenNorm.st);
+            float dx = blurTexColorMid.a - blurTexColorLeft.a;
+            float dy = blurTexColorMid.a - blurTexColorUp.a;
+            vec2 norm = normalize(vec2(dx,dy));
+            vec4 blurTexColor = texture2DCv(blurBuf.texture,acScreenNorm + norm*length(offs)*(disort*dMul*0.055));
+
+            float turbBase = turbulence((st-0.5)/maskScale+0.5, 3, vec2(0.), maskEvolution + 91.935*maskSeed);
+            float TINT_RANGE = 0.02;
+            float turb = smoothstep( maskStrength - (TINT_RANGE+.2), maskStrength-(TINT_RANGE+.1), turbBase);
+            float suppress = smoothstep( maskStrength - (TINT_RANGE+.1), maskStrength-TINT_RANGE, turbBase);
+            float ttint = smoothstep( maskStrength - TINT_RANGE, maskStrength-0.001, turbBase);
+
+            float p = blurTexColor.a;
+            float dist = 1. - (distance * 0.4 + 0.5);
+            float coreBase = 1. - abs(p - dist);
+            float distGlow = dist - (glowSize-1.0)*0.1 - glowSpread*0.1;
+            float glowBase = 1. - abs(p - distGlow);
+            float sPulse = 0.5 + 0.5*sin(acTime * pulseSpeed);
+            float tBlock = floor(acTime * pulseSpeed);
+            float flick = 1.0 - flickerAmount + flickerAmount * rand(st*437.0 + vec2(tBlock));
+            float eCBase = (1.-(thickness*0.9*suppress))*30.;
+            float eGBase = (1.-(thickness*0.9*suppress))*25.;
+            float eCAdj = eCBase * coreSoftness;
+            float eGAdj = eGBase * glowFalloff;
+
+            float pp;
+            float qq;
+            if (tp==0){
+                float n = 0.3 + 0.7*snoise(vec3(st*complexity*cMul, evolution));
+                pp = pow(coreBase, eCAdj) * coreScale * (0.7 + 0.3*n);
+                qq = pow(glowBase, eGAdj) * (0.8 + 0.2*n);
+            } else if (tp==1){
+                pp = pow(coreBase, 8.0*coreSoftness) * coreScale * sPulse * flick;
+                qq = pow(glowBase, 2.5*glowFalloff) * sPulse;
+            } else if (tp==2){
+                pp = smoothstep(0.0, 1.0, coreBase) * coreScale * flick;
+                qq = smoothstep(0.0, 1.0, glowBase);
+            } else if (tp==3){
+                float tn = turbulence((st-0.5)/maskScale+0.5, 4, vec2(0.), maskEvolution + 13.7*maskSeed);
+                float eC = (12.0 + 18.0*tn) * coreSoftness;
+                float eG = (10.0 + 14.0*tn) * glowFalloff;
+                pp = pow(coreBase, eC) * coreScale * flick;
+                qq = pow(glowBase, eG);
+            } else if (tp==4){
+                float arad = contourAngle * 0.0174533;
+                vec2 st2 = st * rot2d(arad);
+                float lines = saturate(sin((st2.y + contourOffset) * contourCount));
+                pp = pow(coreBase, 20.0*coreSoftness) * (0.7 + 0.3*lines) * coreScale * flick;
+                qq = pow(glowBase, 18.0*glowFalloff) * (0.7 + 0.3*lines);
+            } else {
+                if (tp==5){
+                    float neb = 0.5 + 0.5*snoise(vec3(st*complexity, evolution));
+                    pp = pow(coreBase, 12.0*coreSoftness) * coreScale * (0.8 + 0.4*neb);
+                    qq = pow(glowBase, 9.0*glowFalloff) * (0.8 + 0.4*neb);
+                } else if (tp==6){
+                    float flame = 0.6 + 0.4*abs(sin(acTime*pulseSpeed + st.y*10.0));
+                    pp = pow(coreBase, 6.0*coreSoftness) * coreScale * flame * flick;
+                    qq = pow(glowBase, 2.0*glowFalloff) * (1.0 + 0.5*flame);
+                } else if (tp==7){
+                    pp = pow(coreBase, 40.0*coreSoftness) * coreScale * (0.9 + 0.1*sPulse) * flick;
+                    qq = pow(glowBase, 8.0*glowFalloff) * 0.6;
+                } else if (tp==8){
+                    pp = smoothstep(0.6, 1.0, coreBase) * coreScale * flick;
+                    qq = pow(glowBase, 3.0*glowFalloff) * 1.8;
+                } else { // Lightning
+                    float jag = 0.5 + 0.5*abs(sin(st.x*35.0 + st.y*25.0 + acTime*pulseSpeed));
+                    pp = pow(coreBase, 28.0*coreSoftness) * coreScale * (0.7 + 0.3*jag) * flick;
+                    qq = pow(glowBase, 14.0*glowFalloff) * (0.8 + 0.2*jag);
+                }
+            }
+
+            pp = clamp(pp, 0.0, 1.0);
+            qq = clamp(qq, 0.0, 1.0);
+            pp *= smoothstep(0.01,0.12,p);
+            pp *= smoothstep(1.0,0.999,p);
+            qq *= smoothstep(0.01,0.12,p);
+            qq *= smoothstep(1.0,0.999,p);
+
+            if(renderContours) {
+                float arad = contourAngle * 0.0174533;
+                vec2 st2 = st;
+                st2.y += blurTexColorMid.a*0.1;
+                st2 *= rot2d(length(offs*disort*dMul*1.1)*0.2+arad);
+                st2.y += blurTexColorMid.a*0.1;
+                float lines = saturate(sin((st2.y+contourOffset+(offs.y*disort*dMul*0.015)) * contourCount)) * smoothstep(0.1,0.2,blurTexColorMid.a);
+                pp += pow(lines,(1.-(thickness*0.9*suppress))*30.);
+                qq += pow(lines,(1.-(thickness*0.9*suppress))*25.);
+            }
+
+            vec4 c0 = vec4(pow( vec3(pp), 1./color1.rgb),pp) * alpha;
+            vec4 c1 = vec4(pow( vec3(qq), 1./color2.rgb),qq) * (glowAlpha * gMul);
+            vec4 c = saturate(c0 + c1);
+            c.rgb *= (brightness * colorBoost);
+            c.rgb = pow(c.rgb, vec3(gammaExp));
+            c *= (mix(maskColor,vec4(1.),ttint)*turb);
+            gl_FragColor = texColor * fill * (1.-c.a) + c;
+        }
+    </shader>
+
+</effect>

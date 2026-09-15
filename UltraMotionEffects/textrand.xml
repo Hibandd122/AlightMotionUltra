@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.textrand" name="@am:string/effect_textrandomize_name" desc="@am:string/effect_textrandomize_desc" affinity="text!" type="text" category="text" tags="text,propAdjust" thumb="thumb/textrand.webp">
+
+    <params>
+        <slider id="amount" default="0.0" min="0.0" max="1.0" label="@am:string/effect_param_amount" type="percent" step="0.001" />
+        <slider id="evo" default="0.0" min="0.0" max="25.0" step="0.01" label="@am:string/effect_param_evolution" />
+        <slider id="seed" default="0.0" min="0.0" max="25.0" step="0.01" label="@am:string/effect_param_seed" />
+        <slider id="start" default="0.0" min="0.0" max="1.0" label="@am:string/effect_param_start" type="percent" step="0.001" />
+        <slider id="end" default="1.0" min="0.0" max="1.0" label="@am:string/effect_param_end" type="percent" step="0.001" />
+        <menu id="charset" default="0" style="dropdown" label="@am:string/effect_param_charset">
+            <menu label="@am:string/effect_param_text_uppercase_letters" value="0" />
+            <menu label="@am:string/effect_param_text_lowercase_letters" value="1" />
+            <menu label="@am:string/effect_param_text_mixed_case_letters" value="2" />
+            <menu label="@am:string/effect_param_text_digits" value="3" />
+            <menu label="@am:string/effect_param_text_digits_letters" value="4" />
+            <menu label="@am:string/effect_param_text_layer_text" value="5" />
+            <menu label="@am:string/effect_param_text_asterisk" value="6" />
+            <menu label="@am:string/effect_param_text_bullet" value="7" />
+            <menu label="@am:string/effect_param_text_underbar" value="8" />
+            <menu label="@am:string/effect_param_text_blank" value="9" />
+            <menu label="@am:string/effect_param_text_diamond" value="10" />
+            <menu label="@am:string/effect_param_text_dash" value="11" />
+            <menu label="@am:string/effect_param_text_symbols" value="12" />
+            <menu label="@am:string/effect_param_text_digits_letters_symbols" value="13" />
+            <menu label="@am:string/effect_param_text_extended" value="14" />
+        </menu>
+        <switch id="preserveSpace" default="true" label="@am:string/effect_param_preservespace" />
+    </params>
+
+
+    
+
+</effect>

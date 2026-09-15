@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra.vhs-retro" name="VHS Retro" desc="VHS tape emulation with sinusoidal horizontal wobble, RGB channel-offset color bleed, per-line animated noise, and scanline darkening. Each artifact is independently adjustable." category="other" thumb="thumb/Stylize/VHS Retro.webp" tags="retro,glitch,scanline,vhs,raster,animated" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="distort" default="0.5" min="0.0" max="1.0" label="Wave Distort" />
+        <slider id="bleed" default="0.5" min="0.0" max="1.0" label="Color Bleed" />
+        <slider id="noise" default="0.3" min="0.0" max="1.0" label="Noise" />
+        <slider id="scanline" default="0.4" min="0.0" max="1.0" label="Scanlines" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec2 uv = acScreenNorm;
+            float t = acTime;
+            float line = uv.y*acScreenSize.y;
+            float wob = sin(uv.y*8.0 + t*2.0)*0.002 + sin(uv.y*60.0 + t*10.0)*0.0008;
+            uv.x += wob * distort * 4.0;
+            float bl = bleed*0.008;
+            float r = texture2DCv(inputImg.texture, uv+vec2(bl,0.0)).r;
+            vec4 g = texture2DCv(inputImg.texture, uv);
+            float b = texture2DCv(inputImg.texture, uv-vec2(bl,0.0)).b;
+            vec4 col = vec4(r,g.g,b,g.a);
+            float n = rand(vec2(floor(line), floor(t*30.0)))*noise*0.35;
+            col.rgb += n*col.a;
+            float sl = (sin(line*3.14159)*0.5+0.5);
+            col.rgb *= 1.0 - sl*scanline*0.5;
+            gl_FragColor = col;
+        }
+    </shader>
+
+</effect>

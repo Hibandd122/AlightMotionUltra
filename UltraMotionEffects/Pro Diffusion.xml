@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.prodiffusion" name="Pro Diffusion" desc="Multi-pass diffusion filter built from two separable Gaussian blur pairs at different radii. Provides highlight and shadow diffusion, halation, Orton softening, chromatic diffusion, film fog, dream glow, hue-masked skin smoothing, contrast restore, and blend-mode compositing." category="colorlight" tags="diffusion,soft,bloom,halation,orton,fog,dream,cinematic,film" thumb="thumb/Stylize/Pro Diffusion.webp" overdraw="true" max-overdraw="1.5">
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <texture id="blurA" srcType="buffer" downsample="2" />
+        <texture id="blurB" srcType="buffer" downsample="2" />
+        <texture id="blurC" srcType="buffer" downsample="2" />
+        <texture id="blurD" srcType="buffer" downsample="2" />
+        
+        <slider id="diffAmount" label="Diffusion Amount" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="diffRadius" label="Diffusion Radius" default="15.0" min="1.0" max="80.0" step="0.5" type="float" />
+        <slider id="diffSoftness" label="Softness" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="diffCharacter" label="Diffusion Character" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <slider id="hlDiffusion" label="Highlight Diffusion" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hlThreshold" label="Highlight Threshold" default="0.6" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hlWrap" label="Highlight Wrap" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="hlSaturation" label="Highlight Saturation" default="0.8" min="0.0" max="2.0" step="0.05" type="float" />
+        
+        <slider id="shDiffusion" label="Shadow Diffusion" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="shThreshold" label="Shadow Threshold" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="shLift" label="Shadow Lift" default="0.0" min="0.0" max="0.3" step="0.005" type="float" />
+        
+        <slider id="halStrength" label="Halation Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <color id="halColor" label="Halation Color" default="#FF4422" alpha="false" />
+        <slider id="halRadius" label="Halation Spread" default="1.5" min="0.5" max="4.0" step="0.1" type="float" />
+        
+        <slider id="ortonStrength" label="Orton Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="ortonGamma" label="Orton Gamma" default="1.2" min="0.5" max="2.5" step="0.05" type="float" />
+        <slider id="ortonContrast" label="Orton Contrast" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <slider id="chromaDiff" label="Chromatic Diffusion" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="chromaAngle" label="Chromatic Angle" default="0.0" min="0.0" max="360.0" step="5.0" type="float" />
+        
+        <slider id="fogAmount" label="Fog Amount" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <color id="fogColor" label="Fog Color" default="#E8E0D8" alpha="false" />
+        <slider id="fogDensity" label="Fog Density" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="fogHighlightBias" label="Fog Highlight Bias" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <slider id="dreamStrength" label="Dream Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="dreamDesaturation" label="Dream Desaturation" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="dreamWarmth" label="Dream Warmth" default="0.2" min="-0.5" max="0.5" step="0.01" type="float" />
+        
+        <slider id="skinSmooth" label="Skin Smooth" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="skinHueCenter" label="Skin Hue Center" default="0.08" min="0.0" max="1.0" step="0.005" type="float" />
+        <slider id="skinHueRange" label="Skin Hue Range" default="0.06" min="0.01" max="0.2" step="0.005" type="float" />
+        <slider id="skinDetail" label="Skin Detail Preserve" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <slider id="contrastRestore" label="Contrast Restore" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="midtoneProtect" label="Midtone Protection" default="0.5" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="blackPoint" label="Black Point" default="0.0" min="0.0" max="0.1" step="0.005" type="float" />
+        
+        <slider id="saturation" label="Saturation" default="1.0" min="0.0" max="2.0" step="0.05" type="float" />
+        <slider id="warmth" label="Warmth" default="0.0" min="-0.5" max="0.5" step="0.01" type="float" />
+        <color id="diffTint" label="Diffusion Tint" default="#FFFFFF" alpha="false" />
+        <slider id="diffTintStrength" label="Tint Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        
+        <menu id="blendMode" style="dropdown" default="1" label="Blend Mode">
+            <menu label="Normal" value="1" />
+            <menu label="Screen" value="2" />
+            <menu label="Soft Light" value="3" />
+            <menu label="Overlay" value="4" />
+        </menu>
+        
+        <menu id="quality" style="radio" default="2" label="Quality">
+            <menu label="Low" value="1" />
+            <menu label="Medium" value="2" />
+            <menu label="High" value="3" />
+        </menu>
+        
+        <switch id="diffOnly" default="false" label="Diffusion Only" />
+        <slider id="ditherAmt" label="Dither" default="0.008" min="0.0" max="0.03" step="0.001" type="float" />
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass target="blurA" />
+        <pass target="blurB" />
+        <pass target="blurC" />
+        <pass target="blurD" />
+        <pass />
+    </passes>
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    vec3 toLinear(vec3 s) {
+        vec3 lo = s / 12.92;
+        vec3 hi = pow((s + 0.055) / 1.055, vec3(2.4));
+        return mix(lo, hi, step(vec3(0.04045), s));
+    }
+    vec3 toSRGB(vec3 l) {
+        vec3 lo = l * 12.92;
+        vec3 hi = 1.055 * pow(max(l, 0.0), vec3(1.0 / 2.4)) - 0.055;
+        return mix(lo, hi, step(vec3(0.0031308), l));
+    }
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+    float h2r(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0 / 6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0 / 3.0) return p + (q - p) * (2.0 / 3.0 - t) * 6.0;
+        return p;
+    }
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(h2r(p,q,c.x+1.0/3.0), h2r(p,q,c.x), h2r(p,q,c.x-1.0/3.0));
+    }
+    float getTaps(float q) {
+        if (q &lt; 1.5) return 10.0;
+        if (q &lt; 2.5) return 18.0;
+        return 28.0;
+    }
+    vec4 separableBlur(sampler2D tex, vec2 uv, vec2 dir, float radius, float taps) {
+        if (radius &lt;= 0.5) return texture2DCv(tex, uv);
+        float sigma = radius / 2.14596602;
+        sigma = max(sigma, EPS);
+        float baseCoeff = 1.0 / (sqrt(2.0 * PI) * sigma);
+        float decayRate = exp(-0.5 / (sigma * sigma));
+        float decaySq = decayRate * decayRate;
+        vec4 acc = texture2DCv(tex, uv) * baseCoeff;
+        float wSum = baseCoeff;
+        float coeff = baseCoeff;
+        float decay = decayRate;
+        for (float i = 1.0; i &lt;= 256.0; i += 2.0) {
+            if (i &gt; taps) break;
+            float p0 = i;
+            float p1 = i + 1.0;
+            coeff *= decay;
+            wSum += 2.0 * coeff;
+            float w0 = coeff;
+            coeff *= decay;
+            decay *= decaySq;
+            wSum += 2.0 * coeff;
+            float w1 = coeff;
+            float wPair = w0 + w1;
+            float oPair = (p0 * w0 + p1 * w1) / max(wPair, EPS);
+            vec2 uvA = clamp(uv - oPair * dir, 0.0, 1.0);
+            vec2 uvB = clamp(uv + oPair * dir, 0.0, 1.0);
+            acc += texture2DCv(tex, uvA) * wPair;
+            acc += texture2DCv(tex, uvB) * wPair;
+        }
+        return acc / max(wSum, EPS);
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        float taps = getTaps(float(quality));
+        float r1 = diffRadius * 0.5;
+        float r2 = diffRadius * 1.5;
+        if (acPass == 0) {
+            vec2 dir = vec2(1.0 / getTexSize(inputImg.size).x, 0.0);
+            gl_FragColor = separableBlur(inputImg.texture, uv, dir, r1, taps);
+            return;
+        }
+        if (acPass == 1) {
+            vec2 dir = vec2(0.0, 1.0 / getTexSize(blurA.size).y);
+            gl_FragColor = separableBlur(blurA.texture, uv, dir, r1, taps);
+            return;
+        }
+        if (acPass == 2) {
+            vec2 dir = vec2(1.0 / getTexSize(inputImg.size).x, 0.0);
+            gl_FragColor = separableBlur(inputImg.texture, uv, dir, r2, taps);
+            return;
+        }
+        if (acPass == 3) {
+            vec2 dir = vec2(0.0, 1.0 / getTexSize(blurC.size).y);
+            gl_FragColor = separableBlur(blurC.texture, uv, dir, r2, taps);
+            return;
+        }
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 baseRGB = max(original.rgb, 0.0);
+        vec3 sharp = baseRGB;
+        vec3 softNarrow = max(texture2DCv(blurB.texture, uv).rgb, 0.0);
+        vec3 softWide = max(texture2DCv(blurD.texture, uv).rgb, 0.0);
+        vec3 baseLin = toLinear(baseRGB);
+        vec3 narrowLin = toLinear(softNarrow);
+        vec3 wideLin = toLinear(softWide);
+        float baseLum = lum(baseLin);
+        float narrowLum = lum(narrowLin);
+        float wideLum = lum(wideLin);
+        vec3 diffused = mix(narrowLin, wideLin, diffSoftness);
+        float diffLum = lum(diffused);
+        vec3 result = mix(baseLin, diffused, diffAmount * diffCharacter);
+        vec3 screenBlend = 1.0 - (1.0 - baseLin) * (1.0 - diffused * 0.5);
+        result = mix(result, screenBlend, diffAmount * (1.0 - diffCharacter));
+        if (hlDiffusion &gt; EPS) {
+            float hlMask = smoothstep(hlThreshold - 0.1, hlThreshold + 0.1, baseLum);
+            vec3 hlBlur = wideLin * hlMask;
+            if (abs(hlSaturation - 1.0) &gt; EPS) {
+                float hlL = lum(hlBlur);
+                hlBlur = mix(vec3(hlL), hlBlur, hlSaturation);
+            }
+            result += hlBlur * hlDiffusion * 0.5;
+            if (hlWrap &gt; EPS) {
+                float wrapMask = smoothstep(hlThreshold, hlThreshold + 0.3, baseLum);
+                vec3 wrapped = mix(result, wideLin, wrapMask * hlWrap * 0.3);
+                result = wrapped;
+            }
+        }
+        if (shDiffusion &gt; EPS) {
+            float shMask = smoothstep(shThreshold + 0.1, shThreshold - 0.1, baseLum);
+            vec3 shBlur = mix(baseLin, diffused, shMask * shDiffusion);
+            result = mix(result, shBlur, shMask * shDiffusion * 0.5);
+            if (shLift &gt; EPS) {
+                result += shLift * shMask;
+            }
+        }
+        if (halStrength &gt; EPS) {
+            vec3 halSource = mix(narrowLin, wideLin, clamp(halRadius - 1.0, 0.0, 1.0));
+            float halLum = lum(halSource);
+            float halMask = smoothstep(0.4, 0.8, halLum);
+            vec3 halation = halSource * halColor.rgb * halMask;
+            result += halation * halStrength * 0.4;
+        }
+        if (ortonStrength &gt; EPS) {
+            vec3 ortonBright = pow(max(baseLin, 0.0), vec3(ortonGamma));
+            vec3 ortonBlur = diffused;
+            vec3 ortonMul = ortonBright * ortonBlur * 4.0;
+            vec3 ortonResult = mix(ortonBlur, ortonMul, ortonContrast);
+            result = mix(result, ortonResult, ortonStrength * 0.5);
+        }
+        if (chromaDiff &gt; EPS) {
+            float cAng = chromaAngle * PI / 180.0;
+            vec2 cDir = vec2(cos(cAng), sin(cAng));
+            vec2 cPx = 1.0 / getTexSize(blurD.size);
+            vec2 cOff = cDir * chromaDiff * 3.0 * cPx;
+            float rCh = max(texture2DCv(blurD.texture, clamp(uv + cOff, 0.0, 1.0)).r, 0.0);
+            float bCh = max(texture2DCv(blurD.texture, clamp(uv - cOff, 0.0, 1.0)).b, 0.0);
+            float origR = result.r;
+            float origB = result.b;
+            result.r = mix(origR, toLinear(vec3(rCh)).r, chromaDiff * 0.3);
+            result.b = mix(origB, toLinear(vec3(bCh)).b, chromaDiff * 0.3);
+        }
+        if (fogAmount &gt; EPS) {
+            vec3 fogLin = toLinear(fogColor.rgb);
+            float fogMask = mix(1.0, baseLum, fogHighlightBias);
+            fogMask = pow(max(fogMask, 0.0), 1.0 + fogDensity * 2.0);
+            result = mix(result, fogLin, fogAmount * fogMask * 0.3);
+        }
+        if (dreamStrength &gt; EPS) {
+            vec3 dreamBase = mix(narrowLin, wideLin, 0.7);
+            float dreamLum = lum(dreamBase);
+            vec3 dreamDesat = mix(dreamBase, vec3(dreamLum), dreamDesaturation);
+            if (abs(dreamWarmth) &gt; EPS) {
+                dreamDesat.r += dreamWarmth * 0.08;
+                dreamDesat.b -= dreamWarmth * 0.05;
+            }
+            vec3 dreamScreen = 1.0 - (1.0 - result) * (1.0 - dreamDesat * 0.4);
+            result = mix(result, dreamScreen, dreamStrength * 0.6);
+        }
+        if (skinSmooth &gt; EPS) {
+            vec3 skinTest = rgb2hsl(max(baseRGB, 0.0));
+            float hueDist = abs(skinTest.x - skinHueCenter);
+            hueDist = min(hueDist, 1.0 - hueDist);
+            float skinMask = smoothstep(skinHueRange, skinHueRange * 0.3, hueDist);
+            skinMask *= smoothstep(0.15, 0.35, skinTest.y);
+            skinMask *= smoothstep(0.1, 0.3, skinTest.z) * (1.0 - smoothstep(0.8, 0.95, skinTest.z));
+            if (skinMask &gt; EPS) {
+                float detailEdge = abs(baseLum - narrowLum) * 5.0;
+                float detailPreserve = clamp(detailEdge / max(skinDetail, EPS), 0.0, 1.0);
+                float smoothMask = skinMask * skinSmooth * (1.0 - detailPreserve);
+                result = mix(result, narrowLin, smoothMask * 0.6);
+            }
+        }
+        if (contrastRestore &gt; EPS) {
+            float rLum = lum(result);
+            float contrast = (rLum - 0.5) * contrastRestore * 0.5;
+            float midMask = 1.0 - abs(rLum - 0.5) * 2.0;
+            midMask = pow(max(midMask, 0.0), 1.0 - midtoneProtect);
+            result += contrast * (1.0 - midMask * midtoneProtect);
+        }
+        if (blackPoint &gt; EPS) {
+            result = max(result - blackPoint, 0.0) / max(1.0 - blackPoint, EPS);
+        }
+        if (abs(saturation - 1.0) &gt; EPS) {
+            float rL = lum(result);
+            result = mix(vec3(rL), result, saturation);
+        }
+        if (abs(warmth) &gt; EPS) {
+            result.r += warmth * 0.06;
+            result.b -= warmth * 0.04;
+        }
+        if (diffTintStrength &gt; EPS) {
+            vec3 tintLin = toLinear(diffTint.rgb);
+            result = mix(result, result * tintLin, diffTintStrength);
+        }
+        vec3 blendResult = result;
+        float bm = float(blendMode);
+        if (bm &lt; 1.5) {
+            blendResult = result;
+        } else if (bm &lt; 2.5) {
+            blendResult = 1.0 - (1.0 - baseLin) * (1.0 - result * 0.5);
+        } else if (bm &lt; 3.5) {
+            vec3 bS = toSRGB(baseLin);
+            vec3 gS = toSRGB(clamp(result, 0.0, 1.0));
+            vec3 r;
+            r.r = (gS.r&lt;0.5) ? 2.0*bS.r*gS.r+bS.r*bS.r*(1.0-2.0*gS.r) : 2.0*bS.r*(1.0-gS.r)+sqrt(max(bS.r,0.0))*(2.0*gS.r-1.0);
+            r.g = (gS.g&lt;0.5) ? 2.0*bS.g*gS.g+bS.g*bS.g*(1.0-2.0*gS.g) : 2.0*bS.g*(1.0-gS.g)+sqrt(max(bS.g,0.0))*(2.0*gS.g-1.0);
+            r.b = (gS.b&lt;0.5) ? 2.0*bS.b*gS.b+bS.b*bS.b*(1.0-2.0*gS.b) : 2.0*bS.b*(1.0-gS.b)+sqrt(max(bS.b,0.0))*(2.0*gS.b-1.0);
+            blendResult = toLinear(r);
+        } else {
+            vec3 bS = toSRGB(baseLin);
+            vec3 gS = toSRGB(clamp(result, 0.0, 1.0));
+            vec3 r;
+            r.r = (bS.r&lt;0.5) ? 2.0*bS.r*gS.r : 1.0-2.0*(1.0-bS.r)*(1.0-gS.r);
+            r.g = (bS.g&lt;0.5) ? 2.0*bS.g*gS.g : 1.0-2.0*(1.0-bS.g)*(1.0-gS.g);
+            r.b = (bS.b&lt;0.5) ? 2.0*bS.b*gS.b : 1.0-2.0*(1.0-bS.b)*(1.0-gS.b);
+            blendResult = toLinear(r);
+        }
+        vec3 fin = toSRGB(max(blendResult, 0.0));
+        if (ditherAmt &gt; EPS) {
+            vec2 px = floor(getTexSize(inputImg.size) * uv);
+            float n1 = fract(sin(dot(px, vec2(12.9898, 78.233))) * 43758.5453);
+            float n2 = fract(sin(dot(px, vec2(24.123, 17.321))) * 12345.6789);
+            float n3 = fract(sin(dot(px, vec2(93.989, 67.345))) * 98765.4321);
+            fin += (vec3(n1, n2, n3) - 0.5) * ditherAmt;
+        }
+        if (diffOnly) {
+            vec3 diffOnlyRGB = toSRGB(max(result - baseLin, 0.0));
+            gl_FragColor = vec4(clamp(diffOnlyRGB, 0.0, 1.0), 1.0);
+            return;
+        }
+        fin = mix(baseRGB, fin, globalMix);
+        fin = clamp(fin, 0.0, 1.0);
+        gl_FragColor = vec4(fin, original.a);
+    }
+    </shader>
+    
+</effect>

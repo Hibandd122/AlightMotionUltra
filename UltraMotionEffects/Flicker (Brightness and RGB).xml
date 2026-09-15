@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.s_flicker_pro" name="Flicker (Brightness and RGB)" desc="Modulates layer brightness over time from a hash/value-noise generator with four flicker types (random, smooth random, pulse, random pulse), driven by Random Frequency, Phase, Bias, Smooth Random and Seed. Adds independent per-channel red/green/blue flicker, a step-gated strobe with adjustable width, and base brightness, contrast, saturation and blend controls." category="colorlight" tags="flicker,strobe,flash,pulse,brightness,color" thumb="thumb/Color/Flicker (Brightness and RGB).webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+
+        <slider id="brightnessAmp" default="0.45" min="0.0" max="2.0" step="0.01" label="Flicker Brightness" />
+
+        <slider id="colorAmp" default="0.12" min="0.0" max="1.0" step="0.01" label="Flicker Color" />
+
+        <slider id="frequency" default="8.0" min="0.1" max="60.0" step="0.1" label="Random Frequency" />
+
+        <slider id="smoothRandom" default="0.45" min="0.0" max="1.0" label="Smooth Random" type="percent" />
+
+        <slider id="bias" default="0.0" min="-1.0" max="1.0" step="0.01" label="Bias" />
+
+        <slider id="phase" default="0.0" min="0.0" max="1.0" step="0.001" label="Phase" type="percent" />
+
+        
+
+        <menu id="flickerMode" style="dropdown" default="0" label="Flicker Type">
+            <menu value="0" label="Random" />
+            <menu value="1" label="Smooth Random" />
+            <menu value="2" label="Pulse" />
+            <menu value="3" label="Random Pulse" />
+        </menu>
+
+        <slider id="frameBased" default="1.0" min="0.0" max="1.0" label="Frame Based" type="percent" />
+
+        <slider id="strobeAmount" default="0.0" min="0.0" max="1.0" label="Strobe Amount" type="percent" />
+
+        <slider id="strobeWidth" default="0.5" min="0.02" max="0.98" step="0.01" label="Strobe Width" />
+
+        
+
+        <slider id="redAmount" default="1.0" min="0.0" max="3.0" step="0.01" label="Red Amount" />
+
+        <slider id="greenAmount" default="1.0" min="0.0" max="3.0" step="0.01" label="Green Amount" />
+
+        <slider id="blueAmount" default="1.0" min="0.0" max="3.0" step="0.01" label="Blue Amount" />
+
+        
+
+        <slider id="baseBrightness" default="1.0" min="0.0" max="3.0" step="0.01" label="Base Brightness" />
+
+        <slider id="contrast" default="1.0" min="0.0" max="3.0" step="0.01" label="Contrast" />
+
+        <slider id="saturation" default="1.0" min="0.0" max="3.0" step="0.01" label="Saturation" />
+
+        <slider id="seed" default="0.0" min="0.0" max="999.0" step="1.0" label="Seed" />
+
+        <slider id="blend" default="1.0" min="0.0" max="1.0" label="Blend" type="percent" />
+    </params>
+
+    <shader type="fragment" precision="high">
+
+        float hash(float n) {
+            return fract(sin(n * 12.9898 + seed * 78.233) * 43758.5453123);
+        }
+
+        float hash2(float n, float s) {
+            return fract(sin(n * 17.371 + s * 91.713 + seed * 41.17) * 24634.6345);
+        }
+
+        float smoothNoise(float x) {
+            float i = floor(x);
+            float f = fract(x);
+
+            float a = hash(i);
+            float b = hash(i + 1.0);
+
+            f = f * f * (3.0 - 2.0 * f);
+
+            return mix(a, b, f);
+        }
+
+        vec3 saturateColor(vec3 col, float sat) {
+            float grey = dot(col, vec3(0.2126, 0.7152, 0.0722));
+            return mix(vec3(grey), col, sat);
+        }
+
+        vec3 applyContrast(vec3 col, float con) {
+            return (col - 0.5) * con + 0.5;
+        }
+
+        float getFlicker(float t) {
+            float timeValue = t * frequency + phase * 100.0;
+
+            float steppedTime = floor(timeValue);
+            float mixedTime = mix(timeValue, steppedTime, frameBased);
+
+            float hardRand = hash(floor(timeValue));
+            float softRand = smoothNoise(timeValue);
+
+            float randValue = mix(hardRand, softRand, smoothRandom);
+
+            float pulseValue = sin(timeValue * 6.2831853) * 0.5 + 0.5;
+
+            float randomPulse = pulseValue * randValue;
+
+            float finalFlicker = randValue;
+
+            if (flickerMode == 0) {
+                finalFlicker = hash(floor(mixedTime));
+            }
+            else if (flickerMode == 1) {
+                finalFlicker = smoothNoise(timeValue);
+            }
+            else if (flickerMode == 2) {
+                finalFlicker = pulseValue;
+            }
+            else if (flickerMode == 3) {
+                finalFlicker = randomPulse;
+            }
+
+            finalFlicker = mix(finalFlicker, smoothNoise(timeValue), smoothRandom * 0.5);
+
+            return finalFlicker;
+        }
+
+        void main() {
+            vec2 uv = acScreenNorm;
+            float t = acTime;
+
+            vec4 src = texture2DCv(inputImg.texture, uv);
+            vec3 col = src.rgb;
+
+            float flicker = getFlicker(t);
+
+            /*
+                AE/Sapphire-like brightness flicker:
+                flicker is remapped from 0..1 to -1..1,
+                then bias shifts the brightness direction.
+            */
+
+            float centered = (flicker - 0.5) * 2.0;
+            centered += bias;
+            centered = clamp(centered, -2.0, 2.0);
+
+            float brightnessMult = 1.0 + centered * brightnessAmp;
+
+            /*
+                Strobe simulation.
+            */
+
+            float strobePhase = fract((t * frequency) + phase);
+            float strobeMask = step(strobePhase, strobeWidth);
+            float strobeMult = mix(1.0, strobeMask * 2.0, strobeAmount);
+
+            brightnessMult *= strobeMult;
+
+            col *= baseBrightness;
+            col *= brightnessMult;
+
+            /*
+                Sapphire-style independent RGB flicker.
+            */
+
+            float rt = t * frequency + 13.1 + phase * 50.0;
+            float gt = t * frequency + 37.7 + phase * 80.0;
+            float bt = t * frequency + 91.3 + phase * 120.0;
+
+            float rNoise = mix(hash2(floor(rt), 1.0), smoothNoise(rt), smoothRandom);
+            float gNoise = mix(hash2(floor(gt), 2.0), smoothNoise(gt), smoothRandom);
+            float bNoise = mix(hash2(floor(bt), 3.0), smoothNoise(bt), smoothRandom);
+
+            float rFlick = 1.0 + ((rNoise - 0.5) * 2.0) * colorAmp * redAmount;
+            float gFlick = 1.0 + ((gNoise - 0.5) * 2.0) * colorAmp * greenAmount;
+            float bFlick = 1.0 + ((bNoise - 0.5) * 2.0) * colorAmp * blueAmount;
+
+            col *= vec3(rFlick, gFlick, bFlick);
+
+            col = applyContrast(col, contrast);
+            col = saturateColor(col, saturation);
+            col = clamp(col, 0.0, 1.0);
+
+            vec4 result = vec4(col, src.a);
+
+            gl_FragColor = mix(src, result, blend);
+        }
+
+    </shader>
+</effect>

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra3d.depth-fog" name="Luminance Fog" desc="Blends a fog color into the layer using per-pixel luminance as a pseudo-depth map, so darker areas receive more fog. Controls fog color, density, and an invert switch to fog bright areas instead." category="colorlight" thumb="thumb/Color/Luminance Fog.webp" tags="3d,fog,depth,atmosphere,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <color id="fog" default="#FFB9C7D6" label="Fog Color" alpha="false" />
+        <slider id="amount" default="0.6" min="0.0" max="1.0" label="Density" />
+        <switch id="invert" default="false" label="Invert Depth" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec4 src=texture2DCv(inputImg.texture, acScreenNorm);
+            vec3 c=src.a&gt;0.0? src.rgb/src.a : src.rgb;
+            float h=dot(c, vec3(0.299,0.587,0.114));
+            if(invert) h=1.0-h;
+            float f=(1.0-h)*amount;
+            gl_FragColor=vec4(mix(c, fog.rgb, f),1.0)*src.a;
+        }
+    </shader>
+
+</effect>

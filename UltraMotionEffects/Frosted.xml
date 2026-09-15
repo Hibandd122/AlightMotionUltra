@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect thumb="thumb/Blur and Sharpen/Frosted.webp" id="com.alightcreative.effects.frosted" name="Frosted" desc="Frosted-glass diffusion: averages three randomly offset samples of the layer per pixel, with Strength controlling the maximum offset distance and Alpha blending against the original." category="blur" tags="blur,raster" experimental="true" overdraw="true" max-overdraw="1.5">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="progressa" label="Strength" default="1.0" min="0" max="100.0" step="0.05" type="percent" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />
+
+    </params>
+    
+    <shader type="fragment" precision="high">
+
+    mat2 rot2m(float a){
+        
+	float s = sin(a);
+	float c = cos(a);
+	
+	return mat2(c, -s, s, c);
+    }
+    
+    vec2 l2s( vec2 v ) {
+        return (vec4(v,0.,1.)*acLayerToScreen).xy;
+    }
+    
+   #define fragCoord gl_FragCoord
+    
+   /////////////////////////
+   
+        // float dist = 4.0; // how far to sample from
+        // float progressa = 6.; // how many times to sample, more = smoother
+        
+        float rand(vec2 uv){
+         return fract(sin(dot(uv, vec2(12.9898,78.233)))*43578.5453);   
+        }
+
+   
+   /////////////////////////
+    void main ()
+    {
+            
+        vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+        vec4 texColorX = vec4(0.0,0.0,0.0,1.0) * texColor.a;
+        
+        vec2 umefx;
+        umefx = acScreenNorm; 
+
+    	vec4 fragColor;
+    	
+            vec2 uv = umefx;
+            // vec2 uv = fragCoord/iResolution.xy;
+            vec4 t = vec4(0.0);
+            
+            vec2 texel = 1.0 / inputImg.size;
+            vec2 d = texel * progressa;
+            
+            for(float i = 0.0; i &lt; 3.0; i++){
+            	
+        	float r1 = clamp(rand(uv * float(i))*2.0-1.0, -d.x, d.x);
+            	float r2 = clamp(rand(uv * float(i+3.0))*2.0-1.0, -d.y, d.y);
+            
+            	t += texture2DCv(inputImg.texture, uv + vec2(r1 , r2));
+            }
+            
+            t /= float(3.0);
+        
+            fragColor = t;
+            
+    	gl_FragColor = mix(texColor, fragColor, alpha) * texColor.a;
+    	// }
+    }
+
+
+    </shader>
+
+</effect>

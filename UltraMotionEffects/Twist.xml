@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.twist" name="Twist" desc="Rotates the layer around a point, twisting more strongly toward the center." category="warp" thumb="thumb/Distort and Warp/Twist.webp" tags="distort,twist,rotate,raster" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <point id="center" default="0,0" label="Center" />
+        <slider id="angle" default="180.0" min="-1080.0" max="1080.0" label="Angle" type="angle" step="1" />
+        <slider id="radius" default="0.5" min="0.05" max="1.2" label="Radius" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        void main(){
+            vec2 ctr = center/1000.0 + 0.5;
+            vec2 d = acScreenNorm - ctr;
+            d.x *= acScreenSize.x/acScreenSize.y;
+            float r = length(d);
+            float a = radians(angle) * (1.0 - smoothstep(0.0, radius, r));
+            float s=sin(a), co=cos(a);
+            d = mat2(co,-s,s,co)*d;
+            d.x /= acScreenSize.x/acScreenSize.y;
+            gl_FragColor = texture2DCv(inputImg.texture, ctr+d);
+        }
+    </shader>
+
+</effect>

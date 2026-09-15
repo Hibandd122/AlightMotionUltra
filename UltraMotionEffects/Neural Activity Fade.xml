@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.neural_activity" name="Neural Activity Fade" desc="Overlays an animated web-like light field (iterated rotated distance functions with radial ripple) that cyclically fades the layer toward a second texture or a flat color. Controls include time, rotation speed, ripple frequency/amount and fade speed/range." category="procedural" thumb="thumb/Stylize/Neural Activity Fade.webp" tags="neural,fade,animated,shadertoy">
+
+  <params>
+    <texture id="inputA" srcType="content" />
+    <texture id="inputB" srcType="content" />
+
+    
+    <slider id="phase" default="0.0" min="-10000.0" max="10000.0" step="0.01" label="Time" />
+    <slider id="timeScale" default="1.0" min="0.0" max="10.0" step="0.01" label="Time Scale" />
+    <slider id="rotSpeed" default="0.055" min="0.0" max="1.0" step="0.001" label="Rotate Speed" />
+    <slider id="rippleFreq" default="5.0" min="0.0" max="20.0" step="0.01" label="Ripple Freq" />
+    <slider id="rippleAmt" default="0.4" min="0.0" max="2.0" step="0.01" label="Ripple Amount" />
+    <slider id="fadeSpeed" default="0.5" min="0.0" max="5.0" step="0.01" label="Fade Speed" />
+    <slider id="fadeMin" default="0.01" min="0.0" max="1.0" step="0.001" label="Fade Min" />
+    <slider id="fadeMax" default="0.15" min="0.0" max="1.0" step="0.001" label="Fade Max" />
+
+    
+    <menu id="useSecondTexture" default="1" style="dropdown" label="Use Second Texture">
+      <menu label="Color" value="0" />
+      <menu label="Texture" value="1" />
+    </menu>
+    <color id="altColor" default="#FFFFFFFF" label="Alt Color" />
+
+    
+    <slider id="opacity" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    mat2 rot(float a){
+      float c = cos(a);
+      float s = sin(a);
+      return mat2(c, s, -s, c);
+    }
+
+    float fx(vec2 uv,float fadetime,float tt){
+      float light = 0.05;
+      float rip = 0.5+sin(length(uv)*rippleFreq+tt)*0.5;
+      rip = 1.0+rip*rippleAmt;
+      uv*=rip*0.5;
+      uv *= rot(tt*rotSpeed);
+
+      float vv2 = smoothstep(0.0,0.45,fadetime);
+      float vv = mix(fadeMin,fadeMax,fadetime);
+
+      float tth = tt*0.5;
+      for (int i=0;i&lt;12;i++){
+        float x = 1.5 + 2.0*float(i);
+        uv *= rot(x*4.0+length(uv)*0.126*sin(tth*0.05));
+        vec2 f = vec2(cos(cos(tth*0.6+x + uv.x * x) - uv.y * dot(vec2(x + uv.y), vec2(sin(x), cos(x)))));
+        light += (vv / distance(uv, f)) - (0.01 * distance(vec2((cos(tth*0.3 + uv.y))), vec2(uv)));
+        light-=x*0.001 + 0.001;
+      }
+
+      light = clamp(light,0.0,1.0);
+      return light*vv2;
+    }
+
+    void main(){
+      vec2 res = acScreenSize;
+      vec2 uv = acScreenNorm;
+      vec4 a = texture2DCv(inputA.texture, uv);
+      vec4 bTex = texture2DCv(inputB.texture, uv);
+      vec3 bCol = (int(useSecondTexture)==1) ? bTex.rgb : altColor.rgb;
+
+      float tt = phase * timeScale;
+      vec2 uvC = (uv*res - 0.5*res)/max(res.y,1.0);
+      float fadetime = 0.5+sin(tt*fadeSpeed)*0.5;
+      float fade = fx(uvC,fadetime,tt);
+
+      vec3 outRGB = mix(a.rgb, bCol, fade);
+      float aOut = a.a * opacity;
+      gl_FragColor = vec4(outRGB, 1.0) * aOut;
+    }
+  </shader>
+
+</effect>

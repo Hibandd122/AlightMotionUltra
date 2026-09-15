@@ -1,0 +1,96 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.custom.effects.multiscalesharpen" name="Multi-Scale Sharpen" desc="Sharpens by isolating four frequency bands with difference-of-Gaussians (4-tap blurs at increasing radii) and re-adding them with per-band weights. Includes an edge threshold gate, separate luma/chroma sharpening via YIQ, and per-RGB-channel gain." category="colorlight" thumb="thumb/Color/Multi-Scale Sharpen.webp" tags="sharpen,enhance,detail" overdraw="true" max-overdraw="1.0">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+    <slider id="sharpenAmp" default="0.30" min="0.0" max="1000.0" step="0.01" label="Sharpen Amp" />
+    <slider id="edgeThreshold" default="0.00" min="0.0" max="0.5" step="0.01" label="Edge Threshold" />
+    <slider id="smallDetailSize" default="1.70" min="0.1" max="1000.0" step="0.01" label="Small Detail Size" />
+    <slider id="scaleTiny" default="10.00" min="0.0" max="1000.0" step="0.1" label="Scale Tiny Details" />
+    <slider id="scaleSmall" default="10.00" min="0.0" max="1000.0" step="0.1" label="Scale Small Details" />
+    <slider id="scaleMedium" default="0.00" min="0.0" max="1000.0" step="0.1" label="Scale Medium Details" />
+    <slider id="scaleLarge" default="10.00" min="0.0" max="1000.0" step="0.1" label="Scale Large Details" />
+    <slider id="sharpenLuma" default="1.20" min="0.0" max="3.0" step="0.01" label="Sharpen Luma" />
+    <slider id="sharpenChroma" default="1.00" min="0.0" max="3.0" step="0.01" label="Sharpen Chroma" />
+    <slider id="sharpenRed" default="1.02" min="0.0" max="3.0" step="0.01" label="Sharpen Red" />
+    <slider id="sharpenGreen" default="1.00" min="0.0" max="3.0" step="0.01" label="Sharpen Green" />
+    <slider id="sharpenBlue" default="1.00" min="0.0" max="3.0" step="0.01" label="Sharpen Blue" />
+  </params>
+
+  <shader type="fragment" group="0" precision="high">
+    // Color space conversion tools
+    const vec3 kY = vec3(0.299, 0.587, 0.114);
+    const vec3 kI = vec3(0.596, -0.275, -0.321);
+    const vec3 kQ = vec3(0.212, -0.523, 0.311);
+
+    vec3 rgb2yiq(vec3 rgb) {
+        return vec3(dot(rgb, kY), dot(rgb, kI), dot(rgb, kQ));
+    }
+
+    vec3 yiq2rgb(vec3 yiq) {
+        vec3 rgb;
+        rgb.r = yiq.x + 0.956 * yiq.y + 0.621 * yiq.z;
+        rgb.g = yiq.x - 0.272 * yiq.y - 0.647 * yiq.z;
+        rgb.b = yiq.x - 1.105 * yiq.y + 1.702 * yiq.z;
+        return rgb;
+    }
+
+    // Simple 4-tap blur for performance
+    vec3 getBlur(vec2 uv, float radius) {
+        vec2 off = vec2(radius) / acScreenSize;
+        vec3 acc = texture2DCv(inputImg.texture, uv + vec2(-off.x, -off.y)).rgb;
+        acc += texture2DCv(inputImg.texture, uv + vec2( off.x, -off.y)).rgb;
+        acc += texture2DCv(inputImg.texture, uv + vec2(-off.x,  off.y)).rgb;
+        acc += texture2DCv(inputImg.texture, uv + vec2( off.x,  off.y)).rgb;
+        return acc * 0.25;
+    }
+
+    void main() {
+        vec2 uv = acScreenNorm;
+        
+        // Base image
+        vec3 c0 = texture2DCv(inputImg.texture, uv).rgb;
+        
+        // --- MULTI-SCALE BANDPASS CALCULATION ---
+        float s = smallDetailSize;
+        
+        // Generate blurred layers
+        vec3 bTiny  = getBlur(uv, s * 0.5);
+        vec3 bSmall = getBlur(uv, s * 1.0);
+        vec3 bMed   = getBlur(uv, s * 2.0);
+        vec3 bLarge = getBlur(uv, s * 4.0);
+        
+        // Isolate frequency bands (Difference of Gaussians approx)
+        vec3 dTiny  = c0 - bTiny;
+        vec3 dSmall = bTiny - bSmall;
+        vec3 dMed   = bSmall - bMed;
+        vec3 dLarge = bMed - bLarge;
+        
+        // Combine bands with user weights
+        vec3 detail = dTiny * scaleTiny 
+                    + dSmall * scaleSmall 
+                    + dMed * scaleMedium 
+                    + dLarge * scaleLarge;
+                    
+        // --- THRESHOLDING ---
+        float detailLuma = dot(abs(detail), kY);
+        float gate = smoothstep(edgeThreshold, edgeThreshold + 0.05, detailLuma);
+        detail *= gate;
+
+        // --- LUMA / CHROMA SEPARATION ---
+        vec3 detailYIQ = rgb2yiq(detail);
+        detailYIQ.x *= sharpenLuma;      // Y (Luma)
+        detailYIQ.y *= sharpenChroma;    // I (Chroma)
+        detailYIQ.z *= sharpenChroma;    // Q (Chroma)
+        detail = yiq2rgb(detailYIQ);
+        
+        // --- RGB CHANNELS ---
+        detail *= vec3(sharpenRed, sharpenGreen, sharpenBlue);
+        
+        // --- FINAL COMPOSITION ---
+        vec3 result = c0 + detail * sharpenAmp;
+        
+        gl_FragColor = vec4(result, 1.0);
+    }
+  </shader>
+</effect>

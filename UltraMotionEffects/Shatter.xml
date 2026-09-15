@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra2.shatter" name="Shatter" desc="Divides the screen into a square grid and offsets each cell's sampling position by a static random amount, resembling shattered glass. Tile Count sets grid density and Displacement the offset strength." category="warp" thumb="thumb/Distort and Warp/Shatter.webp" tags="distort,glitch,shatter,raster" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="size" default="16.0" min="4.0" max="60.0" label="Tile Count" />
+        <slider id="amount" default="0.4" min="0.0" max="1.0" label="Displacement" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+        void main(){
+            vec2 cell = floor(acScreenNorm*size);
+            vec2 r = vec2(rand(cell), rand(cell+7.13)) - 0.5;
+            vec2 uv = acScreenNorm + r*amount*0.12;
+            gl_FragColor = texture2DCv(inputImg.texture, clamp(uv,0.0,1.0));
+        }
+    </shader>
+
+</effect>

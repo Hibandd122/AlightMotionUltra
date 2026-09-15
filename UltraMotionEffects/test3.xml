@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.test3" name="@string/name" desc="@string/desc" deprecated="true" thumb="thumb/efek.png" category="other">
+
+    
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+    </params>
+
+    <shader type="fragment">
+
+        void main() {
+            gl_FragColor = texture2DCv(inputImg.texture,acScreenNorm)*((sin(acTime)+1.0)/2.0);
+        }
+
+    </shader>
+
+</effect>

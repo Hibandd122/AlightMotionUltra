@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.jitter" name="@am:string/effect_jitter_name" desc="@am:string/effect_jitter_desc" auto-transform="true" category="movetransform" tags="transform,shake,propAdjust,parenting,camera" thumb="thumb/jitter.webp">
+
+    <params>
+        <slider id="angle" default="45" min="0.0" max="180.0" label="@am:string/effect_param_angle" type="angle" />
+        <slider id="freq" default="30.0" min="1.0" max="60.0" label="@am:string/effect_param_freq" />
+        <slider id="mag" default="25" min="1" max="2000" label="@am:string/effect_param_mag" />
+        <slider id="seed" default="0" min="0" max="10" label="@am:string/effect_param_seed" />
+        <slider id="slack" min="0" max="1" step="0.01" default="0.0" label="@am:string/effect_param_slack" type="percent" />
+        <slider id="zjitter" min="0" max="2000" step="1" default="0" label="@am:string/effect_param_jitter_z" />
+    </params>
+
+    
+
+</effect>

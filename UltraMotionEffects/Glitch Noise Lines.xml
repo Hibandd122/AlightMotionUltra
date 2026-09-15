@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.glitch_noise_lines" name="Glitch Noise Lines" desc="Horizontal glitch displacement driven by simplex noise, with random line interference, a scanline-style darkening pattern, and noise-scaled RGB channel shift. Speed animates the noise; Displace, Interference, and Chroma Shift set the strengths." category="procedural" tags="distort, noise, glitch" thumb="thumb/Distort and Warp/Glitch Noise Lines.webp" overdraw="true" max-overdraw="1.0">
+
+    <params>
+        
+        <slider id="SPEED" label="Speed" default="2.0" min="0.0" max="5.0" step="0.01" type="float" />
+        <slider id="DISPLACE" label="Displace" default="0.25" min="0.0" max="1.0" step="0.005" type="float" />
+        <slider id="INTERF" label="Interference" default="0.30" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="SHIFT" label="Chroma Shift" default="0.05" min="0.0" max="0.2" step="0.005" type="float" />
+        <slider id="LINE_SCALE" label="Line Scale (1/px)" default="0.25" min="0.05" max="2.0" step="0.05" type="float" />
+        <texture id="inputImg" srcType="content" />
+    </params>
+
+    <shader type="fragment" precision="high">
+// Ported from Ashima simplex noise snippet + Shadertoy glitch logic
+
+vec3 mod289(vec3 x){ return x - floor(x * (1.0/289.0)) * 289.0; }
+vec2 mod289(vec2 x){ return x - floor(x * (1.0/289.0)) * 289.0; }
+vec3 permute(vec3 x){ return mod289(((x*34.0)+1.0)*x); }
+
+float snoise(vec2 v){
+    const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                        -0.577350269189626, 0.024390243902439);
+    vec2 i  = floor(v + dot(v, C.yy));
+    vec2 x0 = v - i + dot(i, C.xx);
+    vec2 i1 = (x0.x &gt; x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz; x12.xy -= i1;
+    i = mod289(i);
+    vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+                    + i.x + vec3(0.0, i1.x, 1.0 ));
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+    m = m*m; m = m*m;
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+    m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+    vec3 g; g.x = a0.x * x0.x + h.x * x0.y; g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+}
+
+float rand(vec2 co){ return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453); }
+
+void main(){
+    vec2 uv = acScreenNorm;                   // normalized [0..1]
+    vec2 fragCoord = uv * acScreenSize;       // pixel coords
+    float time = acTime * SPEED;
+
+    // Large incidental waves
+    float n = max(0.0, snoise(vec2(time, uv.y * 0.3)) - 0.3) * (1.0/0.7);
+    // Smaller constant waves
+    n += (snoise(vec2(time * 10.0, uv.y * 2.4)) - 0.5) * 0.15;
+
+    // Horizontal displacement
+    float xpos = uv.x - n * n * DISPLACE;
+    vec2 sUV = vec2(xpos, uv.y);
+
+    vec4 c = texture2DCv(inputImg.texture, clamp(sUV, 0.0, 1.0));
+
+    // Random line interference
+    c.rgb = mix(c.rgb, vec3(rand(vec2(uv.y * time))), n * INTERF);
+
+    // Line pattern every ~4px (controlled by LINE_SCALE)
+    if (floor(mod(fragCoord.y * LINE_SCALE, 2.0)) == 0.0) {
+        c.rgb *= 1.0 - (0.15 * n);
+    }
+
+    // Channel shifts (using red as base)
+    float sh = n * SHIFT;
+    float gx = clamp(xpos + sh, 0.0, 1.0);
+    float bx = clamp(xpos - sh, 0.0, 1.0);
+    c.g = mix(c.r, texture2DCv(inputImg.texture, vec2(gx, uv.y)).g, 0.25);
+    c.b = mix(c.r, texture2DCv(inputImg.texture, vec2(bx, uv.y)).b, 0.25);
+
+    gl_FragColor = c;
+}
+    </shader>
+</effect>

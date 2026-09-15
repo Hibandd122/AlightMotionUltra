@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.motion_impact_shake" name="Impact Shake" desc="UV transform driven by a damped sine envelope that starts at a trigger time and decays over a set duration, punching position, rotation and scale together. Frequency, Damping and Strength shape the envelope; Pivot, Mirror Edges, Auto Expand and an optional fixed repeat period control framing and retriggering." category="warp" tags="shake,impact,beat,punch,transform" thumb="thumb/Move and Transform/Impact Shake.webp">
+
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="triggerTime" default="0.0" min="-3600.0" max="3600.0" step="0.001" label="Trigger Time (s)" />
+    <slider id="duration" default="0.6" min="0.0" max="10.0" step="0.001" label="Duration (s)" />
+
+    
+    <slider id="frequency" default="6.0" min="0.1" max="60.0" step="0.01" label="Frequency (Hz)" />
+    <slider id="damping" default="6.0" min="0.0" max="20.0" step="0.01" label="Damping" />
+    <slider id="strength" default="1.0" min="0.0" max="5.0" step="0.01" label="Strength" />
+
+    
+    <slider id="ampPos" default="30.0" min="0.0" max="4000.0" step="0.1" label="Position (px)" />
+    <slider id="angle" default="0.0" min="-360.0" max="360.0" step="0.1" label="Direction Angle (deg)" />
+    <slider id="ampRot" default="8.0" min="0.0" max="360.0" step="0.01" label="Rotation (deg)" />
+    <slider id="ampScale" default="0.06" min="0.0" max="2.0" step="0.001" label="Scale" />
+
+    
+    <slider id="pivotX" default="0.5" min="0.0" max="1.0" step="0.001" label="Pivot X (0..1)" />
+    <slider id="pivotY" default="0.5" min="0.0" max="1.0" step="0.001" label="Pivot Y (0..1)" />
+    <switch id="mirrorEdges" default="true" label="Mirror Edges (reduce borders)" />
+    <slider id="expand" default="0.08" min="0.0" max="0.6" step="0.001" label="Auto Expand (relative)" />
+
+    
+    <switch id="enableRepeat" default="false" label="Enable Repeat" />
+    <slider id="repeatPeriod" default="1.0" min="0.01" max="60.0" step="0.001" label="Repeat Every (s)" />
+  </params>
+
+  <shader type="fragment" precision="high">
+    vec4 sampleTex(sampler2D t, vec2 uv){ return texture2DCv(t, uv); }
+    mat2 rot2(float a){ float s=sin(a), c=cos(a); return mat2(c,-s,s,c); }
+    vec2 mirror(vec2 uv){ return abs(fract(uv*0.5+0.5)*2.0-1.0); }
+
+    float envelope(float t, float freq, float damp, float dur){
+      if(t &lt; 0.0) return 0.0;
+      if(t &gt; dur) return 0.0;
+      float w = 6.28318530718 * freq;
+      return exp(-damp * t) * sin(w * t);
+    }
+
+    float repeatTime(float time, float trig, bool en, float period){
+      if(!en) return time - trig;
+      float tau = time - trig;
+      if(period &lt;= 0.0) return tau;
+      float m = floor(tau / period);
+      float local = tau - m * period;
+      return local;
+    }
+
+    void main(){
+      vec2 uv = acScreenNorm;
+
+      // Time since trigger (with optional repeat)
+      float tauBase = repeatTime(acTime, triggerTime, enableRepeat, repeatPeriod);
+      float env = envelope(tauBase, frequency, damping, duration) * strength;
+
+      // Directional position delta in pixels
+      float ang = radians(angle);
+      vec2 dir = vec2(cos(ang), sin(ang));
+      vec2 posPx = dir * ampPos * env;
+
+      // Rotation (deg) and scale
+      float rotDeg = ampRot * env;
+      float scl = 1.0 + ampScale * env;
+
+      // Convert pixel translation to UV
+      vec2 texSize = getTexSize(inputImg.size);
+      vec2 posUV = posPx / max(texSize, vec2(1.0));
+
+      // Pivot and auto expand
+      vec2 pivot = vec2(pivotX, pivotY);
+      float autoS = 1.0 + expand;
+
+      // Apply inverse transform to find source uv
+      float rot = radians(rotDeg);
+      vec2 rel = uv - pivot;
+      rel -= posUV;                // undo translation
+      rel = rot2(-rot) * rel;      // undo rotation
+      rel /= max(scl*autoS, 1e-6); // undo scale
+      vec2 srcUV = pivot + rel;
+
+      vec4 col;
+      if(mirrorEdges){
+        col = sampleTex(inputImg.texture, mirror(srcUV));
+      } else {
+        if(any(lessThan(srcUV, vec2(0.0))) || any(greaterThan(srcUV, vec2(1.0)))){
+          col = vec4(0.0);
+        } else {
+          col = sampleTex(inputImg.texture, srcUV);
+        }
+      }
+
+      gl_FragColor = col;
+    }
+  </shader>
+
+</effect>

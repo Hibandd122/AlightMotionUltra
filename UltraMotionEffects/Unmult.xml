@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.unmult" name="Unmult" desc="Removes black backgrounds by deriving alpha from the maximum RGB channel with threshold, softness and gamma shaping. Includes 5-tap feathering, matte choke/spread, optional luminance-preserving color unmultiply, and a matte preview mode." category="warp" tags="matte,alpha,unmult,cleanup" thumb="thumb/Matte and Mask/Unmult.webp" experimental="false">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="blackLevel" default="0" min="0" max="255" label="Black Level Threshold (0-255)" step="1" snap="1" />
+        <slider id="softness" default="1.00" min="0.0" max="1.0" label="Edge Softness" step="0.01" />
+        <slider id="featherPx" default="10.0" min="0.0" max="10.0" label="Feather (px)" step="0.1" />
+        <slider id="cleanupPx" default="0.0" min="-10.0" max="10.0" label="Matte Cleanup (Choke - / Spread +) px" step="0.1" />
+        <slider id="edgeGamma" default="1.0" min="0.5" max="3.0" label="Edge Gamma" step="0.05" />
+        <switch id="preserveLuma" default="false" label="Preserve Luminance (Unmult Color)" />
+        <switch id="previewMatte" default="false" label="Preview Matte" />
+        <slider id="quality" default="1" min="0" max="2" label="Quality (0 Low, 1 Med, 2 High)" step="1" snap="1" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Utility
+        vec3 toLinear(vec3 c){ return pow(max(c, 0.0), vec3(2.2)); }
+        vec3 toSRGB(vec3 c){ return pow(max(c, 0.0), vec3(1.0/2.2)); }
+
+        // Sample helpers
+        vec4 sampleImg(AC_ImageInfo img, vec2 uv){ return texture2DCv(img.texture, uv); }
+
+        float max3(vec3 v){ return max(v.r, max(v.g, v.b)); }
+
+        float getBaseAlpha(vec3 srgb, float thr, float soft, float gamma){
+            float m = max3(srgb);
+            float a = smoothstep(thr, thr + soft, m);
+            a = pow(clamp(a, 0.0, 1.0), gamma);
+            return a;
+        }
+
+        float featherAlpha(AC_ImageInfo img, vec2 uv, float baseA, vec2 px, float feather){
+            if (feather &lt;= 0.0001) return baseA;
+            float f = clamp(feather, 0.0, 10.0);
+            vec2 off = px * f;
+            // 5-tap cross blur for performance
+            vec3 cC = sampleImg(img, uv).rgb;
+            vec3 cL = sampleImg(img, uv - vec2(off.x, 0.0)).rgb;
+            vec3 cR = sampleImg(img, uv + vec2(off.x, 0.0)).rgb;
+            vec3 cT = sampleImg(img, uv - vec2(0.0, off.y)).rgb;
+            vec3 cB = sampleImg(img, uv + vec2(0.0, off.y)).rgb;
+            float aC = max3(cC);
+            float aL = max3(cL);
+            float aR = max3(cR);
+            float aT = max3(cT);
+            float aB = max3(cB);
+            float avg = (aC*0.4 + (aL+aR+aT+aB)*0.15);
+            return mix(baseA, avg, 0.75);
+        }
+
+        float cleanupAlpha(AC_ImageInfo img, vec2 uv, vec2 px, float pixels){
+            float p = abs(pixels);
+            if (p &lt; 0.001) return max3(sampleImg(img, uv).rgb);
+            vec2 off = px * p;
+            float aC = max3(sampleImg(img, uv).rgb);
+            float aL = max3(sampleImg(img, uv - vec2(off.x, 0.0)).rgb);
+            float aR = max3(sampleImg(img, uv + vec2(off.x, 0.0)).rgb);
+            float aT = max3(sampleImg(img, uv - vec2(0.0, off.y)).rgb);
+            float aB = max3(sampleImg(img, uv + vec2(0.0, off.y)).rgb);
+            float spread = max(aC, max(max(aL,aR), max(aT,aB))); // dilate
+            float choke  = min(aC, min(min(aL,aR), min(aT,aB))); // erode
+            return (pixels &gt;= 0.0) ? spread : choke;
+        }
+
+        void main(){
+            vec2 image_size = getTexSize(inputImg.size);
+            vec2 px = vec2(1.0) / max(vec2(image_size.x, image_size.y), 1.0);
+            vec2 uv = acScreenNorm.st;
+            vec4 col = sampleImg(inputImg, uv);
+
+            float thr = clamp(blackLevel / 255.0, 0.0, 1.0);
+            float soft = max(softness, 0.0) * 0.25; // map softness to a reasonable ramp width
+            float gamma = edgeGamma;
+
+            // Base alpha from max RGB with threshold + softness
+            float aBase = getBaseAlpha(col.rgb, thr, soft, gamma);
+
+            // Feathering
+            float aFeather = featherAlpha(inputImg, uv, aBase, px, featherPx);
+
+            // Matte cleanup (choke/spread). Blend with feathered alpha based on magnitude.
+            float aClean = cleanupAlpha(inputImg, uv, px, cleanupPx);
+            float mAmt = clamp(abs(cleanupPx)/10.0, 0.0, 1.0);
+            float aMatte = mix(aFeather, aClean, mAmt);
+
+            // Respect original alpha channel; output straight alpha
+            float aOut = aMatte * col.a;
+
+            // Unmult color to preserve luminance under reduced alpha (classic Unmult behavior)
+            vec3 unmultRGB = preserveLuma ? (col.rgb / max(aMatte, 1e-4)) : col.rgb;
+            unmultRGB = clamp(unmultRGB, 0.0, 1.0);
+
+            if (previewMatte) {
+                gl_FragColor = vec4(vec3(aOut), aOut);
+            } else {
+                gl_FragColor = vec4(unmultRGB, aOut);
+            }
+        }
+    </shader>
+
+</effect>

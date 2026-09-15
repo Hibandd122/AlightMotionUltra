@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.invert" name="@am:string/effect_invert_name" desc="@am:string/effect_invert_desc" category="colorlight" tags="color,glitch,raster" thumb="thumb/invert.jpg">
+
+    
+        
+            
+            
+            
+            
+            
+        
+    
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <switch id="invertRed" default="true" label="@am:string/effect_param_invertRed" />
+        <switch id="invertGreen" default="true" label="@am:string/effect_param_invertGreen" />
+        <switch id="invertBlue" default="true" label="@am:string/effect_param_invertBlue" />
+    </params>
+
+    <shader type="fragment">
+
+        void main() {
+            vec4 texColor = texture2DCv(inputImg.texture,acScreenNorm);
+            lowp float r = texColor.r;
+            lowp float g = texColor.g;
+            lowp float b = texColor.b;
+            lowp float a = texColor.a;
+            if(invertRed)   r = a-r;
+            if(invertGreen) g = a-g;
+            if(invertBlue)  b = a-b;
+            gl_FragColor = vec4(r,g,b,a);
+        }
+
+    </shader>
+
+</effect>

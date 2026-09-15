@@ -1,0 +1,152 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.cosmic_nebula" name="Cosmic Nebula" desc="Procedural space background: layered value-noise nebula mixed from three colors, plus four depth layers of animated stars with cross flares. Replaces the layer content; gamma and noise-overlay controls." category="procedural" tags="space, nebula, stars" thumb="thumb/Procedural/Cosmic Nebula.webp">
+
+    <params>
+        
+        <slider id="SPEED" label="Speed" default="0.1" min="0.0" max="2.0" step="0.001" type="float" />
+        <color id="COL1" label="Base Color 1" default="#000F3A" alpha="false" />
+        <color id="COL2" label="Base Color 2" default="#0E3153" alpha="false" />
+        <color id="COL3" label="Shadow Color" default="#171617" alpha="false" />
+
+        
+        <slider id="STAR_FLARE" label="Star Flare" default="1.0" min="0.0" max="3.0" step="0.01" type="float" />
+        <slider id="STARS_VERY_DIST" label="Very Distant Count" default="8.0" min="0.0" max="16.0" step="1.0" type="float" />
+        <slider id="STARS_DIST" label="Distant Count" default="5.0" min="0.0" max="16.0" step="1.0" type="float" />
+        <slider id="STARS_MED" label="Medium Count" default="3.0" min="0.0" max="8.0" step="1.0" type="float" />
+        <slider id="STARS_CLOSE" label="Close Count" default="2.0" min="0.0" max="8.0" step="1.0" type="float" />
+
+        
+        <slider id="GAMMA" label="Gamma" default="0.8" min="0.2" max="2.2" step="0.01" type="float" />
+        <slider id="NOISE_OVERLAY" label="Noise Overlay" default="0.02" min="0.0" max="0.2" step="0.001" type="float" />
+
+        
+        <texture id="inputImg" srcType="content" />
+    </params>
+
+    <shader type="fragment" precision="high">
+// Cosmic Nebula port
+
+float hash(vec2 p){
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+float noise2d(vec2 p){
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+vec3 nebula(vec2 uv){
+    float t = acTime * SPEED;
+    vec3 col1 = COL1.rgb;
+    vec3 col2 = COL2.rgb;
+    vec3 col3 = COL3.rgb;
+
+    vec2 uv1 = uv * 2.0 + t;
+    vec2 uv2 = uv * 4.0 - t * 1.5;
+
+    float n1 = noise2d(uv1);
+    float n2 = noise2d(uv2);
+    float finalNoise = n1 * 0.6 + n2 * 0.4;
+
+    vec3 color = mix(col1, col2, finalNoise);
+    color = mix(color, col3, noise2d(uv * 3.0 + t * 0.7));
+    return color;
+}
+
+float starCore(vec2 uv, float flare, float depth){
+    float d = max(abs(uv.x), abs(uv.y));
+    float m = (0.02 * depth) / max(d, 1e-4);
+
+    float rayScale = min(acScreenSize.x, acScreenSize.y) / 1000.0;
+    float rayDensity = mix(200.0, 400.0, clamp(rayScale, 0.0, 1.0));
+
+    float rays = max(0.0, 1.0 - abs(uv.x * uv.y * rayDensity));
+    rays = smoothstep(0.0, 1.0, rays);
+    m += rays * flare * depth * 1.5;
+    return m;
+}
+
+void main(){
+    vec2 R = acScreenSize;
+    vec2 frag = acScreenNorm * R;
+    vec2 uv = (frag - 0.5 * R) / max(R.y, 1.0);
+
+    vec3 color = nebula(uv);
+
+    float time = acTime * 0.2;
+    float timeSlowA = time * 0.02;
+    float timeSlowB = time * 0.05;
+    float timeSlowC = time * 0.1;
+    float timeSlowD = time * 0.15;
+
+    int vcnt = int(clamp(STARS_VERY_DIST, 0.0, 32.0));
+    int dcnt = int(clamp(STARS_DIST, 0.0, 32.0));
+    int mcnt = int(clamp(STARS_MED, 0.0, 32.0));
+    int ccnt = int(clamp(STARS_CLOSE, 0.0, 32.0));
+    float flare = STAR_FLARE;
+
+    // Very distant tiny stars
+    for (int i = 0; i &lt; 32; i++){
+        if (i &gt;= vcnt) break;
+        float ii = float(i) * 0.3;
+        vec2 starPos = vec2(
+            noise2d(vec2(ii, timeSlowA)),
+            noise2d(vec2(ii + 42.0, timeSlowA))
+        ) * 2.0 - 1.0;
+        float depth = 0.1 + hash(vec2(float(i) * 2.0, 0.0)) * 0.1;
+        color += vec3(0.6, 0.6, 0.7) * starCore(uv - starPos, 0.5 * flare, depth) * (0.2 + 0.2 * sin(time + float(i)));
+    }
+
+    // Distant stars
+    for (int i = 0; i &lt; 32; i++){
+        if (i &gt;= dcnt) break;
+        float ii = float(i) * 0.5;
+        vec2 starPos = vec2(
+            noise2d(vec2(ii, timeSlowB)),
+            noise2d(vec2(ii + 42.0, timeSlowB))
+        ) * 2.0 - 1.0;
+        float depth = 0.3 + hash(vec2(float(i) * 2.0, 0.0)) * 0.2;
+        color += vec3(0.8, 0.7, 0.6) * starCore(uv - starPos, 0.8 * flare, depth) * (0.3 + 0.3 * sin(time + float(i)));
+    }
+
+    // Medium distance stars
+    for (int i = 0; i &lt; 32; i++){
+        if (i &gt;= mcnt) break;
+        float ii = (float(i) + 5.0) * 0.7;
+        vec2 starPos = vec2(
+            noise2d(vec2(ii, timeSlowC)),
+            noise2d(vec2(ii + 42.0, timeSlowC))
+        ) * 2.0 - 1.0;
+        float depth = 0.6 + hash(vec2((float(i) + 5.0) * 2.0, 0.0)) * 0.2;
+        color += vec3(0.9, 0.8, 0.7) * starCore(uv - starPos, 1.0 * flare, depth) * (0.4 + 0.4 * sin(time + float(i)));
+    }
+
+    // Close stars
+    for (int i = 0; i &lt; 32; i++){
+        if (i &gt;= ccnt) break;
+        float idx = float(i) + 8.0;
+        vec2 starPos = vec2(
+            noise2d(vec2(idx, timeSlowD)),
+            noise2d(vec2(idx + 42.0, timeSlowD))
+        ) * 2.0 - 1.0;
+        float depth = 0.9 + hash(vec2(idx * 2.0, 0.0)) * 0.2;
+        color += vec3(1.0, 0.9, 0.8) * starCore(uv - starPos, 1.2 * flare, depth) * (0.5 + 0.5 * sin(time + idx));
+    }
+
+    color += vec3(hash(uv * 50.0 + time)) * NOISE_OVERLAY;
+
+    color = pow(max(color, 0.0), vec3(GAMMA));
+    color = clamp(color, 0.0, 1.0);
+
+    gl_FragColor = vec4(color, 1.0);
+}
+    </shader>
+</effect>

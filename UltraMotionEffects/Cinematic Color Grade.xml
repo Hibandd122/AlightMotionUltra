@@ -1,0 +1,422 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.colorblend" name="Cinematic Color Grade" desc="Multi-stage color grading suite: color wash with blend modes, shadow/midtone/highlight zone tinting, pop controls (contrast, saturation, vibrance, punch, clarity), print film emulation (bleach bypass, cross process, fade, density), matte-look lift/crush, temperature/tint, exposure with highlight/shadow recovery, per-channel gain/gamma and HSL-based skin tone protection." category="colorlight" tags="color,film,cinematic,wash,pop,grade" thumb="thumb/Color/Cinematic Color Grade.webp">
+    <params>
+        <texture id="inputImg" srcType="content" />
+
+        
+        <color id="washColor" label="Wash Color" default="#FF8844" alpha="false" />
+        <slider id="washStrength" label="Wash Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="washPreserveLum" label="Preserve Luminance" default="0.7" min="0.0" max="1.0" step="0.01" type="float" />
+        <menu id="washBlendMode" style="dropdown" default="1" label="Wash Blend">
+            <menu label="Normal" value="1" />
+            <menu label="Multiply" value="2" />
+            <menu label="Screen" value="3" />
+            <menu label="Overlay" value="4" />
+            <menu label="Soft Light" value="5" />
+            <menu label="Color" value="6" />
+        </menu>
+
+        
+        <color id="shadowColor" label="Shadow Color" default="#1A2540" alpha="false" />
+        <slider id="shadowColorStr" label="Shadow Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="shadowThreshold" label="Shadow Threshold" default="0.3" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="shadowSoftness" label="Shadow Softness" default="0.2" min="0.01" max="0.5" step="0.01" type="float" />
+
+        
+        <color id="midtoneColor" label="Midtone Color" default="#AA8866" alpha="false" />
+        <slider id="midtoneColorStr" label="Midtone Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="midtoneRange" label="Midtone Range" default="0.3" min="0.1" max="0.5" step="0.01" type="float" />
+
+        
+        <color id="highlightColor" label="Highlight Color" default="#FFE8CC" alpha="false" />
+        <slider id="highlightColorStr" label="Highlight Strength" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="highlightThreshold" label="Highlight Threshold" default="0.7" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="highlightSoftness" label="Highlight Softness" default="0.2" min="0.01" max="0.5" step="0.01" type="float" />
+
+        
+        <slider id="popContrast" label="Pop Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="popSaturation" label="Pop Saturation" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="popVibrance" label="Pop Vibrance" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="popPunch" label="Pop Punch" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="popClarity" label="Pop Clarity" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+
+        
+        <slider id="printContrast" label="Print Contrast" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="printBleach" label="Bleach Bypass" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="printCrossProcess" label="Cross Process" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="printFade" label="Print Fade" default="0.0" min="0.0" max="100.0" step="1.0" type="float" />
+        <slider id="printDensity" label="Print Density" default="0.0" min="-50.0" max="50.0" step="1.0" type="float" />
+
+        
+        <slider id="matteBlacks" label="Matte Blacks" default="0.0" min="0.0" max="0.3" step="0.005" type="float" />
+        <slider id="matteWhites" label="Matte Whites" default="0.0" min="0.0" max="0.3" step="0.005" type="float" />
+        <slider id="matteCurve" label="Matte S-Curve" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="matteGamma" label="Matte Gamma" default="1.0" min="0.3" max="3.0" step="0.05" type="float" />
+
+        
+        <slider id="temperature" label="Temperature" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="tint" label="Tint" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+
+        
+        <slider id="exposure" label="Exposure" default="0.0" min="-5.0" max="5.0" step="0.05" type="float" />
+        <slider id="highlights" label="Highlights" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+        <slider id="shadows" label="Shadows" default="0.0" min="-100.0" max="100.0" step="1.0" type="float" />
+
+        
+        <slider id="redGain" label="Red Gain" default="1.0" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="greenGain" label="Green Gain" default="1.0" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="blueGain" label="Blue Gain" default="1.0" min="0.0" max="2.0" step="0.01" type="float" />
+        <slider id="redGamma" label="Red Gamma" default="1.0" min="0.3" max="3.0" step="0.01" type="float" />
+        <slider id="greenGamma" label="Green Gamma" default="1.0" min="0.3" max="3.0" step="0.01" type="float" />
+        <slider id="blueGamma" label="Blue Gamma" default="1.0" min="0.3" max="3.0" step="0.01" type="float" />
+
+        
+        <slider id="skinProtect" label="Skin Protection" default="0.0" min="0.0" max="1.0" step="0.01" type="float" />
+        <slider id="skinHueCenter" label="Skin Hue" default="0.08" min="0.0" max="1.0" step="0.005" type="float" />
+        <slider id="skinHueRange" label="Skin Range" default="0.06" min="0.01" max="0.2" step="0.005" type="float" />
+
+        
+        <slider id="globalMix" label="Global Mix" default="1.0" min="0.0" max="1.0" step="0.01" type="percent" />
+    </params>
+    <passes>
+        <pass />
+    </passes>
+    
+        <shader type="fragment" precision="high">
+    #define EPS 0.00001
+    #define PI 3.14159265359
+    float lum(vec3 c) {
+        return dot(c, vec3(0.2126, 0.7152, 0.0722));
+    }
+    vec3 rgb2hsl(vec3 c) {
+        float mx = max(c.r, max(c.g, c.b));
+        float mn = min(c.r, min(c.g, c.b));
+        float l = (mx + mn) * 0.5;
+        float d = mx - mn;
+        float s = 0.0;
+        float h = 0.0;
+        if (d &gt; EPS) {
+            s = (l &gt; 0.5) ? d / max(2.0 - mx - mn, EPS) : d / max(mx + mn, EPS);
+            if (mx == c.r) { h = (c.g - c.b) / d + (c.g &lt; c.b ? 6.0 : 0.0); }
+            else if (mx == c.g) { h = (c.b - c.r) / d + 2.0; }
+            else { h = (c.r - c.g) / d + 4.0; }
+            h /= 6.0;
+        }
+        return vec3(h, s, l);
+    }
+    float h2r(float p, float q, float t) {
+        if (t &lt; 0.0) t += 1.0;
+        if (t &gt; 1.0) t -= 1.0;
+        if (t &lt; 1.0/6.0) return p + (q - p) * 6.0 * t;
+        if (t &lt; 0.5) return q;
+        if (t &lt; 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0;
+        return p;
+    }
+    vec3 hsl2rgb(vec3 c) {
+        if (c.y &lt; EPS) return vec3(c.z);
+        float q = (c.z &lt; 0.5) ? c.z * (1.0 + c.y) : c.z + c.y - c.z * c.y;
+        float p = 2.0 * c.z - q;
+        return vec3(h2r(p,q,c.x+1.0/3.0), h2r(p,q,c.x), h2r(p,q,c.x-1.0/3.0));
+    }
+    float getSkinMask(vec3 rgb) {
+        if (skinProtect &lt; EPS) return 0.0;
+        vec3 hsl = rgb2hsl(rgb);
+        float hueDist = abs(hsl.x - skinHueCenter);
+        hueDist = min(hueDist, 1.0 - hueDist);
+        float mask = smoothstep(skinHueRange, skinHueRange * 0.3, hueDist);
+        mask *= smoothstep(0.15, 0.35, hsl.y);
+        mask *= smoothstep(0.1, 0.3, hsl.z) * (1.0 - smoothstep(0.8, 0.95, hsl.z));
+        return mask * skinProtect;
+    }
+    vec3 blendWash(vec3 base, vec3 wash, float mode) {
+        if (mode &lt; 1.5) {
+            return wash;
+        }
+        if (mode &lt; 2.5) {
+            return base * wash;
+        }
+        if (mode &lt; 3.5) {
+            return 1.0 - (1.0 - base) * (1.0 - wash);
+        }
+        if (mode &lt; 4.5) {
+            vec3 r;
+            r.r = (base.r &lt; 0.5) ? 2.0*base.r*wash.r : 1.0-2.0*(1.0-base.r)*(1.0-wash.r);
+            r.g = (base.g &lt; 0.5) ? 2.0*base.g*wash.g : 1.0-2.0*(1.0-base.g)*(1.0-wash.g);
+            r.b = (base.b &lt; 0.5) ? 2.0*base.b*wash.b : 1.0-2.0*(1.0-base.b)*(1.0-wash.b);
+            return r;
+        }
+        if (mode &lt; 5.5) {
+            vec3 r;
+            r.r = (wash.r&lt;0.5) ? 2.0*base.r*wash.r+base.r*base.r*(1.0-2.0*wash.r) : 2.0*base.r*(1.0-wash.r)+sqrt(max(base.r,0.0))*(2.0*wash.r-1.0);
+            r.g = (wash.g&lt;0.5) ? 2.0*base.g*wash.g+base.g*base.g*(1.0-2.0*wash.g) : 2.0*base.g*(1.0-wash.g)+sqrt(max(base.g,0.0))*(2.0*wash.g-1.0);
+            r.b = (wash.b&lt;0.5) ? 2.0*base.b*wash.b+base.b*base.b*(1.0-2.0*wash.b) : 2.0*base.b*(1.0-wash.b)+sqrt(max(base.b,0.0))*(2.0*wash.b-1.0);
+            return r;
+        }
+        // Color blend — hue+sat from wash, lum from base
+        vec3 washHSL = rgb2hsl(wash);
+        vec3 baseHSL = rgb2hsl(base);
+        return hsl2rgb(vec3(washHSL.x, washHSL.y, baseHSL.z));
+    }
+    vec3 applyColorWash(vec3 rgb) {
+        if (washStrength &lt; EPS) return rgb;
+        float baseLum = lum(rgb);
+        vec3 washed = blendWash(rgb, washColor.rgb, float(washBlendMode));
+        washed = mix(rgb, washed, washStrength);
+        if (washPreserveLum &gt; EPS) {
+            float washedLum = lum(washed);
+            if (washedLum &gt; EPS) {
+                washed *= mix(1.0, baseLum / washedLum, washPreserveLum);
+            }
+        }
+        return washed;
+    }
+    vec3 applyZoneColors(vec3 rgb) {
+        float l = lum(rgb);
+        // Shadow zone
+        if (shadowColorStr &gt; EPS) {
+            float shMask = 1.0 - smoothstep(shadowThreshold - shadowSoftness, shadowThreshold + shadowSoftness, l);
+            shMask *= shMask;
+            vec3 shTinted = mix(rgb, rgb * shadowColor.rgb, shadowColorStr);
+            float origLum = lum(rgb);
+            float tintLum = lum(shTinted);
+            if (tintLum &gt; EPS) {
+                shTinted *= origLum / tintLum;
+            }
+            rgb = mix(rgb, shTinted, shMask);
+        }
+        // Midtone zone
+        if (midtoneColorStr &gt; EPS) {
+            float midMask = 1.0 - abs(l - 0.5) / max(midtoneRange, EPS);
+            midMask = clamp(midMask, 0.0, 1.0);
+            midMask *= midMask;
+            vec3 midTinted = mix(rgb, rgb * midtoneColor.rgb, midtoneColorStr);
+            float origLum = lum(rgb);
+            float tintLum = lum(midTinted);
+            if (tintLum &gt; EPS) {
+                midTinted *= origLum / tintLum;
+            }
+            rgb = mix(rgb, midTinted, midMask);
+        }
+        // Highlight zone
+        if (highlightColorStr &gt; EPS) {
+            float hlMask = smoothstep(highlightThreshold - highlightSoftness, highlightThreshold + highlightSoftness, l);
+            hlMask *= hlMask;
+            vec3 hlTinted = mix(rgb, rgb * highlightColor.rgb, highlightColorStr);
+            float origLum = lum(rgb);
+            float tintLum = lum(hlTinted);
+            if (tintLum &gt; EPS) {
+                hlTinted *= origLum / tintLum;
+            }
+            rgb = mix(rgb, hlTinted, hlMask);
+        }
+        return rgb;
+    }
+    vec3 applyPop(vec3 rgb) {
+        // Contrast
+        if (abs(popContrast) &gt; 0.5) {
+            float c = popContrast / 100.0;
+            float factor = 1.0 + c;
+            rgb = (rgb - 0.18) * factor + 0.18;
+            if (c &gt; 0.0) {
+                float s = c * 0.3;
+                rgb = rgb + s * (rgb - 0.5) * (1.0 - abs(rgb - 0.5) * 2.0);
+            }
+        }
+        // Saturation
+        if (abs(popSaturation) &gt; 0.5) {
+            float s = 1.0 + popSaturation / 100.0;
+            float l = lum(rgb);
+            rgb = mix(vec3(l), rgb, s);
+        }
+        // Vibrance
+        if (abs(popVibrance) &gt; 0.5) {
+            float v = popVibrance / 100.0;
+            float l = lum(rgb);
+            float sat = length(rgb - vec3(l));
+            float weight = 1.0 - clamp(sat * 3.0, 0.0, 1.0);
+            rgb = mix(vec3(l), rgb, 1.0 + v * weight);
+        }
+        // Punch — boosts saturation + contrast together
+        if (popPunch &gt; 0.5) {
+            float p = popPunch / 100.0;
+            float l = lum(rgb);
+            // Contrast punch
+            rgb = mix(rgb, (rgb - 0.18) * (1.0 + p * 0.5) + 0.18, p);
+            // Saturation punch
+            rgb = mix(vec3(l), rgb, 1.0 + p * 0.3);
+        }
+        // Clarity — midtone local contrast
+        if (abs(popClarity) &gt; 0.5) {
+            float c = popClarity / 100.0;
+            float l = lum(rgb);
+            float midMask = 1.0 - abs(l - 0.5) * 2.0;
+            midMask = max(midMask, 0.0);
+            float contrast = (l - 0.5) * c * 1.5 * midMask;
+            rgb += contrast;
+        }
+        return rgb;
+    }
+    vec3 applyPrintFilm(vec3 rgb) {
+        // Print contrast — S-curve
+        if (abs(printContrast) &gt; 0.5) {
+            float c = printContrast / 100.0;
+            float l = lum(rgb);
+            float sCurve = l + c * 0.5 * (l - 0.5) * (1.0 - abs(l - 0.5) * 2.0);
+            float ratio = sCurve / max(l, EPS);
+            rgb *= ratio;
+        }
+        // Bleach bypass
+        if (printBleach &gt; 0.5) {
+            float a = printBleach / 100.0;
+            float l = lum(rgb);
+            vec3 desat = vec3(l);
+            vec3 r;
+            r.r = (l &lt; 0.5) ? 2.0*rgb.r*desat.r : 1.0-2.0*(1.0-rgb.r)*(1.0-desat.r);
+            r.g = (l &lt; 0.5) ? 2.0*rgb.g*desat.g : 1.0-2.0*(1.0-rgb.g)*(1.0-desat.g);
+            r.b = (l &lt; 0.5) ? 2.0*rgb.b*desat.b : 1.0-2.0*(1.0-rgb.b)*(1.0-desat.b);
+            rgb = mix(rgb, r, a);
+        }
+        // Cross process
+        if (printCrossProcess &gt; 0.5) {
+            float a = printCrossProcess / 100.0;
+            vec3 cp;
+            cp.r = pow(max(rgb.r, 0.0), 0.8 + a * 0.3);
+            cp.g = pow(max(rgb.g, 0.0), 1.0 - a * 0.15);
+            cp.b = pow(max(rgb.b, 0.0), 1.2 - a * 0.1);
+            cp.r += a * 0.04;
+            cp.b -= a * 0.02;
+            rgb = mix(rgb, cp, a);
+        }
+        // Fade
+        if (printFade &gt; 0.5) {
+            float f = printFade / 100.0;
+            rgb = rgb * (1.0 - f * 0.15) + f * 0.12;
+            float l = lum(rgb);
+            rgb = mix(rgb, vec3(l), f * 0.2);
+        }
+        // Print density
+        if (abs(printDensity) &gt; 0.5) {
+            float d = printDensity / 100.0;
+            rgb = pow(max(rgb, 0.0), vec3(1.0 + d));
+        }
+        return rgb;
+    }
+    vec3 applyMatte(vec3 rgb) {
+        // Lift blacks
+        if (matteBlacks &gt; EPS) {
+            rgb = rgb * (1.0 - matteBlacks) + matteBlacks;
+        }
+        // Crush whites
+        if (matteWhites &gt; EPS) {
+            rgb = rgb * (1.0 - matteWhites);
+        }
+        // S-curve
+        if (abs(matteCurve) &gt; 0.5) {
+            float c = matteCurve / 100.0;
+            rgb = rgb + c * 0.3 * (rgb - 0.5) * (1.0 - abs(rgb - 0.5) * 2.0);
+        }
+        // Gamma
+        if (abs(matteGamma - 1.0) &gt; EPS) {
+            rgb = pow(max(rgb, 0.0), vec3(1.0 / max(matteGamma, EPS)));
+        }
+        return rgb;
+    }
+    vec3 applyTemperature(vec3 rgb) {
+        if (abs(temperature) &gt; 0.5) {
+            float t = temperature / 100.0 * 0.08;
+            rgb.r += t;
+            rgb.b -= t;
+            rgb.g += t * 0.15;
+        }
+        if (abs(tint) &gt; 0.5) {
+            float t = tint / 100.0 * 0.08;
+            rgb.g += t;
+            rgb.r -= t * 0.3;
+            rgb.b -= t * 0.3;
+        }
+        return rgb;
+    }
+    vec3 applyExposure(vec3 rgb) {
+        if (abs(exposure) &gt; EPS) {
+            rgb *= pow(2.0, exposure);
+        }
+        float l = lum(rgb);
+        if (abs(highlights) &gt; 0.5) {
+            float hlMask = smoothstep(0.5, 1.0, l);
+            hlMask *= hlMask;
+            float hlAdj = highlights / 100.0 * 0.4;
+            float origLum = max(l, EPS);
+            rgb *= max(l + hlAdj * hlMask, 0.0) / origLum;
+        }
+        if (abs(shadows) &gt; 0.5) {
+            float shMask = 1.0 - smoothstep(0.0, 0.5, l);
+            shMask *= shMask;
+            float shAdj = shadows / 100.0 * 0.4;
+            float origLum = max(l, EPS);
+            rgb *= max(l + shAdj * shMask, 0.0) / origLum;
+        }
+        return rgb;
+    }
+    vec3 applyChannelGains(vec3 rgb) {
+        rgb.r *= redGain;
+        rgb.g *= greenGain;
+        rgb.b *= blueGain;
+        if (abs(redGamma - 1.0) &gt; EPS) {
+            rgb.r = pow(max(rgb.r, 0.0), 1.0 / max(redGamma, EPS));
+        }
+        if (abs(greenGamma - 1.0) &gt; EPS) {
+            rgb.g = pow(max(rgb.g, 0.0), 1.0 / max(greenGamma, EPS));
+        }
+        if (abs(blueGamma - 1.0) &gt; EPS) {
+            rgb.b = pow(max(rgb.b, 0.0), 1.0 / max(blueGamma, EPS));
+        }
+        return rgb;
+    }
+    void main() {
+        vec2 uv = acScreenNorm;
+        vec4 original = texture2DCv(inputImg.texture, uv);
+        vec3 rgb = max(original.rgb, 0.0);
+        vec3 baseRGB = rgb;
+        float skinMask = getSkinMask(rgb);
+        vec3 preSkin = rgb;
+
+        // Temperature + Tint
+        rgb = applyTemperature(rgb);
+
+        // Exposure + Highlights/Shadows
+        rgb = applyExposure(rgb);
+
+        // Color Wash
+        rgb = applyColorWash(rgb);
+
+        // Zone Colors (Shadow/Midtone/Highlight)
+        rgb = applyZoneColors(rgb);
+
+        // Pop Controls
+        rgb = applyPop(rgb);
+
+        // Print Film
+        rgb = applyPrintFilm(rgb);
+
+        // Matte
+        rgb = applyMatte(rgb);
+
+        // Channel Gains
+        rgb = applyChannelGains(rgb);
+
+        // Skin Protection — blend back original skin
+        if (skinMask &gt; EPS) {
+            vec3 skinOnly = applyTemperature(preSkin);
+            skinOnly = applyExposure(skinOnly);
+            rgb = mix(rgb, skinOnly, skinMask);
+        }
+
+        // Global Mix
+        rgb = mix(baseRGB, rgb, globalMix);
+        rgb = clamp(rgb, 0.0, 1.0);
+
+        gl_FragColor = vec4(rgb, original.a);
+    }
+    </shader>
+    
+</effect>

@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.solid_color_wipe" name="Solid Color Wipe" desc="Fills the layer (respecting its alpha) with a solid color, revealed by a directional wipe with independent start/end positions, angle, and feather. Supports Normal, Multiply, and Screen blending with opacity control." category="colorlight" tags="extra" thumb="thumb/Color/Solid Color Wipe.webp" experimental="false">
+
+    <params>
+        
+        <texture id="inputImg" srcType="content" />
+
+        
+        <color id="fillColor" default="#FF000000" label="Color" />
+        <slider id="alpha" default="1.0" min="0.0" max="1.0" step="0.01" label="Opacity" type="percent" />
+        <menu id="blendMode" style="dropdown" label="Blend Mode">
+            <menu label="Normal" value="0" />
+            <menu label="Multiply" value="1" />
+            <menu label="Screen" value="2" />
+        </menu>
+
+        
+        
+        <slider id="start" default="0.0" min="-0.5" max="1.5" step="0.001" label="Start" type="percent" />
+        <slider id="end" default="1.0" min="-0.5" max="1.5" step="0.001" label="End" type="percent" />
+        <slider id="angle" default="0.0" min="0.0" max="3600.0" label="Angle" type="angle" step="0.5" ticks="0,45,90,135,180,225,270,315,360" snap="45,90,135" />
+        <slider id="feather" default="0.0" min="0.0" max="100.0" step="0.1" label="Feather" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        // Solid Color Wipe
+        // - Wipe in from start and end with feather, matching wipe2.xml math.
+        // - Blend like solidcolor.xml with Normal/Multiply/Screen and opacity.
+
+        float smoothstepRev(float edge0, float edge1, float x) {
+            if(edge0 == edge1) return step(edge0, x);
+            else return smoothstep(edge0, edge1, x);
+        }
+
+        void main(){
+            vec2 uv = acScreenNorm; // for sampling
+
+            // Wipe mask following wipe2.xml conventions
+            float adjStart = start;
+            float adjEnd = end;
+            float adjFeather = feather/100.0;
+            float rad = angle * 0.0174533;
+            vec2 v = normalize(vec2(cos(rad), -sin(rad)));
+            float p = dot(acLayerNorm.st - vec2(0.5, 0.5), v) + 0.5;
+            float p0 = smoothstepRev(adjStart - adjFeather, adjStart, p);
+            float p1 = 1.0 - smoothstepRev(adjEnd, adjEnd + adjFeather, p);
+            float mask = clamp(p0 * p1, 0.0, 1.0);
+
+            // Blend like solidcolor.xml
+            vec4 texColor = texture2DCv(inputImg.texture, uv);
+            vec4 result;
+            if( blendMode==1 ) {
+                result = vec4((texColor.rgb/texColor.a) * fillColor.rgb, 1.0) * texColor.a;
+            } else if( blendMode==2 ) {
+                result = vec4(1.0 - ((1.0 - (texColor.rgb/texColor.a)) * (1.0 - fillColor.rgb)), 1.0) * texColor.a;
+            } else {
+                result = vec4(fillColor.rgb, 1.0) * texColor.a;
+            }
+            gl_FragColor = mix(texColor, result, alpha * mask);
+        }
+    </shader>
+</effect>

@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.deep_glow_urp" name="Deep Bloom" desc="Single-pass bloom: a soft-knee threshold prefilter isolates bright areas, then a golden-angle spiral of 24-64 weighted taps spreads them into a smooth circular glow. Scatter controls falloff width; includes intensity, tint, Add/Screen/Lighten blending, quality, and glow-only view." category="colorlight" tags="glow,bloom,deep glow,scatter,threshold,light,soft,halation" thumb="thumb/Stylize/Deep Bloom.webp" overdraw="true" max-overdraw="1.0">
+  <params>
+    <texture id="inputImg" srcType="content" />
+
+    
+    <slider id="threshold" default="0.7" min="0.0" max="1.0" step="0.001" label="Threshold" />
+    <slider id="softKnee" default="0.5" min="0.0" max="1.0" step="0.01" label="Threshold Softness" type="percent" />
+    <slider id="radius" default="0.15" min="0.0" max="0.6" step="0.001" label="Glow Radius" type="percent" />
+    <slider id="scatter" default="0.7" min="0.0" max="1.0" step="0.01" label="Scatter (Spread)" type="percent" />
+    <slider id="intensity" default="1.2" min="0.0" max="5.0" step="0.01" label="Glow Intensity" />
+
+    
+    <color id="glowColor" default="#FFFFFFFF" alpha="false" label="Glow Tint" />
+    <menu id="blendMode" style="dropdown" default="0" label="Blend Mode">
+      <menu value="0" label="Add" />
+      <menu value="1" label="Screen" />
+      <menu value="2" label="Lighten" />
+    </menu>
+
+    
+    <menu id="quality" style="dropdown" default="2" label="Quality">
+      <menu value="0" label="Low (24)" />
+      <menu value="1" label="Medium (48)" />
+      <menu value="2" label="High (64)" />
+    </menu>
+    <switch id="glowOnly" default="false" label="Show Glow Only" />
+    <slider id="mixAmt" default="1.0" min="0.0" max="1.0" step="0.01" label="Mix" type="percent" />
+  </params>
+
+  <shader type="fragment" precision="high">
+
+    vec3 samp(vec2 c){
+        return texture2DCv(inputImg.texture, clamp(c, 0.0005, 0.9995)).rgb;
+    }
+
+    // URP-style soft-knee threshold prefilter: keeps only the bright energy
+    vec3 prefilter(vec3 c){
+        float br = max(c.r, max(c.g, c.b));
+        float knee = threshold * softKnee + 1e-4;
+        float soft = br - threshold + knee;
+        soft = clamp(soft, 0.0, 2.0 * knee);
+        soft = soft * soft / (4.0 * knee);
+        float contrib = max(soft, br - threshold);
+        contrib /= max(br, 1e-4);
+        return c * contrib;
+    }
+
+    void main(){
+        vec2 res = acScreenSize;
+        float aspect = res.x / max(1.0, res.y);
+        vec2 uv = acScreenNorm;
+
+        vec4 src = texture2DCv(inputImg.texture, uv);
+        vec3 base = src.rgb;
+
+        // sample count from quality
+        float samples = 64.0;
+        if(quality == 0) samples = 24.0;
+        else if(quality == 1) samples = 48.0;
+
+        // scatter -&gt; gaussian falloff (high scatter = wider, softer glow)
+        float k = mix(7.0, 1.2, scatter);
+        float golden = 2.39996323;
+
+        vec3 sum = vec3(0.0);
+        float wsum = 0.0;
+        for(int i = 0; i &lt; 64; i++){
+            if(float(i) &gt;= samples) break;
+            float fi = float(i);
+            float t = (fi + 0.5) / samples;
+            float r = sqrt(t);                 // uniform disc density, denser center
+            float ang = fi * golden;
+            vec2 off = vec2(cos(ang), sin(ang)) * r * radius;
+            off.x /= aspect;                   // keep the glow circular
+            float w = exp(-r * r * k);
+            sum += prefilter(samp(uv + off)) * w;
+            wsum += w;
+        }
+        vec3 glow = sum / max(wsum, 1e-4);
+        glow *= intensity * glowColor.rgb;
+
+        vec3 outc;
+        if(blendMode == 0)      outc = base + glow;                          // Add
+        else if(blendMode == 1) outc = 1.0 - (1.0 - base) * (1.0 - clamp(glow, 0.0, 1.0)); // Screen
+        else                    outc = max(base, glow);                      // Lighten
+
+        if(glowOnly) outc = glow;
+
+        outc = mix(base, outc, mixAmt);
+        gl_FragColor = vec4(outc, src.a);
+    }
+  </shader>
+</effect>

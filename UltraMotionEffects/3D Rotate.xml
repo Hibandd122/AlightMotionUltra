@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<effect id="com.alightcreative.effects.extra3d.free-rotate-3d" name="3D Rotate" desc="Rotates the layer as a flat plane around the X, Y, and Z axes using per-pixel ray-plane intersection with true perspective. Distance sets the virtual camera depth and therefore the perspective strength." category="3d" thumb="thumb/Distort and Warp/3D Rotate.webp" tags="3d,rotate,perspective,transform,raster">
+
+    <params>
+        <texture id="inputImg" srcType="content" />
+        <slider id="rx" default="20.0" min="-180.0" max="180.0" label="Rotate X" type="angle" step="1" />
+        <slider id="ry" default="30.0" min="-180.0" max="180.0" label="Rotate Y" type="angle" step="1" />
+        <slider id="rz" default="0.0" min="-180.0" max="180.0" label="Rotate Z" type="angle" step="1" />
+        <slider id="dist" default="2.8" min="1.5" max="6.0" label="Distance" />
+    </params>
+
+    <shader type="fragment" precision="high">
+        const float PI = 3.14159265;
+        mat3 mrotX(float a){ float s=sin(a),c=cos(a); return mat3(1.0,0.0,0.0, 0.0,c,-s, 0.0,s,c); }
+        mat3 mrotY(float a){ float s=sin(a),c=cos(a); return mat3(c,0.0,s, 0.0,1.0,0.0, -s,0.0,c); }
+        mat3 mrotZ(float a){ float s=sin(a),c=cos(a); return mat3(c,-s,0.0, s,c,0.0, 0.0,0.0,1.0); }
+        void main(){
+            mat3 R=mrotZ(radians(rz))*mrotY(radians(ry))*mrotX(radians(rx));
+            vec2 ndc=acScreenNorm*2.0-1.0; float asp=acScreenSize.x/acScreenSize.y; ndc.x*=asp;
+            vec3 ro=vec3(0.0,0.0,-dist), rd=normalize(vec3(ndc,dist));
+            vec3 N=R*vec3(0.0,0.0,1.0), RU=R*vec3(1.0,0.0,0.0), UP=R*vec3(0.0,1.0,0.0);
+            float dn=dot(rd,N);
+            if(abs(dn)&lt;0.001){gl_FragColor=vec4(0.0);return;}
+            float t=dot(-ro,N)/dn; vec3 hit=ro+rd*t;
+            vec2 uv=vec2(dot(hit,RU)/asp, dot(hit,UP))*0.5+0.5;
+            if(t&lt;0.0||uv.x&lt;0.0||uv.x&gt;1.0||uv.y&lt;0.0||uv.y&gt;1.0){gl_FragColor=vec4(0.0);return;}
+            gl_FragColor=texture2DCv(inputImg.texture, uv);
+        }
+    </shader>
+
+</effect>
