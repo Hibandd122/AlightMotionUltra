@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgbsep" name="@am:string/effect_channelshift_name" desc="@am:string/effect_channelshift_desc" category="colorlight" tags="color,pop,channel,retro,raster" thumb="thumb/chsplit2.webp">
+<effect id="com.alightcreative.effects.rgbsep" name="@am:string/effect_channelshift_name" desc="@am:string/effect_channelshift_desc" category="colorlight" tags="color,pop,channel,retro,raster" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

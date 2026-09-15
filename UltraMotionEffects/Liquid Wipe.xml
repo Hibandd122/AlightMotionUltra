@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.z.effects.zliquidwipe" name="Liquid Wipe" desc="Wipes the layer to transparency along a directional, radial, or organic noise front with a liquid-like fBm-distorted edge. Includes edge softness, roughness/scale of the liquid border, an edge shine highlight, and lens distortion near the wipe front." tags="wipe,transition,liquid,mask,raster" category="warp" thumb="thumb/Transition/Liquid Wipe.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.z.effects.zliquidwipe" name="Liquid Wipe" desc="Wipes the layer to transparency along a directional, radial, or organic noise front with a liquid-like fBm-distorted edge. Includes edge softness, roughness/scale of the liquid border, an edge shine highlight, and lens distortion near the wipe front." tags="wipe,transition,liquid,mask,raster" category="warp" thumb="thumb/turbulent_displace.webp" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

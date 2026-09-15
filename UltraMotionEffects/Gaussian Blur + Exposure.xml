@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.camera_lens_blur" name="Gaussian Blur + Exposure" desc="Two-pass separable Gaussian blur (not a true lens/bokeh blur) with radius and quality controls. The blurred result is blended back over the source via Normal, Add, or Screen with an exposure gain and mix amount." category="blur" tags="blur,gaussian,exposure,lens" thumb="thumb/Blur and Sharpen/Gaussian Blur + Exposure.webp">
+<effect id="com.alightcreative.effects.camera_lens_blur" name="Gaussian Blur + Exposure" desc="Two-pass separable Gaussian blur (not a true lens/bokeh blur) with radius and quality controls. The blurred result is blended back over the source via Normal, Add, or Screen with an exposure gain and mix amount." category="blur" tags="blur,gaussian,exposure,lens" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

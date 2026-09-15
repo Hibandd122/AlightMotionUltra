@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_invert" name="Advanced Invert" desc="Color inversion with 16 modes: full invert, luminance-only flip, hue rotate 180°, per-channel and channel-pair inversion, desaturated negative, soft gamma invert, threshold-limited shadow/midtone/highlight inversion, film-style color negative, and solarize. Includes amount, threshold, and brightness/contrast/saturation adjustments." category="colorlight" tags="color,invert,negative,flip,channel,hue,luma" thumb="thumb/Color/Advanced Invert.webp" experimental="false">
+<effect id="com.alightcreative.effects.s_invert" name="Advanced Invert" desc="Color inversion with 16 modes: full invert, luminance-only flip, hue rotate 180°, per-channel and channel-pair inversion, desaturated negative, soft gamma invert, threshold-limited shadow/midtone/highlight inversion, film-style color negative, and solarize. Includes amount, threshold, and brightness/contrast/saturation adjustments." category="colorlight" tags="color,invert,negative,flip,channel,hue,luma" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

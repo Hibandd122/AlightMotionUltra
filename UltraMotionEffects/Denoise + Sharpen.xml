@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.denoise_sharpen" name="Denoise + Sharpen" desc="Edge-preserving 5x5 bilateral filter denoises the image, then an unsharp mask adds back the detail difference so noise is not amplified. View modes show the denoised, original, or final result." category="blur" tags="denoise,bilateral,sharpen,unsharp,detail" thumb="thumb/Blur and Sharpen/Denoise + Sharpen.webp">
+<effect id="com.alightcreative.effects.denoise_sharpen" name="Denoise + Sharpen" desc="Edge-preserving 5x5 bilateral filter denoises the image, then an unsharp mask adds back the detail difference so noise is not amplified. View modes show the denoised, original, or final result." category="blur" tags="denoise,bilateral,sharpen,unsharp,detail" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

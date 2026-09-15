@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newoffsetglitch" name="Glitch Blocks" desc="Displaces the image horizontally in random blocky regions driven by value-noise fBm, producing a digital block-glitch look. Controls include amplitude, block amount, blockiness, narrowness, step threshold, and per-channel (R/G/B) offset direction switches." category="procedural" tags="other" thumb="thumb/Distort and Warp/Glitch Blocks.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.newoffsetglitch" name="Glitch Blocks" desc="Displaces the image horizontally in random blocky regions driven by value-noise fBm, producing a digital block-glitch look. Controls include amplitude, block amount, blockiness, narrowness, step threshold, and per-channel (R/G/B) offset direction switches." category="procedural" tags="other" thumb="thumb/9/gblock.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

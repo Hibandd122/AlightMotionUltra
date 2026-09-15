@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.zoomblur3" name="@am:string/effect_zoomblur_name" desc="@am:string/effect_zoomblur_desc" category="blur" tags="blur,raster,membersOnly" thumb="thumb/zoomblur.webp">
+<effect id="com.alightcreative.effects.zoomblur3" name="@am:string/effect_zoomblur_name" desc="@am:string/effect_zoomblur_desc" category="blur" tags="blur,raster,membersOnly" thumb="thumb/zoom_blur.webp">
 
     
         

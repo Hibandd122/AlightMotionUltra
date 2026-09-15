@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.flip3" name="@am:string/effect_flip2_name" desc="@am:string/effect_flip2_desc" category="3d" tags="3d,lighting,raster" thumb="thumb/flip.webp" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.flip3" name="@am:string/effect_flip2_name" desc="@am:string/effect_flip2_desc" category="3d" tags="3d,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

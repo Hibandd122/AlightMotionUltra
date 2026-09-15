@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ominoglass" compat="acScreenNorm-y" name="@am:string/effect_omino_glass_name" desc="@am:string/effect_omino_glass_desc" category="warp" tags="distort" thumb="thumb/directionalblur.webp" experimental="false" overdraw="true" max-overdraw="0.1">
+<effect id="com.alightcreative.effects.ominoglass" compat="acScreenNorm-y" name="@am:string/effect_omino_glass_name" desc="@am:string/effect_omino_glass_desc" category="warp" tags="distort" thumb="thumb/directional_blur.webp" experimental="false" overdraw="true" max-overdraw="0.1">
 
     <params>
         <texture id="inputImg" srcType="content" />

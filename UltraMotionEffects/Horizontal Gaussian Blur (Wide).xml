@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/Blur and Sharpen/Horizontal Gaussian Blur (Wide).webp" id="com.alightcreative.effects.unsharp_gauss_h_wide" name="Horizontal Gaussian Blur (Wide)" desc="Single-pass wide-radius horizontal Gaussian blur with quality presets that scale the tap count. Despite the original name it performs no sharpening; it only blurs along the X axis." category="blur" tags="extra" internal="true">
+<effect thumb="thumb/5/hardg.png" id="com.alightcreative.effects.unsharp_gauss_h_wide" name="Horizontal Gaussian Blur (Wide)" desc="Single-pass wide-radius horizontal Gaussian blur with quality presets that scale the tap count. Despite the original name it performs no sharpening; it only blurs along the X axis." category="blur" tags="extra" internal="true">
   <params>
     <texture id="inputImg" srcType="content" />
     <slider id="wideRadius" default="6.0" min="0.5" max="100.0" step="0.1" label="Wide Radius" />

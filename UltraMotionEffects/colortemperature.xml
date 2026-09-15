@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colortemperature" name="@am:string/effect_colortemperature_name" desc="@am:string/effect_colortemperature_desc" affinity="media" tags="color,colorGrading,raster" category="colorlight" thumb="thumb/colortemp.jpg" deprecated="false" experimental="false">
+<effect id="com.alightcreative.effects.colortemperature" name="@am:string/effect_colortemperature_name" desc="@am:string/effect_colortemperature_desc" affinity="media" tags="color,colorGrading,raster" category="colorlight" thumb="thumb/color_temperature.webp" deprecated="false" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

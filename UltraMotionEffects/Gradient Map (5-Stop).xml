@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bccgradientmap" name="Gradient Map (5-Stop)" desc="Maps image luminance to a 5-stop color gradient with selectable luminance modes, gradient gamma/contrast/brightness, zone isolation (shadows/midtones/highlights), seven blend modes, hue/saturation/luminance preserve options and a quick duotone mode." category="colorlight" tags="gradient,map,color,duotone,tritone,grade,stylize" thumb="thumb/Color/Gradient Map (5-Stop).webp">
+<effect id="com.alightcreative.effects.bccgradientmap" name="Gradient Map (5-Stop)" desc="Maps image luminance to a 5-stop color gradient with selectable luminance modes, gradient gamma/contrast/brightness, zone isolation (shadows/midtones/highlights), seven blend modes, hue/saturation/luminance preserve options and a quick duotone mode." category="colorlight" tags="gradient,map,color,duotone,tritone,grade,stylize" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

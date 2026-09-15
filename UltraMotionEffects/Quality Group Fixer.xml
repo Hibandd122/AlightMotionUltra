@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.qualityfixer" name="Quality Group Fixer" desc="Passthrough effect that forces the layer or group to be re-rasterized through intermediate render passes, which can fix low-resolution rendering of groups or heavily scaled objects. Has no adjustable parameters; remove the effect to disable it." tags="other" category="warp" thumb="thumb/Other/Quality Group Fixer.webp" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
+<effect id="com.alightcreative.effects.qualityfixer" name="Quality Group Fixer" desc="Passthrough effect that forces the layer or group to be re-rasterized through intermediate render passes, which can fix low-resolution rendering of groups or heavily scaled objects. Has no adjustable parameters; remove the effect to disable it." tags="other" category="warp" thumb="thumb/1/0quality.png" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
     <params>
         <texture id="inputImg" srcType="content" />
         <texture id="downImg" srcType="buffer" downsample="2" />

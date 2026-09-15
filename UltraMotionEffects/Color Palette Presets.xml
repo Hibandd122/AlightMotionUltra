@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.freepalette" name="Color Palette Presets" desc="Utility with no visual output: a collection of preset color palettes grouped in the parameter list, intended for copying swatches into other effects via the color picker." tags="drawing" category="colorlight" thumb="thumb/Other/Color Palette Presets.webp" deprecated="false">
+<effect id="com.alightcreative.effects.freepalette" name="Color Palette Presets" desc="Utility with no visual output: a collection of preset color palettes grouped in the parameter list, intended for copying swatches into other effects via the color picker." tags="drawing" category="colorlight" thumb="thumb/1/pelet.png" deprecated="false">
 <params>
  
  

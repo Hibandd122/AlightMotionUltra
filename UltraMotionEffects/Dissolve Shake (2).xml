@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_dissolveshake" name="Dissolve Shake" desc="Combines a script-driven layer shake (random and sine wave motion per X/Y/zoom/tilt axis with optional multi-sample motion blur and wrap modes) with a per-pixel noise dissolve that cuts out the layer's alpha by a threshold." auto-transform="true" category="warp" tags="transform,auto,shake,dissolve,glitch" thumb="thumb/Move and Transform/Dissolve Shake (2).webp">
+<effect id="com.alightcreative.effects.s_dissolveshake" name="Dissolve Shake" desc="Combines a script-driven layer shake (random and sine wave motion per X/Y/zoom/tilt axis with optional multi-sample motion blur and wrap modes) with a per-pixel noise dissolve that cuts out the layer's alpha by a threshold." auto-transform="true" category="warp" tags="transform,auto,shake,dissolve,glitch" thumb="thumb/auto_shake.webp">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.wavewarp2" name="@am:string/effect_wavewarp_name" desc="@am:string/effect_wavewarp_desc" category="warp" tags="warp,raster,membersOnly" thumb="thumb/wavewarp.webp">
+<effect id="com.alightcreative.effects.wavewarp2" name="@am:string/effect_wavewarp_name" desc="@am:string/effect_wavewarp_desc" category="warp" tags="warp,raster,membersOnly" thumb="thumb/wave_warp.webp">
 
     
         

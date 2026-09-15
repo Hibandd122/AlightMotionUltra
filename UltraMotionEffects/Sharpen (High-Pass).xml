@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newsharpen" name="Sharpen (High-Pass)" category="blur" desc="High-pass sharpening: blurs a downsampled copy of the layer with separable directional passes, takes the difference from the original, and screen-blends the result back. Options for white-only sharpening, viewing the sharpen component alone, brightness gain and a quality (iterations) slider." tags="blur" thumb="thumb/Blur and Sharpen/Sharpen (High-Pass).webp" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
+<effect id="com.alightcreative.effects.newsharpen" name="Sharpen (High-Pass)" category="blur" desc="High-pass sharpening: blurs a downsampled copy of the layer with separable directional passes, takes the difference from the original, and screen-blends the result back. Options for white-only sharpening, viewing the sharpen component alone, brightness gain and a quality (iterations) slider." tags="blur" thumb="thumb/2/vsharp.png" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
 
     <params>
         <texture id="inputImg" srcType="content" />

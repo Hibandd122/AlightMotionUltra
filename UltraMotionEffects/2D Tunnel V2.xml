@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.2Dtunnelv2" name="2D Tunnel V2" desc="Procedural tunnel of glowing grid lines built from a polar coordinate remap with an adjustable Minkowski distance metric. Controls include grid amount, line thickness, rotation, sinus pattern, progress/speed, and a two-color gradient map with blend modes." category="procedural" tags="other" thumb="thumb/Procedural/2D Tunnel V2.webp" experimental="false">
+<effect id="com.alightcreative.effects.2Dtunnelv2" name="2D Tunnel V2" desc="Procedural tunnel of glowing grid lines built from a polar coordinate remap with an adjustable Minkowski distance metric. Controls include grid amount, line thickness, rotation, sinus pattern, progress/speed, and a two-color gradient map with blend modes." category="procedural" tags="other" thumb="thumb/9/tunnelv2.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF000000" label="Color BG" alpha="true" />

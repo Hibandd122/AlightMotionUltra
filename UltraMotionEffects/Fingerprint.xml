@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fingerprint" name="Fingerprint" desc="Generates an animated fingerprint-like pattern of concentric ridged rings from accumulated hash rotations. Iteration, width, smoothing and hash controls shape the ridges; FG/BG colors are applied by luminance with blend modes." category="procedural" tags="other" thumb="thumb/Procedural/Fingerprint.webp" experimental="false">
+<effect id="com.alightcreative.effects.fingerprint" name="Fingerprint" desc="Generates an animated fingerprint-like pattern of concentric ridged rings from accumulated hash rotations. Iteration, width, smoothing and hash controls shape the ridges; FG/BG colors are applied by luminance with blend modes." category="procedural" tags="other" thumb="thumb/11/10.png" experimental="false">
 
     <params>
         

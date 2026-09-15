@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/Blur and Sharpen/BCC Blur V.webp" id="com.alightcreative.effects.bcc_blur_v" name="BCC Blur V" desc="Internal vertical 1D blur pass with Triangle (box), Gaussian, and Box kernels. Radius is Y Width scaled by Glow Radius percent, with optional mirrored edge sampling." category="blur" tags="blur,triangle,gaussian" internal="true" overdraw="true" max-overdraw="1.5">
+<effect thumb="thumb/5/hardg.png" id="com.alightcreative.effects.bcc_blur_v" name="BCC Blur V" desc="Internal vertical 1D blur pass with Triangle (box), Gaussian, and Box kernels. Radius is Y Width scaled by Glow Radius percent, with optional mirrored edge sampling." category="blur" tags="blur,triangle,gaussian" internal="true" overdraw="true" max-overdraw="1.5">
   <params>
     <texture id="inputImg" srcType="content" />
     <slider id="yWidth" default="100.0" min="0.0" max="400.0" step="1.0" label="Y Width" />

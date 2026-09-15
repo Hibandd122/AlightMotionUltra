@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.water-3d" name="3D Water" desc="Reflects the layer across an adjustable water line into a rippling water surface with animated distortion, blue tint and depth-based highlights." category="procedural" thumb="thumb/Distort and Warp/3D Water.webp" tags="3d,water,reflection,ripple,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra3d.water-3d" name="3D Water" desc="Reflects the layer across an adjustable water line into a rippling water surface with animated distortion, blue tint and depth-based highlights." category="procedural" thumb="thumb/3/sea.png" tags="3d,water,reflection,ripple,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

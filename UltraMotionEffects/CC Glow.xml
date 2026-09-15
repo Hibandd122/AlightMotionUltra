@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ccglow" name="CC Glow" desc="Multi-pass soft glow: two separable Gaussian blurs at different radii (half resolution) are combined with a soft-knee luminance threshold, then added per luminance zone (highlight/midtone/shadow glow) with tint, warmth, saturation, color-preserve, atmosphere fog, four blend modes, and quality/dither controls." category="colorlight" tags="glow,bloom,soft,cc,grade,atmosphere,highlight,manga,cinematic" thumb="thumb/Color/CC Glow.webp" overdraw="true" max-overdraw="1.5">
+<effect id="com.alightcreative.effects.ccglow" name="CC Glow" desc="Multi-pass soft glow: two separable Gaussian blurs at different radii (half resolution) are combined with a soft-knee luminance threshold, then added per luminance zone (highlight/midtone/shadow glow) with tint, warmth, saturation, color-preserve, atmosphere fog, four blend modes, and quality/dither controls." category="colorlight" tags="glow,bloom,soft,cc,grade,atmosphere,highlight,manga,cinematic" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
     <params>
         <texture id="inputImg" srcType="content" />
         <texture id="blurA" srcType="buffer" downsample="2" />

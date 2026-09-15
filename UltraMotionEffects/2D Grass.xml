@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.instantgrass" name="2D Grass" desc="Renders animated procedural grass-blade silhouettes on stacked depth planes, recolored via luminance mapping between a background and grass color. Amount sets the plane count; Progress and Speed drive the sway, with scale, rotate, offset and blend-mode controls." category="procedural" tags="other" thumb="thumb/Procedural/2D Grass.webp" experimental="false">
+<effect id="com.alightcreative.effects.instantgrass" name="2D Grass" desc="Renders animated procedural grass-blade silhouettes on stacked depth planes, recolored via luminance mapping between a background and grass color. Amount sets the plane count; Progress and Speed drive the sway, with scale, rotate, offset and blend-mode controls." category="procedural" tags="other" thumb="thumb/10/2.png" experimental="false">
 
     <params>
         <slider id="AMOUNT" label="Amount" default="10" min="0" max="20" step="1.0" type="integer" />

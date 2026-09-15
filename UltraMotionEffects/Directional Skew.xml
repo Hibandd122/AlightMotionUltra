@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.creative.directional_skew" name="Directional Skew" desc="Shears the layer around its center along an axis set by Skew Angle, with Skew Scale setting the shear amount and direction. Single-tap UV remap with no bounds expansion, so content pushed past the layer edge is clipped." category="warp" tags="distort,skew,shear,warp" thumb="thumb/Distort and Warp/Directional Skew.webp">
+<effect id="com.creative.directional_skew" name="Directional Skew" desc="Shears the layer around its center along an axis set by Skew Angle, with Skew Scale setting the shear amount and direction. Single-tap UV remap with no bounds expansion, so content pushed past the layer edge is clipped." category="warp" tags="distort,skew,shear,warp" thumb="thumb/turbulent_displace.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

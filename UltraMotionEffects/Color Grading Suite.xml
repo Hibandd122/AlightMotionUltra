@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lumetriultra" name="Color Grading Suite" desc="Full single-pass grading toolset: white balance, exposure/contrast/highlights/shadows/whites/blacks, saturation, vibrance, clarity, dehaze, a 5-point master curve plus per-channel RGB curves, lift/gamma/gain, three-way color wheels, split toning, creative looks (faded film, sharpen, grain, bleach bypass, cross process), vignette, and master gamma/gain/offset." category="colorlight" tags="color,grade,curves,wheels,lift,gamma,gain,cinematic" thumb="thumb/Color/Color Grading Suite.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.lumetriultra" name="Color Grading Suite" desc="Full single-pass grading toolset: white balance, exposure/contrast/highlights/shadows/whites/blacks, saturation, vibrance, clarity, dehaze, a 5-point master curve plus per-channel RGB curves, lift/gamma/gain, three-way color wheels, split toning, creative looks (faded film, sharpen, grain, bleach bypass, cross process), vignette, and master gamma/gain/offset." category="colorlight" tags="color,grade,curves,wheels,lift,gamma,gain,cinematic" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
     <params>
         <texture id="inputImg" srcType="content" />
 

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.mosaic" name="@am:string/effect_mosaic_name" desc="@am:string/effect_mosaic_desc" category="blur" tags="blur,block,raster" thumb="thumb/mosaic.png">
+<effect id="com.alightcreative.effects.mosaic" name="@am:string/effect_mosaic_name" desc="@am:string/effect_mosaic_desc" category="blur" tags="blur,block,raster" thumb="thumb/5/hardg.png">
 
     
         

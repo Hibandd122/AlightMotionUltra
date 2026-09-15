@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vfx1" name="Neon Fractal Rings" desc="Procedural neon visual: four self-similar UV-fold iterations produce glowing concentric rings colored by an animated cosine palette. Auto or manual progress plus transform controls and normal/layer/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/Procedural/Neon Fractal Rings.webp" experimental="false">
+<effect id="com.alightcreative.effects.vfx1" name="Neon Fractal Rings" desc="Procedural neon visual: four self-similar UV-fold iterations produce glowing concentric rings colored by an animated cosine palette. Auto or manual progress plus transform controls and normal/layer/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/12/8.png" experimental="false">
 
     <params>
         

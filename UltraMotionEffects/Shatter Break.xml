@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.shatter_break" name="Shatter Break" desc="Breaks the image into flying shards driven by a Progress parameter, with explosion force, gravity, rotation, randomness, and 3D scene rotation. Shard styles: 2D blocks and glass triangles, raytraced 3D cubes/spheres/thick glass/puzzle pieces, window break, and custom alpha-shape shards." category="warp" tags="shatter,break,glass,block,explode" thumb="thumb/Distort and Warp/Shatter Break.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.shatter_break" name="Shatter Break" desc="Breaks the image into flying shards driven by a Progress parameter, with explosion force, gravity, rotation, randomness, and 3D scene rotation. Shard styles: 2D blocks and glass triangles, raytraced 3D cubes/spheres/thick glass/puzzle pieces, window break, and custom alpha-shape shards." category="warp" tags="shatter,break,glass,block,explode" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

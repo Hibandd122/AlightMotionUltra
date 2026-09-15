@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.pagecurl" name="@am:string/effect_page_curl_name" desc="@am:string/effect_page_curl_desc" category="3d" tags="raster,3d" thumb="thumb/glowscan.webp">
+<effect id="com.alightcreative.effects.pagecurl" name="@am:string/effect_page_curl_name" desc="@am:string/effect_page_curl_desc" category="3d" tags="raster,3d" thumb="thumb/glow_scan.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

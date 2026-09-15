@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extrude" name="@am:string/effect_raster_extrude_name" desc="@am:string/effect_raster_extrude_desc" category="3d" tags="3d,lighting,raster,membersOnly" thumb="thumb/3dbox.webp" overdraw="true" maxOverdraw="0.2" deprecated="false">
+<effect id="com.alightcreative.effects.extrude" name="@am:string/effect_raster_extrude_name" desc="@am:string/effect_raster_extrude_desc" category="3d" tags="3d,lighting,raster,membersOnly" thumb="thumb/5/hardg.png" overdraw="true" maxOverdraw="0.2" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

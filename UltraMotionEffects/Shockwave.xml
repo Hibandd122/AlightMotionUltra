@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.shockwave" name="Shockwave" desc="An expanding ring distortion that pushes pixels outward like an explosion blast wave. Animate the progress for impact hits." category="procedural" thumb="thumb/Distort and Warp/Shockwave.webp" tags="distort,explosion,ring,impact,raster,animated">
+<effect id="com.alightcreative.effects.extra.shockwave" name="Shockwave" desc="An expanding ring distortion that pushes pixels outward like an explosion blast wave. Animate the progress for impact hits." category="procedural" thumb="thumb/5/hardg.png" tags="distort,explosion,ring,impact,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

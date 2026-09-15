@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.boxblur3" name="@am:string/effect_boxblur_name" desc="@am:string/effect_boxblur_desc" category="blur" thumb="thumb/boxblur.webp" overdraw="true" max-overdraw="0.1" tags="blur, raster">
+<effect id="com.alightcreative.effects.boxblur3" name="@am:string/effect_boxblur_name" desc="@am:string/effect_boxblur_desc" category="blur" thumb="thumb/box_blur.webp" overdraw="true" max-overdraw="0.1" tags="blur, raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tvdamage" name="TV Damage + Scanlines" desc="Analog TV damage: simplex-noise horizontal fuzz and stretch offsets, optional RGB channel offset, bottom static noise, a hard vertical wrap offset, and adjustable sine scanlines (width and count)." category="other" tags="other" thumb="thumb/Stylize/TV Damage + Scanlines.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.tvdamage" name="TV Damage + Scanlines" desc="Analog TV damage: simplex-noise horizontal fuzz and stretch offsets, optional RGB channel offset, bottom static noise, a hard vertical wrap offset, and adjustable sine scanlines (width and count)." category="other" tags="other" thumb="thumb/1/0tv.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

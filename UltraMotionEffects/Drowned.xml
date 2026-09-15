@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.drowned" name="Drowned" desc="Renders a raymarched water plane beneath the layer that reflects it like a flooded scene, using noise-texture fbm to ripple the surface normal and a fresnel mix between reflection and the original image. Controls include flow speed, orientation, reflection offset, and separate water/background/composite opacities." category="procedural" tags="distort" thumb="thumb/Distort and Warp/Drowned.webp" experimental="true" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.drowned" name="Drowned" desc="Renders a raymarched water plane beneath the layer that reflects it like a flooded scene, using noise-texture fbm to ripple the surface normal and a fresnel mix between reflection and the original image. Controls include flow speed, orientation, reflection offset, and separate water/background/composite opacities." category="procedural" tags="distort" thumb="thumb/8/drowned.png" experimental="true" overdraw="true" max-overdraw="1.0">
 
     <params>
-        <texture id="noisexx" srcType="image" src="textures/noise-grey-static.png" />
+        <texture id="noisexx" srcType="image" src="textures/iChannel3.png" />
         <switch id="autop" default="true" label="Auto Progress" />
         <slider id="SPEED" label="Flow Speed" default="2.0" min="0.0" max="5.0" step="0.01" />
         <point id="position" label="@am:string/effect_param_offset" />

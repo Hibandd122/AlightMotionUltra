@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.vignette-pro" name="Vignette Pro" desc="Smooth customizable vignette that can darken or tint the edges of the frame." category="drawingedge" thumb="thumb/Stylize/Vignette Pro.webp" tags="drawing,vignette,frame,raster">
+<effect id="com.alightcreative.effects.extra2.vignette-pro" name="Vignette Pro" desc="Smooth customizable vignette that can darken or tint the edges of the frame." category="drawingedge" thumb="thumb/5/hardg.png" tags="drawing,vignette,frame,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

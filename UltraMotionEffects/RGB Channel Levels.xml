@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.solidcolorx" name="RGB Channel Levels" desc="Builds a color from separate red, green and blue level values and either fills the layer with it or multiplies/screens it onto the image per channel. Alpha mixes from white toward the full effect." category="colorlight" tags="color,raster" thumb="thumb/Color/RGB Channel Levels.webp" deprecated="true">
+<effect id="com.alightcreative.solidcolorx" name="RGB Channel Levels" desc="Builds a color from separate red, green and blue level values and either fills the layer with it or multiplies/screens it onto the image per channel. Alpha mixes from white toward the full effect." category="colorlight" tags="color,raster" thumb="thumb/0/efek.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="noisexx" srcType="image" src="textures/bokeh-red-bubbles.png" />
+        <texture id="noisexx" srcType="image" src="textures/iChannel4.png" />
         <slider id="progressa" label="Red" default="1.0" min="0" max="3.0" step="0.01" type="percent" ticks="0,1" snap="0,1" />
         <slider id="progressb" label="Green" default="1.0" min="0" max="3.0" step="0.01" type="percent" ticks="0,1" snap="0,1" />
         <slider id="progressc" label="Blue" default="1.0" min="0" max="3.0" step="0.01" type="percent" ticks="0,1" snap="0,1" />

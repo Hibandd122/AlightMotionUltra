@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warptexture" name="Warp Texture+" desc="Procedural warped-line texture: iteratively displaces UVs with nested sine/cosine feedback (up to 20 iterations) and shades the result through a two-color gradient map. Delta X/Y animate the warp; includes spread, scale, rotation, brightness, and blend modes." category="procedural" tags="procedural" thumb="thumb/Procedural/Warp Texture+.webp" experimental="false">
+<effect id="com.alightcreative.effects.warptexture" name="Warp Texture+" desc="Procedural warped-line texture: iteratively displaces UVs with nested sine/cosine feedback (up to 20 iterations) and shades the result through a two-color gradient map. Delta X/Y animate the warp; includes spread, scale, rotation, brightness, and blend modes." category="procedural" tags="procedural" thumb="thumb/1/0warp.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

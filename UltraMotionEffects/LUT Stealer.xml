@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lutreader" name="LUT Stealer" desc="Uses the layer's own image as a 512x512 (8x8 grid, 64-slice) color lookup table and applies it to the composition beneath, with adjustable strength. RAW Mode displays a bundled neutral reference LUT you can screenshot and grade to author new LUTs." category="colorlight" tags="color" thumb="thumb/Color/LUT Stealer.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.lutreader" name="LUT Stealer" desc="Uses the layer's own image as a 512x512 (8x8 grid, 64-slice) color lookup table and applies it to the composition beneath, with adjustable strength. RAW Mode displays a bundled neutral reference LUT you can screenshot and grade to author new LUTs." category="colorlight" tags="color" thumb="thumb/10/6.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
-        <texture id="RAWT" srcType="image" src="textures/LUT/neutral-lut-grid.png" />
+        <texture id="RAWT" srcType="image" src="textures/LUT/R.png" />
         <switch id="enableLut" default="false" label="Enabled" />
         <switch id="RAW" default="false" label="RAW Mode" />
         <slider id="lutLevel" default="1.0" min="0.0" max="1.0" step="0.01" label="Alpha" type="percent" />

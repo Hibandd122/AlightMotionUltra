@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.light-rays" name="Light Rays" desc="Creates radial light streaks by accumulating 32 luminance-weighted samples along the line from each pixel toward a movable light source, tinted with a chosen color. Density, Decay, and Weight shape the ray length and brightness." category="colorlight" thumb="thumb/Drawing/Light Rays.webp" tags="light,rays,glow,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra.light-rays" name="Light Rays" desc="Creates radial light streaks by accumulating 32 luminance-weighted samples along the line from each pixel toward a movable light source, tinted with a chosen color. Density, Decay, and Weight shape the ray length and brightness." category="colorlight" thumb="thumb/5/hardg.png" tags="light,rays,glow,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

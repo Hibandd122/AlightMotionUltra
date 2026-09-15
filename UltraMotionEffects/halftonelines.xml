@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.halftonelines" name="@am:string/effect_halftonelines_name" desc="@am:string/effect_halftonelines_desc" category="drawingedge" tags="drawing,pop,raster" thumb="thumb/halftonelines.webp">
+<effect id="com.alightcreative.effects.halftonelines" name="@am:string/effect_halftonelines_name" desc="@am:string/effect_halftonelines_desc" category="drawingedge" tags="drawing,pop,raster" thumb="thumb/halftone_lines.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.chromaticvortexblur" name="@am:string/effect_chromatic_vortexblur_name" desc="@am:string/effect_chromatic_vortexblur_desc" category="blur" tags="distort,fun,blur" thumb="thumb/chromatic-vortexblur.webp" experimental="true">
+<effect id="com.alightcreative.effects.chromaticvortexblur" name="@am:string/effect_chromatic_vortexblur_name" desc="@am:string/effect_chromatic_vortexblur_desc" category="blur" tags="distort,fun,blur" thumb="thumb/11/1.png" experimental="true">
 
     
         

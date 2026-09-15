@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.paperburn" name="Paper Burn" desc="Burn-style dissolve driven by fractal noise: Spread advances a burn mask across the layer, revealing it with a colored scorch edge; Feather shapes the edge falloff via a power curve." category="warp" tags="other" thumb="thumb/Stylize/Paper Burn.webp" experimental="false">
+<effect id="com.alightcreative.effects.paperburn" name="Paper Burn" desc="Burn-style dissolve driven by fractal noise: Spread advances a burn mask across the layer, revealing it with a colored scorch edge; Feather shapes the edge falloff via a power curve." category="warp" tags="other" thumb="thumb/1/0paper.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="gs" srcType="image" src="textures/solid-black.png" />
+        <texture id="gs" srcType="image" src="textures/black.png" />
         <color id="color" default="#FFFF4444" label="@am:string/effect_param_color" alpha="true" />
         
         <slider id="progressa" label="Spread" default="0" min="0" max="1" step="0.01" type="percent" />

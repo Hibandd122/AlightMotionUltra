@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ominodiff" name="@am:string/effect_omino_diffusion_name" desc="@am:string/effect_omino_diffusion_desc" category="procedural" tags="channel,glitch,noise,distortion" thumb="thumb/directionalblur.webp" experimental="false" overdraw="true" max-overdraw="0.1">
+<effect id="com.alightcreative.effects.ominodiff" name="@am:string/effect_omino_diffusion_name" desc="@am:string/effect_omino_diffusion_desc" category="procedural" tags="channel,glitch,noise,distortion" thumb="thumb/directional_blur.webp" experimental="false" overdraw="true" max-overdraw="0.1">
 
     <params>
         <texture id="inputImg" srcType="content" />

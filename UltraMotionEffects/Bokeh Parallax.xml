@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bokehparralax" name="Bokeh Parallax" desc="Generates layered procedural bokeh circles drifting at different speeds and rotations for a parallax depth look. Evolution drives the motion; scale, rotation, brightness, two foreground and two background colors, and normal/multiply/screen blending are adjustable." category="procedural" tags="procedural" thumb="thumb/Procedural/Bokeh Parallax.webp" experimental="false">
+<effect id="com.alightcreative.effects.bokehparralax" name="Bokeh Parallax" desc="Generates layered procedural bokeh circles drifting at different speeds and rotations for a parallax depth look. Evolution drives the motion; scale, rotation, brightness, two foreground and two background colors, and normal/multiply/screen blending are adjustable." category="procedural" tags="procedural" thumb="thumb/1/0bokeh.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

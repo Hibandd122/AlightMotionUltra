@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.shadertoy_dualtexture_displace" name="Texture Displace" desc="Displaces the layer's pixels using a map image: two selectable channels (R/G, R/B, or G/B) of a second texture or the layer below drive the X/Y offset, scaled by Map Amount. Edge handling offers clamp or repeat plus an out-of-bounds feather." category="warp" tags="displace,shadertoy,dualtexture,raster" thumb="thumb/Distort and Warp/Texture Displace.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.shadertoy_dualtexture_displace" name="Texture Displace" desc="Displaces the layer's pixels using a map image: two selectable channels (R/G, R/B, or G/B) of a second texture or the layer below drive the X/Y offset, scaled by Map Amount. Edge handling offers clamp or repeat plus an out-of-bounds feather." category="warp" tags="displace,shadertoy,dualtexture,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

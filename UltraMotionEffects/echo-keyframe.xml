@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.repeat.echokf" name="@am:string/effect_echo_keyframes_name" desc="@am:string/effect_echo_keyframes_desc" category="other" experimental="false" tags="time" thumb="thumb/repeat-linear.png">
+<effect id="com.alightcreative.effects.repeat.echokf" name="@am:string/effect_echo_keyframes_name" desc="@am:string/effect_echo_keyframes_desc" category="other" experimental="false" tags="time" thumb="thumb/5/hardg.png">
 
     <params>
         

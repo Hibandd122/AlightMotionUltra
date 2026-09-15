@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.voxeltunnel" name="Voxel Tunnel" desc="Raymarches a voxelized tunnel using DDA grid traversal (up to 100 steps per pixel), with a static or swinging camera path, octahedron obstacles, glow accumulation, a four-color palette and a channel-cycling color pulse." category="procedural" tags="other" thumb="thumb/Procedural/Voxel Tunnel.webp" experimental="false">
+<effect id="com.alightcreative.effects.voxeltunnel" name="Voxel Tunnel" desc="Raymarches a voxelized tunnel using DDA grid traversal (up to 100 steps per pixel), with a static or swinging camera path, octahedron obstacles, glow accumulation, a four-color palette and a channel-cycling color pulse." category="procedural" tags="other" thumb="thumb/12/1.png" experimental="false">
 
     <params>
         

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.perfect_slice" name="Perfect Slice" desc="Slices the image along randomized cut lines, draws animated glowing slash lines with an optional impact flash, then explodes the shards outward with accelerating physics and per-shard scale/dimming, leaving transparent gaps. Driven by a single Progress parameter with slice count, radius, speed, glow and seed controls." category="warp" tags="slice,cut,explode,sword,shatter,void" thumb="thumb/Distort and Warp/Perfect Slice.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.perfect_slice" name="Perfect Slice" desc="Slices the image along randomized cut lines, draws animated glowing slash lines with an optional impact flash, then explodes the shards outward with accelerating physics and per-shard scale/dimming, leaving transparent gaps. Driven by a single Progress parameter with slice count, radius, speed, glow and seed controls." category="warp" tags="slice,cut,explode,sword,shatter,void" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

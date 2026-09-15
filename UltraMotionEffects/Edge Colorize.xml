@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.edge_colorize_directional" name="Edge Colorize" desc="Detects edges with a Gaussian pre-blur followed by a Sobel operator, then colors each edge by its gradient direction using four assignable colors (top/right/bottom/left) with rotation, brightness, threshold, background color, and optional 4-tap supersampled smoothing." category="drawingedge" tags="extra" thumb="thumb/Drawing/Edge Colorize.webp" experimental="false">
+<effect id="com.alightcreative.effects.edge_colorize_directional" name="Edge Colorize" desc="Detects edges with a Gaussian pre-blur followed by a Sobel operator, then colors each edge by its gradient direction using four assignable colors (top/right/bottom/left) with rotation, brightness, threshold, background color, and optional 4-tap supersampled smoothing." category="drawingedge" tags="extra" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         

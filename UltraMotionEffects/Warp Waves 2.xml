@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_warp_waves2" name="Warp Waves 2" desc="Warps the image with two independent directional sine-wave displacements, each with its own amplitude, frequency, wave angle, displacement angle and phase animation. Includes zoom (Z Dist), tile/reflect wrap modes, layer-follow option and blend." category="warp" tags="warp,waves,distortion,sine" thumb="thumb/Distort and Warp/Warp Waves 2.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.s_warp_waves2" name="Warp Waves 2" desc="Warps the image with two independent directional sine-wave displacements, each with its own amplitude, frequency, wave angle, displacement angle and phase animation. Includes zoom (Z Dist), tile/reflect wrap modes, layer-follow option and blend." category="warp" tags="warp,waves,distortion,sine" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

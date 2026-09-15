@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.displacemap3" name="@am:string/effect_displacemap_name" desc="@am:string/effect_displacemap_desc" category="warp" tags="warp,lumaMap,glitch,raster,membersOnly,distortion" thumb="thumb/displacemap.png">
+<effect id="com.alightcreative.effects.displacemap3" name="@am:string/effect_displacemap_name" desc="@am:string/effect_displacemap_desc" category="warp" tags="warp,lumaMap,glitch,raster,membersOnly,distortion" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

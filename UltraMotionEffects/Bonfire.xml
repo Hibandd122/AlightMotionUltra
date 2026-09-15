@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bonfire" name="Bonfire" desc="Renders procedural fire using iterated triangle-wave noise (fBm) with HSV coloring, faded toward the layer edges. Controls include noise iteration count, manual or time-driven progress, transform, color tint, and blend mode over the layer." category="procedural" tags="other" thumb="thumb/Procedural/Bonfire.webp" experimental="false">
+<effect id="com.alightcreative.effects.bonfire" name="Bonfire" desc="Renders procedural fire using iterated triangle-wave noise (fBm) with HSV coloring, faded toward the layer edges. Controls include noise iteration count, manual or time-driven progress, transform, color tint, and blend mode over the layer." category="procedural" tags="other" thumb="thumb/10/4.png" experimental="false">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

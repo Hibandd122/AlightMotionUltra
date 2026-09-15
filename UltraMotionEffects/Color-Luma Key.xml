@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.color_luma_key" name="Color-Luma Key" desc="Keys out a chosen color using a combined chroma-distance and weighted luminance-distance matte with tolerance and softness thresholds. Includes invert (keep keyed color), despill toward neutral luma, and output alpha control." category="warp" tags="key,luma,chroma,matte,remove,color" thumb="thumb/Matte and Mask/Color-Luma Key.webp">
+<effect id="com.alightcreative.effects.color_luma_key" name="Color-Luma Key" desc="Keys out a chosen color using a combined chroma-distance and weighted luminance-distance matte with tolerance and softness thresholds. Includes invert (keep keyed color), despill toward neutral luma, and output alpha control." category="warp" tags="key,luma,chroma,matte,remove,color" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.boxblur" name="@string/name" desc="@string/desc" category="blur" thumb="thumb/boxblur.webp" deprecated="true">
+<effect id="com.alightcreative.effects.boxblur" name="@string/name" desc="@string/desc" category="blur" thumb="thumb/box_blur.webp" deprecated="true">
 
     
 

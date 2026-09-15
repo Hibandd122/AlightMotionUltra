@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vrplayer" name="@am:string/effect_360viewer_name" desc="@am:string/effect_360viewer_desc" category="warp" tags="distort,360,vr,raster,membersOnly" thumb="thumb/vrviewer.webp" overdraw="false" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.vrplayer" name="@am:string/effect_360viewer_name" desc="@am:string/effect_360viewer_desc" category="warp" tags="distort,360,vr,raster,membersOnly" thumb="thumb/5/hardg.png" overdraw="false" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

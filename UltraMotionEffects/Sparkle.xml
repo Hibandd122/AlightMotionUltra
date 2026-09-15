@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.sparkle" name="Sparkle" desc="Scatters twinkling star sparkles over the brightest parts of the layer." category="colorlight" thumb="thumb/Drawing/Sparkle.webp" tags="drawing,sparkle,glitter,star,raster,animated">
+<effect id="com.alightcreative.effects.extra2.sparkle" name="Sparkle" desc="Scatters twinkling star sparkles over the brightest parts of the layer." category="colorlight" thumb="thumb/5/hardg.png" tags="drawing,sparkle,glitter,star,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

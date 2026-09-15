@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.starburst" name="Starburst" desc="Renders a procedural lens starburst: noise sampled in polar coordinates forms radiating rays with a bright core, computed at three slightly different scales for subtle RGB fringing. Progress animates the shimmer; transform and blend-mode controls included." category="colorlight" tags="procedural" thumb="thumb/Procedural/Starburst.webp" experimental="false">
+<effect id="com.alightcreative.effects.starburst" name="Starburst" desc="Renders a procedural lens starburst: noise sampled in polar coordinates forms radiating rays with a bright core, computed at three slightly different scales for subtle RGB fringing. Progress animates the shimmer; transform and blend-mode controls included." category="colorlight" tags="procedural" thumb="thumb/10/12.png" experimental="false">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

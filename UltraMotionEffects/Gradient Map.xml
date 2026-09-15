@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.gradient-map" name="Gradient Map" desc="Remaps image brightness across a three-color gradient for cinematic color grading." category="colorlight" thumb="thumb/Color/Gradient Map.webp" tags="color,gradient,grade,raster">
+<effect id="com.alightcreative.effects.extra2.gradient-map" name="Gradient Map" desc="Remaps image brightness across a three-color gradient for cinematic color grading." category="colorlight" thumb="thumb/5/hardg.png" tags="color,gradient,grade,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

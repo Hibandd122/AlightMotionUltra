@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.strokeplus" name="Stroke+" tags="drawing" desc="Draws a stroke around the layer's alpha silhouette using a two-pass distance transform, with direction (out/in/center), Offset and Fade options (outward direction only), fill opacity, and adjustable size and color." category="drawingedge" thumb="thumb/Drawing/Stroke+.webp" deprecated="true" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.strokeplus" name="Stroke+" tags="drawing" desc="Draws a stroke around the layer's alpha silhouette using a two-pass distance transform, with direction (out/in/center), Offset and Fade options (outward direction only), fill opacity, and adjustable size and color." category="drawingedge" thumb="thumb/0/stroke2.png" deprecated="true" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

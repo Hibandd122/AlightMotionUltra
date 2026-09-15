@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.counter" name="@am:string/effect_counter_name" desc="@am:string/effect_counter_desc" affinity="text!" type="text" tags="text,utility,propadjust" category="text" thumb="thumb/countdown.webp">
+<effect id="com.alightcreative.effects.counter" name="@am:string/effect_counter_name" desc="@am:string/effect_counter_desc" affinity="text!" type="text" tags="text,utility,propadjust" category="text" thumb="thumb/5/hardg.png">
 
     <params>
         <slider id="offset" default="0" min="-100000" max="100000" step="1" label="@am:string/effect_param_add" ticks="0" />

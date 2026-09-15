@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tilerotate" name="@am:string/effect_tilerotate_name" desc="@am:string/effect_tilerotate_desc" category="warp" tags="distort,geometric,raster" thumb="thumb/tilerotation.webp" deprecated="true">
+<effect id="com.alightcreative.effects.tilerotate" name="@am:string/effect_tilerotate_name" desc="@am:string/effect_tilerotate_desc" category="warp" tags="distort,geometric,raster" thumb="thumb/5/hardg.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

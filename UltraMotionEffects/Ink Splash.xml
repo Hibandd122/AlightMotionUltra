@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ink_splash" name="Ink Splash" desc="Generates an animated ink-splash blob using domain-warped fractal noise around the layer center. Controls splash size, edge roughness, ink bleed softness, motion speed, and seed; renders as ink-on-paper colors or as an alpha mask that reveals the layer." category="procedural" tags="ink,procedural,liquid,noise" thumb="thumb/Procedural/Ink Splash.webp">
+<effect id="com.alightcreative.effects.ink_splash" name="Ink Splash" desc="Generates an animated ink-splash blob using domain-warped fractal noise around the layer center. Controls splash size, edge roughness, ink bleed softness, motion speed, and seed; renders as ink-on-paper colors or as an alpha mask that reveals the layer." category="procedural" tags="ink,procedural,liquid,noise" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

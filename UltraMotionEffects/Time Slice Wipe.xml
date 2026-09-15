@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.time_slice_wipe" name="Time Slice Wipe" desc="Directional striped wipe between the layer and the composition behind it. A mask sub-pass slices the wipe axis into repeating bands (Count) that dissolve with adjustable smoothness, feather, angle, speed, and reverse direction." category="warp" thumb="thumb/Transition/Time Slice Wipe.webp" overdraw="true" tags="wipe,frame,temporal,time,slice,transition" experimental="false" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.time_slice_wipe" name="Time Slice Wipe" desc="Directional striped wipe between the layer and the composition behind it. A mask sub-pass slices the wipe axis into repeating bands (Count) that dissolve with adjustable smoothness, feather, angle, speed, and reverse direction." category="warp" thumb="thumb/5/hardg.png" overdraw="true" tags="wipe,frame,temporal,time,slice,transition" experimental="false" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

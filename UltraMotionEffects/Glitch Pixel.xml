@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glitchpixel" name="Glitch Pixel" desc="Noise-driven glitch displacement with per-channel RGB offset sampling and occasional vertical frame jumps. Strength (optionally auto-repeating), evolution, scale and seed control the distortion; separate R/G/B offset amounts set the color fringing." category="procedural" tags="distort,glitch" thumb="thumb/Distort and Warp/Glitch Pixel.webp" experimental="false">
+<effect id="com.alightcreative.effects.glitchpixel" name="Glitch Pixel" desc="Noise-driven glitch displacement with per-channel RGB offset sampling and occasional vertical frame jumps. Strength (optionally auto-repeating), evolution, scale and seed control the distortion; separate R/G/B offset amounts set the color fringing." category="procedural" tags="distort,glitch" thumb="thumb/5/pixelg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

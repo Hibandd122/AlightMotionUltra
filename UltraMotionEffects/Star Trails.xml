@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.trails" name="Star Trails" desc="Draws circular star-trail arcs: concentric rings around an offset center receive random arc lengths and brightness, rotating with the Rotate parameter. Length sets arc extent and the trails are tinted by the chosen color." category="procedural" tags="other" thumb="thumb/Procedural/Star Trails.webp" experimental="false">
+<effect id="com.alightcreative.effects.trails" name="Star Trails" desc="Draws circular star-trail arcs: concentric rings around an offset center receive random arc lengths and brightness, rotating with the Rotate parameter. Length sets arc extent and the trails are tinted by the chosen color." category="procedural" tags="other" thumb="thumb/1/0trail.png" experimental="false">
 
   <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <color id="color" default="#FFFFFFFF" label="@am:string/effect_param_color" alpha="true" />
         <point id="position" label="@am:string/effect_param_offset" />
         

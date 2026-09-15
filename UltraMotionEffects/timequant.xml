@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.timequant" name="@am:string/effect_timequant_name" desc="@am:string/effect_timequant_desc" tags="time,membersOnly" affinity="animation!" thumb="thumb/timequant.webp" category="other">
+<effect id="com.alightcreative.effects.timequant" name="@am:string/effect_timequant_name" desc="@am:string/effect_timequant_desc" tags="time,membersOnly" affinity="animation!" thumb="thumb/5/hardg.png" category="other">
 
     <params>
         <slider id="stepsPerSecond" default="5" min="1" max="120" step="1" label="@am:string/effect_param_steps_per_sec" />

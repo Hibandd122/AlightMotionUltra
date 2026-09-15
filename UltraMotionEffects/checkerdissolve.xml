@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.checkerdissolve" name="@am:string/effect_blockdissolve_name" desc="@am:string/effect_checkerdissolve_desc" tags="block,opacity,visibility,random,membersOnly,raster" category="opacity" thumb="thumb/checkerdissolve.webp" deprecated="true">
+<effect id="com.alightcreative.effects.checkerdissolve" name="@am:string/effect_blockdissolve_name" desc="@am:string/effect_checkerdissolve_desc" tags="block,opacity,visibility,random,membersOnly,raster" category="opacity" thumb="thumb/1/03d.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

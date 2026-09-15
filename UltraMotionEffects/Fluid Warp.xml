@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect afxver="2" id="com.alightcreative.effects.s_fluid_ae_ultimate" name="Fluid Warp" desc="Warps the layer along a pseudo-fluid flow field combining an emitter direction, curl of fBm noise (vorticity/turbulence), gravity/buoyancy, viscosity damping, and swirl. This is a single-pass displacement, not a true fluid simulation; extras include dual-color tinting, blur-based shading, bloom, and Normal/Add/Screen blending." category="warp" tags="liquid,fluid,distortion,ae,simulation,viscosity,vorticity,glitch,physics,pro" thumb="thumb/Distort and Warp/Fluid Warp.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect afxver="2" id="com.alightcreative.effects.s_fluid_ae_ultimate" name="Fluid Warp" desc="Warps the layer along a pseudo-fluid flow field combining an emitter direction, curl of fBm noise (vorticity/turbulence), gravity/buoyancy, viscosity damping, and swirl. This is a single-pass displacement, not a true fluid simulation; extras include dual-color tinting, blur-based shading, bloom, and Normal/Add/Screen blending." category="warp" tags="liquid,fluid,distortion,ae,simulation,viscosity,vorticity,glitch,physics,pro" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

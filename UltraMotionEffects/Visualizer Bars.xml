@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.audiovis" name="Visualizer Bars" desc="Draws a procedural grid of audio-visualizer-style bars whose heights follow sine waves driven by the Evolution value (not actual audio; keyframe Evolution to animate). Includes two-color gradient, amplitude, transform controls, and normal/multiply/screen blending over the layer." category="procedural" tags="other" thumb="thumb/Procedural/Visualizer Bars.webp" experimental="false">
+<effect id="com.alightcreative.effects.audiovis" name="Visualizer Bars" desc="Draws a procedural grid of audio-visualizer-style bars whose heights follow sine waves driven by the Evolution value (not actual audio; keyframe Evolution to animate). Includes two-color gradient, amplitude, transform controls, and normal/multiply/screen blending over the layer." category="procedural" tags="other" thumb="thumb/1/0audio.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.3dmeteor" name="3D Meteor (Unfinished)" desc="Renders radial meteor streaks: the view direction is split into random angular slices, each assigned a random distance, phase and hue, shaded as exponentially fading streaks flying toward the viewer while the field slowly rotates. Unfinished: several controls are raw shader constants." category="procedural" tags="other" thumb="thumb/Procedural/3D Meteor (Unfinished).webp" experimental="false">
+<effect id="com.alightcreative.effects.3dmeteor" name="3D Meteor (Unfinished)" desc="Renders radial meteor streaks: the view direction is split into random angular slices, each assigned a random distance, phase and hue, shaded as exponentially fading streaks flying toward the viewer while the field slowly rotates. Unfinished: several controls are raw shader constants." category="procedural" tags="other" thumb="thumb/12/2.png" experimental="false">
 
     <params>
         

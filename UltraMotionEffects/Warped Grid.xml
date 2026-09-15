@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warpedGrid" name="Warped Grid" desc="A rotating and zooming grid texture with an optional warp effect." category="procedural" tags="grid,warp,rotozoom,texture,motion" thumb="thumb/Procedural/Warped Grid.webp" experimental="false">
+<effect id="com.alightcreative.effects.warpedGrid" name="Warped Grid" desc="A rotating and zooming grid texture with an optional warp effect." category="procedural" tags="grid,warp,rotozoom,texture,motion" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         <slider id="gridSize" label="Grid Size" default="20.0" min="5.0" max="100.0" step="1.0" />

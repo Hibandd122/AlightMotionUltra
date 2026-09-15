@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fireworks" name="Firework Particle" desc="Procedural fireworks: rockets launch on staggered timelines and explode into circular or random spark bursts under gravity, each fading out. Controls include Progress, Amount, Sparks, orientation, scale and an optional two-color gradient mode." category="procedural" tags="other" thumb="thumb/Procedural/Firework Particle.webp" experimental="false">
+<effect id="com.alightcreative.effects.fireworks" name="Firework Particle" desc="Procedural fireworks: rockets launch on staggered timelines and explode into circular or random spark bursts under gravity, each fading out. Controls include Progress, Amount, Sparks, orientation, scale and an optional two-color gradient mode." category="procedural" tags="other" thumb="thumb/4/work.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <menu id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
             <menu label="NORMAL" value="0" />
             <menu label="SCREEN" value="1" />

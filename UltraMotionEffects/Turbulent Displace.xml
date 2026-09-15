@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.turbulent_displace" name="Turbulent Displace" desc="Displaces the image with animated fractal (FBM) or curl noise, with optional domain warping for richer structure. Controls include amount, noise scale, octaves, lacunarity, gain, per-axis strength, evolution speed, seed and clamp/repeat/mirror edge wrapping." category="warp" tags="warp,displace,turbulence,noise,fbm,curl" thumb="thumb/Distort and Warp/Turbulent Displace.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.turbulent_displace" name="Turbulent Displace" desc="Displaces the image with animated fractal (FBM) or curl noise, with optional domain warping for richer structure. Controls include amount, noise scale, octaves, lacunarity, gain, per-axis strength, evolution speed, seed and clamp/repeat/mirror edge wrapping." category="warp" tags="warp,displace,turbulence,noise,fbm,curl" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

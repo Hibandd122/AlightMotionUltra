@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.stretch" name="@am:string/effect_stretch_name" desc="@am:string/effect_stretch_desc" category="movetransform" tags="transform,raster" thumb="thumb/stretch.webp" deprecated="true">
+<effect id="com.alightcreative.effects.stretch" name="@am:string/effect_stretch_name" desc="@am:string/effect_stretch_desc" category="movetransform" tags="transform,raster" thumb="thumb/5/hardg.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

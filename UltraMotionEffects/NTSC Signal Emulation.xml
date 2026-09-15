@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.insane_signal" name="NTSC Signal Emulation" desc="Emulates an NTSC/VHS composite video signal: luma/chroma are encoded onto a subcarrier and demodulated with per-scanline phase error, producing rainbow crosstalk, dot crawl, luma smear, head-switching tear, tracking noise, snow, and interlace artifacts. Grouped controls cover signal filtering, noise, head switching, and tracking." category="other" tags="vhs,ntsc,signal,glitch,analog,retro" thumb="thumb/Distort and Warp/NTSC Signal Emulation.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.insane_signal" name="NTSC Signal Emulation" desc="Emulates an NTSC/VHS composite video signal: luma/chroma are encoded onto a subcarrier and demodulated with per-scanline phase error, producing rainbow crosstalk, dot crawl, luma smear, head-switching tear, tracking noise, snow, and interlace artifacts. Grouped controls cover signal filtering, noise, head switching, and tracking." category="other" tags="vhs,ntsc,signal,glitch,analog,retro" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
   <params>
     <texture id="inputImg" srcType="content" />
 

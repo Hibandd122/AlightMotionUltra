@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.opticcompesation" name="Optic Compensation" desc="Applies spherical lens distortion with chromatic dispersion: each RGB channel is resampled through a barrel/pincushion warp at slightly different strengths (Separation) and averaged over Quality iterations for a smooth dispersion blur." category="warp" tags="blur" thumb="thumb/Distort and Warp/Optic Compensation.webp" experimental="false">
+<effect id="com.alightcreative.effects.opticcompesation" name="Optic Compensation" desc="Applies spherical lens distortion with chromatic dispersion: each RGB channel is resampled through a barrel/pincushion warp at slightly different strengths (Separation) and averaged over Quality iterations for a smooth dispersion blur." category="warp" tags="blur" thumb="thumb/8/optic.png" experimental="false">
 
     <params>
          <slider id="iterations" label="Quality" default="10" min="1" max="15" step="1.0" type="integer" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.thermal" name="Thermal Vision" desc="Maps image luminance to a five-stop heat gradient (dark blue through violet, red, and yellow to white). Contrast and Shift remap the luminance range; Amount blends against the original colors." category="colorlight" thumb="thumb/Color/Thermal Vision.webp" tags="color,thermal,infrared,gradient,raster">
+<effect id="com.alightcreative.effects.extra.thermal" name="Thermal Vision" desc="Maps image luminance to a five-stop heat gradient (dark blue through violet, red, and yellow to white). Contrast and Shift remap the luminance range; Amount blends against the original colors." category="colorlight" thumb="thumb/5/hardg.png" tags="color,thermal,infrared,gradient,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

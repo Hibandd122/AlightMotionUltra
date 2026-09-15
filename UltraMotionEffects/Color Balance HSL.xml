@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorbalancehslpro" name="Color Balance HSL" desc="Three-zone color balance on CMY-RGB complementary axes for shadows, midtones, and highlights, with per-zone saturation and brightness fine-tuning. Zone boundaries are adjustable, luminance can be preserved, and a global mix blends with the original." category="colorlight" tags="color,balance,hsl,shadows,midtones,highlights,grade" thumb="thumb/Color/Color Balance HSL.webp">
+<effect id="com.alightcreative.effects.colorbalancehslpro" name="Color Balance HSL" desc="Three-zone color balance on CMY-RGB complementary axes for shadows, midtones, and highlights, with per-zone saturation and brightness fine-tuning. Zone boundaries are adjustable, luminance can be preserved, and a global mix blends with the original." category="colorlight" tags="color,balance,hsl,shadows,midtones,highlights,grade" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

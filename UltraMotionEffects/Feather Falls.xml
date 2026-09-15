@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.featherfalls" name="Feather Falls" desc="Renders a field of ray-traced drifting, spinning feathers built from procedural strand math. Amount sets feather count; progress and rotation speed animate the fall, with thickness, density, branch, shading and two-color mapping controls." category="procedural" tags="procedural" thumb="thumb/Procedural/Feather Falls.webp" experimental="false">
+<effect id="com.alightcreative.effects.featherfalls" name="Feather Falls" desc="Renders a field of ray-traced drifting, spinning feathers built from procedural strand math. Amount sets feather count; progress and rotation speed animate the fall, with thickness, density, branch, shading and two-color mapping controls." category="procedural" tags="procedural" thumb="thumb/11/5.png" experimental="false">
 
     <params>
         <slider id="AMOUNT" label="Amount" default="20" min="0" max="40" step="1.0" type="integer" snap="5,10,15,20,25,30,35" />

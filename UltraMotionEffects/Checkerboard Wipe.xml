@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.wipe_checker" name="Checkerboard Wipe" desc="Transition that reveals the layer through a grid of growing or shrinking rotated squares (diamonds). Controls include wipe percent, grid angle/frequency/aspect, directional and radial size gradients, edge softness, and an optional fill color for the unrevealed area." category="warp" tags="wipe,checker,grid,transition" thumb="thumb/Transition/Checkerboard Wipe.webp" overdraw="true" max-overdraw="1.5">
+<effect id="com.alightcreative.effects.wipe_checker" name="Checkerboard Wipe" desc="Transition that reveals the layer through a grid of growing or shrinking rotated squares (diamonds). Controls include wipe percent, grid angle/frequency/aspect, directional and radial size gradients, edge softness, and an optional fill color for the unrevealed area." category="warp" tags="wipe,checker,grid,transition" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
 
   <params>
     <texture id="inputImg" srcType="content" />

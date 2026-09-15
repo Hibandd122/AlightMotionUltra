@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.waveloq" name="Waveloq" desc="Waveloq LED dot panel. Black background with glowing neon dots. Dot size driven by image luma. Wave function distorts dot positions/sizes creating ripple patterns. 9 presets." category="drawingedge" tags="waveloq,dot,led,neon,particle,circuit,bent,wave,hologram" thumb="thumb/Stylize/Waveloq.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.waveloq" name="Waveloq" desc="Waveloq LED dot panel. Black background with glowing neon dots. Dot size driven by image luma. Wave function distorts dot positions/sizes creating ripple patterns. 9 presets." category="drawingedge" tags="waveloq,dot,led,neon,particle,circuit,bent,wave,hologram" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

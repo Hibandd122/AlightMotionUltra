@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.toon-shade" name="Toon Shade" desc="Cartoon look that flattens colors into bands and traces dark outlines on the edges." category="drawingedge" thumb="thumb/Stylize/Toon Shade.webp" tags="stylize,toon,cartoon,edge,raster" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra2.toon-shade" name="Toon Shade" desc="Cartoon look that flattens colors into bands and traces dark outlines on the edges." category="drawingedge" thumb="thumb/5/hardg.png" tags="stylize,toon,cartoon,edge,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

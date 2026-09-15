@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_wipepixelate" name="Pixelate Wipe" desc="Directional wipe transition whose edge dissolves into randomized pixel blocks: each grid block flips at a scattered threshold across the edge width. Controls include wipe direction, angle, block frequency/width/chunkiness, seed, background fill, and a matte preview." category="warp" tags="wipe,pixelate,transition,dissolve,sapphire,blocks" thumb="thumb/Transition/Pixelate Wipe.webp" experimental="false">
+<effect id="com.alightcreative.effects.s_wipepixelate" name="Pixelate Wipe" desc="Directional wipe transition whose edge dissolves into randomized pixel blocks: each grid block flips at a scattered threshold across the edge width. Controls include wipe direction, angle, block frequency/width/chunkiness, seed, background fill, and a matte preview." category="warp" tags="wipe,pixelate,transition,dissolve,sapphire,blocks" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

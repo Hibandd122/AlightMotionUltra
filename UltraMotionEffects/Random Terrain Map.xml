@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.creatormap" name="Random Terrain Map" desc="Generates stepped terrain-style maps: domain-warped fractal value noise is quantized into ten fixed color bands (water, shore, land, mountains), producing a new random map at intervals as Progress advances." category="procedural" tags="other" thumb="thumb/Procedural/Random Terrain Map.webp" experimental="false">
+<effect id="com.alightcreative.effects.creatormap" name="Random Terrain Map" desc="Generates stepped terrain-style maps: domain-warped fractal value noise is quantized into ten fixed color bands (water, shore, land, mountains), producing a new random map at intervals as Progress advances." category="procedural" tags="other" thumb="thumb/11/9.png" experimental="false">
 
     <params>
         

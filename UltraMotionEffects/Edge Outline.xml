@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.sobel-outline" name="Edge Outline" desc="Applies a 3x3 Sobel operator to image luminance and draws the detected edges in a chosen line color. Strength scales edge response and Keep Image blends the dimmed source underneath." category="drawingedge" thumb="thumb/Stylize/Edge Outline.webp" tags="stylize,edge,outline,sobel,raster" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra2.sobel-outline" name="Edge Outline" desc="Applies a 3x3 Sobel operator to image luminance and draws the detected edges in a chosen line color. Strength scales edge response and Keep Image blends the dimmed source underneath." category="drawingedge" thumb="thumb/5/hardg.png" tags="stylize,edge,outline,sobel,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

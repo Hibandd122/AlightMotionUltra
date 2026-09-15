@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgbglitch" name="Glitch RGB" desc="Randomly offsets horizontal slices of the image and shifts one color channel to create an RGB slice-glitch. Strength sets slice count and offset amount, Size sets slice height, Frequency reseeds the randomness, and Offset controls the channel shift." category="procedural" tags="other" thumb="thumb/Distort and Warp/Glitch RGB.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.rgbglitch" name="Glitch RGB" desc="Randomly offsets horizontal slices of the image and shifts one color channel to create an RGB slice-glitch. Strength sets slice count and offset amount, Size sets slice height, Frequency reseeds the randomness, and Offset controls the channel shift." category="procedural" tags="other" thumb="thumb/5/rgbg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <slider id="progressd" label="Size" default="0.1" min="0" max="1.4" step="0.01" type="percent" />
         <slider id="progressb" label="Strength" default="0.5" min="0" max="100.0" step="0.01" type="percent" />
         <slider id="progressa" label="Frequency" default="0.0" min="0" max="100.0" step="0.01" type="percent" />

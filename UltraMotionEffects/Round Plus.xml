@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/3D/Round Plus.webp" id="com.alightcreative.effects.extra3d.s3d-plus-rounding" name="Round Plus" desc="A 3D rounded plus / cross block." category="procedural" tags="3d,shape,geometric,lighting,raster" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect thumb="thumb/5/hardg.png" id="com.alightcreative.effects.extra3d.s3d-plus-rounding" name="Round Plus" desc="A 3D rounded plus / cross block." category="procedural" tags="3d,shape,geometric,lighting,raster" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

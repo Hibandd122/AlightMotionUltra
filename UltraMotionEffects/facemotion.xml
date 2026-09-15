@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.facemotion" name="Face Towards Motion" desc="Rotate element to face dynamically in direction of motion vector" category="movetransform" auto-transform="true" thumb="thumb/efek.png">
+<effect id="com.alightcreative.effects.facemotion" name="Face Towards Motion" desc="Rotate element to face dynamically in direction of motion vector" category="movetransform" auto-transform="true" thumb="thumb/0/efek.png">
 
     
 

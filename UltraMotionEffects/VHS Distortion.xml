@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhsdistort" name="VHS Distortion" desc="VHS tape distortion: horizontally offsets traveling scanline bands, adds static, left-edge black dropouts, splotches and white streaks, plus a 16-direction disc blur (Quality/Blurry) over the image." category="other" tags="distort" thumb="thumb/Distort and Warp/VHS Distortion.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.vhsdistort" name="VHS Distortion" desc="VHS tape distortion: horizontally offsets traveling scanline bands, adds static, left-edge black dropouts, splotches and white streaks, plus a 16-direction disc blur (Quality/Blurry) over the image." category="other" tags="distort" thumb="thumb/12/21.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

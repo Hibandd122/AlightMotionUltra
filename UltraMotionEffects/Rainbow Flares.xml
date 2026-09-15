@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rainbowflares" name="Rainbow Flares" desc="Layered fractal flares: iterates an abs/dot-product folding formula (kaliset style) across several scrolling depth layers to produce flowing rainbow light patterns. Controls for layer count, iterations, progress/speed, per-channel RGB weights and blend mode." category="colorlight" tags="other" thumb="thumb/Procedural/Rainbow Flares.webp" experimental="false">
+<effect id="com.alightcreative.effects.rainbowflares" name="Rainbow Flares" desc="Layered fractal flares: iterates an abs/dot-product folding formula (kaliset style) across several scrolling depth layers to produce flowing rainbow light patterns. Controls for layer count, iterations, progress/speed, per-channel RGB weights and blend mode." category="colorlight" tags="other" thumb="thumb/12/9.png" experimental="false">
 
     <params>
         

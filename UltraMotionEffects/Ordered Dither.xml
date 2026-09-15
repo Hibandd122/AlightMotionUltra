@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.dither" name="Ordered Dither" desc="Retro ordered-dithering using a Bayer matrix to fake shading with few colors." category="drawingedge" thumb="thumb/Stylize/Ordered Dither.webp" tags="stylize,dither,retro,pixel,raster">
+<effect id="com.alightcreative.effects.extra2.dither" name="Ordered Dither" desc="Retro ordered-dithering using a Bayer matrix to fake shading with few colors." category="drawingedge" thumb="thumb/5/hardg.png" tags="stylize,dither,retro,pixel,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

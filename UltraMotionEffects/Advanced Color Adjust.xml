@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fastadj" name="Advanced Color Adjust" category="colorlight" desc="All-in-one color correction: exposure, gamma, brightness, contrast, highlights/shadows, offset, saturation, vibrance, hue rotation, color temperature and per-channel RGB gamma, plus RGBA channel remapping. Comp Mode applies the adjustments to the whole composition instead of the layer." tags="color" thumb="thumb/Color/Advanced Color Adjust.webp" deprecated="true">
+<effect id="com.alightcreative.effects.fastadj" name="Advanced Color Adjust" category="colorlight" desc="All-in-one color correction: exposure, gamma, brightness, contrast, highlights/shadows, offset, saturation, vibrance, hue rotation, color temperature and per-channel RGB gamma, plus RGBA channel remapping. Comp Mode applies the adjustments to the whole composition instead of the layer." tags="color" thumb="thumb/2/coloradjustment.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

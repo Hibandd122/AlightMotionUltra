@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newcolortemp" name="New ColorTemp" desc="Color temperature adjustment in YIQ space: negative intensity shifts chroma toward a customizable cool color, positive toward a warm color. Result can be composited with 26 blend modes plus brightness and opacity controls." category="colorlight" tags="color" thumb="thumb/Color/New ColorTemp.webp" experimental="false">
+<effect id="com.alightcreative.effects.newcolortemp" name="New ColorTemp" desc="Color temperature adjustment in YIQ space: negative intensity shifts chroma toward a customizable cool color, positive toward a warm color. Result can be composited with 26 blend modes plus brightness and opacity controls." category="colorlight" tags="color" thumb="thumb/6/newtemp.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF0D6EFF" label="Cool Color" alpha="true" />

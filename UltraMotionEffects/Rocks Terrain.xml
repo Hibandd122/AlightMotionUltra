@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rockfield" name="Rocks Terrain" desc="Raymarched rocky terrain (up to 128 steps per pixel) with tri-planar texture mapping, texture-based bump mapping, two lights, ambient occlusion, curvature shading and blackbody-tinted subsurface glow. Six selectable surface textures plus camera, lighting and hue-shift controls. Very GPU-intensive." category="procedural" tags="other" thumb="thumb/Procedural/Rocks Terrain.webp" experimental="false">
+<effect id="com.alightcreative.effects.rockfield" name="Rocks Terrain" desc="Raymarched rocky terrain (up to 128 steps per pixel) with tri-planar texture mapping, texture-based bump mapping, two lights, ambient occlusion, curvature shading and blackbody-tinted subsurface glow. Six selectable surface textures plus camera, lighting and hue-shift controls. Very GPU-intensive." category="procedural" tags="other" thumb="thumb/6/terrain.png" experimental="false">
 
     <params>
-        <texture id="noisex1" srcType="image" src="textures/bark-rock-surface.png" />
-        <texture id="noisex2" srcType="image" src="textures/rusted-metal-surface.png" />
-        <texture id="noisex3" srcType="image" src="textures/rock-dark-surface.png" />
-        <texture id="noisex4" srcType="image" src="textures/blue-fan-pattern.png" />
-        <texture id="noisex5" srcType="image" src="textures/rock-charcoal-surface.png" />
-        <texture id="noisex6" srcType="image" src="textures/wood-planks-light.png" />
+        <texture id="noisex1" srcType="image" src="textures/iChannelX1.png" />
+        <texture id="noisex2" srcType="image" src="textures/iChannel12.png" />
+        <texture id="noisex3" srcType="image" src="textures/t33.png" />
+        <texture id="noisex4" srcType="image" src="textures/t44.png" />
+        <texture id="noisex5" srcType="image" src="textures/t66.png" />
+        <texture id="noisex6" srcType="image" src="textures/t77.png" />
         <menu id="typeX" style="dropdown" default="0" label="Texture">
             <menu label="Texture 1" value="0" />
             <menu label="Texture 2" value="1" />

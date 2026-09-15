@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.galaxy" name="Galaxy" desc="Renders a procedural spiral galaxy: logarithmic spiral arms with turbulent gas noise, star fields from noise textures, and a central bulb. Evolution animates rotation; inner/outer/background colors, transform, brightness and blend modes are adjustable." category="procedural" tags="procedural" thumb="thumb/Procedural/Galaxy.webp" experimental="false">
+<effect id="com.alightcreative.effects.galaxy" name="Galaxy" desc="Renders a procedural spiral galaxy: logarithmic spiral arms with turbulent gas noise, star fields from noise textures, and a central bulb. Evolution animates rotation; inner/outer/background colors, transform, brightness and blend modes are adjustable." category="procedural" tags="procedural" thumb="thumb/1/0galaxy.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="ic0" srcType="image" src="textures/noise-red-static.png" />
-        <texture id="ic1" srcType="image" src="textures/starfield-gold-dust.png" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="ic0" srcType="image" src="textures/iChannel1.png" />
+        <texture id="ic1" srcType="image" src="textures/iChannel2.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <color id="color1" default="#FFE5E5FF" label="Inner Color" alpha="true" />
         <color id="color2" default="#FFFFCCCC" label="Outer Color" alpha="true" />
         <color id="color3" default="#FF000000" label="BG Color" alpha="true" />

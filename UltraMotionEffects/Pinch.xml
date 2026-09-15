@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.pinch" name="Pinch" desc="Pinches or punches the layer around a point within a chosen radius." category="warp" thumb="thumb/Distort and Warp/Pinch.webp" tags="distort,pinch,warp,raster">
+<effect id="com.alightcreative.effects.extra2.pinch" name="Pinch" desc="Pinches or punches the layer around a point within a chosen radius." category="warp" thumb="thumb/5/hardg.png" tags="distort,pinch,warp,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

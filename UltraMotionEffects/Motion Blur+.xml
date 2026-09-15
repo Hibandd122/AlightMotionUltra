@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.moblurplus" name="Motion Blur+" desc="Adaptive motion blur that samples the layer along its animated position, scale and rotation velocities (each independently toggleable, up to 100 samples per pixel). Tune scales the blur amount; separate pivot points for the angle and scale components." category="blur" tags="blur" thumb="thumb/Blur and Sharpen/Motion Blur+.webp" experimental="false" overdraw="true" max-overdraw="1.5">
+<effect id="com.alightcreative.effects.moblurplus" name="Motion Blur+" desc="Adaptive motion blur that samples the layer along its animated position, scale and rotation velocities (each independently toggleable, up to 100 samples per pixel). Tune scales the blur amount; separate pivot points for the angle and scale components." category="blur" tags="blur" thumb="thumb/6/nmoblur.png" experimental="false" overdraw="true" max-overdraw="1.5">
 
     <params>
         <texture id="inputImg" srcType="content" />

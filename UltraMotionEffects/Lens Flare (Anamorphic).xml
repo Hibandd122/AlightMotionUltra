@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.new_lensflare_shadertoy" name="Lens Flare (Anamorphic)" desc="Generates a procedural lens flare (Shadertoy port) with ghost reflections and an anamorphic horizontal streak, composited over the layer via Normal/Multiply/Screen blending. Position, orientation, strength, reflection, luminance, and three tint colors control the look." category="colorlight" tags="lensflare, glow, glare" thumb="thumb/Light and Glow/Lens Flare (Anamorphic).webp">
+<effect id="com.alightcreative.effects.new_lensflare_shadertoy" name="Lens Flare (Anamorphic)" desc="Generates a procedural lens flare (Shadertoy port) with ghost reflections and an anamorphic horizontal streak, composited over the layer via Normal/Multiply/Screen blending. Position, orientation, strength, reflection, luminance, and three tint colors control the look." category="colorlight" tags="lensflare, glow, glare" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

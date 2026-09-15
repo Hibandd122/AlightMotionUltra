@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vignette" name="@am:string/effect_vignette_name" desc="@am:string/effect_vignette_desc" category="mask" tags="matte,classic,frame,raster" thumb="thumb/vignette.png">
+<effect id="com.alightcreative.effects.vignette" name="@am:string/effect_vignette_name" desc="@am:string/effect_vignette_desc" category="mask" tags="matte,classic,frame,raster" thumb="thumb/5/hardg.png">
 
     
         

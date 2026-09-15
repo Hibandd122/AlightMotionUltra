@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vcr" name="VCR Noise Overlay" desc="Overlays VCR-style tape interference: simplex-noise line displacement, random static rows, a scanline pattern and green/blue channel shifts generated from an internal texture, then luminance-keyed, tinted and composited (normal or lighten). Does not distort the layer itself." category="other" tags="other" thumb="thumb/Procedural/VCR Noise Overlay.webp" experimental="false">
+<effect id="com.alightcreative.effects.vcr" name="VCR Noise Overlay" desc="Overlays VCR-style tape interference: simplex-noise line displacement, random static rows, a scanline pattern and green/blue channel shifts generated from an internal texture, then luminance-keyed, tinted and composited (normal or lighten). Does not distort the layer itself." category="other" tags="other" thumb="thumb/1/0vcr.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <color id="color2" default="#FFFFFFFF" label="Color" alpha="true" />
         <slider id="progressa" label="Evolution" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
         <slider id="progressb" label="Strength" default="2.0" min="0" max="5.0" step="0.01" type="percent" />

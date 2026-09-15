@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.turbulentdisplace3" name="@am:string/effect_turbulentdisplace_name" desc="@am:string/effect_turbulentdisplace_desc" category="warp" tags="distort,fractal,glitch,raster,membersOnly" thumb="thumb/turbulentdisplace.webp" deprecated="false">
+<effect id="com.alightcreative.effects.turbulentdisplace3" name="@am:string/effect_turbulentdisplace_name" desc="@am:string/effect_turbulentdisplace_desc" category="warp" tags="distort,fractal,glitch,raster,membersOnly" thumb="thumb/turbulent_displace.webp" deprecated="false">
 
     
         

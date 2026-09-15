@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-arrow" name="Arrow" desc="Raymarches a 3D arrow (cone head smooth-joined to a cylinder shaft) and texture-maps the layer onto it. Includes orientation, rotation, position and scale, five shading modes (flat, point light, directional light, depth map, normal map), light direction and specular controls, and texture repeat/angle/twirl/offset mapping." category="3d" tags="3d,shape,geometric,lighting,raster" thumb="thumb/3D/Arrow.webp" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.extra3d.s3d-arrow" name="Arrow" desc="Raymarches a 3D arrow (cone head smooth-joined to a cylinder shaft) and texture-maps the layer onto it. Includes orientation, rotation, position and scale, five shading modes (flat, point light, directional light, depth map, normal map), light direction and specular controls, and texture repeat/angle/twirl/offset mapping." category="3d" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

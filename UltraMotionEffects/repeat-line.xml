@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.repeat.line" name="@am:string/effect_repeatline_name" desc="@am:string/effect_repeatline_desc" category="repeat" tags="repeat,membersOnly" thumb="thumb/repeat-linear.png">
+<effect id="com.alightcreative.effects.repeat.line" name="@am:string/effect_repeatline_name" desc="@am:string/effect_repeatline_desc" category="repeat" tags="repeat,membersOnly" thumb="thumb/5/hardg.png">
 
     
         

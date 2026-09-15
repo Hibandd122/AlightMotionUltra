@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dotsfield" name="Dots Field" desc="Renders a grid of randomly blinking glowing dots. Glow Radius mixes between soft glow and hard dot glyphs and Intensity scales brightness, with auto progress, scale, rotate, offset and blend-mode controls." category="procedural" tags="other" thumb="thumb/Procedural/Dots Field.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.dotsfield" name="Dots Field" desc="Renders a grid of randomly blinking glowing dots. Glow Radius mixes between soft glow and hard dot glyphs and Intensity scales brightness, with auto progress, scale, rotate, offset and blend-mode controls." category="procedural" tags="other" thumb="thumb/12/17.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         

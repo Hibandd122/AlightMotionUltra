@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorize" afxver="2" name="@am:string/effect_colorize_name" desc="@am:string/effect_colorize_desc" category="colorlight" tags="color, stylish, raster" thumb="thumb/colortint.png">
+<effect id="com.alightcreative.effects.colorize" afxver="2" name="@am:string/effect_colorize_name" desc="@am:string/effect_colorize_desc" category="colorlight" tags="color, stylish, raster" thumb="thumb/2/coloradjustment.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

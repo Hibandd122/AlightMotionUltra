@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.crystallize" name="Crystallize" desc="Snaps each pixel to the color at its nearest jittered Voronoi cell center, breaking the image into flat faceted cells. Cell Count controls the cell density." category="drawingedge" thumb="thumb/Stylize/Crystallize.webp" tags="stylize,voronoi,crystal,mosaic,raster" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra2.crystallize" name="Crystallize" desc="Snaps each pixel to the color at its nearest jittered Voronoi cell center, breaking the image into flat faceted cells. Cell Count controls the cell density." category="drawingedge" thumb="thumb/5/hardg.png" tags="stylize,voronoi,crystal,mosaic,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

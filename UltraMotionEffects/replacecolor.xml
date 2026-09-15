@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.replacecolor" name="@am:string/effect_replacecolor_name" desc="@am:string/effect_replacecolor_desc" category="colorlight" tags="color,rasster" thumb="thumb/replacecolor.webp">
+<effect id="com.alightcreative.replacecolor" name="@am:string/effect_replacecolor_name" desc="@am:string/effect_replacecolor_desc" category="colorlight" tags="color,rasster" thumb="thumb/replace_color.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

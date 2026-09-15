@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-wedge" name="Wedge" desc="Raymarched 3D wedge (a rounded box cut by a diagonal plane), textured with the layer. Includes rotation, position, and scale; flat, point-light, directional, depth, and normal shading modes with specular controls; and texture repeat, mirror, angle, and twirl mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/3D/Wedge.webp" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.extra3d.s3d-wedge" name="Wedge" desc="Raymarched 3D wedge (a rounded box cut by a diagonal plane), textured with the layer. Includes rotation, position, and scale; flat, point-light, directional, depth, and normal shading modes with specular controls; and texture repeat, mirror, angle, and twirl mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

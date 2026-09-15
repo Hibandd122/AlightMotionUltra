@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhsignal" name="VHS Signal" desc="Analog VHS look: noise-texture-driven horizontal line distortion, vertical chromatic aberration, nested sharpen-then-blur passes, gamma/level correction, and animated bar and grain noise. Strengths for each stage are adjustable; heavy on texture sampling at higher resolutions." category="other" tags="stylize" thumb="thumb/Stylize/VHS Signal.webp" experimental="false">
+<effect id="com.alightcreative.effects.vhsignal" name="VHS Signal" desc="Analog VHS look: noise-texture-driven horizontal line distortion, vertical chromatic aberration, nested sharpen-then-blur passes, gamma/level correction, and animated bar and grain noise. Strengths for each stage are adjustable; heavy on texture sampling at higher resolutions." category="other" tags="stylize" thumb="thumb/13/4.png" experimental="false">
 
     <params>
-        <texture id="noisexx" srcType="image" src="textures/noise-grey-static.png" />
+        <texture id="noisexx" srcType="image" src="textures/iChannel3.png" />
         <switch id="autop" default="true" label="Auto Progress" />
         <slider id="PROGRESS" label="Progress" default="1.0" min="-100.0" max="100.0" step="0.01" type="percent" />
         <slider id="SPEED" label="Speed AutoProg" default="1.0" min="0.0" max="100.0" step="0.01" type="percent" />

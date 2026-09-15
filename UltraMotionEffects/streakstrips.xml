@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.streakstrips" name="@am:string/effect_streak_strips_name" desc="@am:string/effect_streak_strips_desc" category="blur" tags="blur,raster" thumb="thumb/contrast.jpg" affinity="media">
+<effect id="com.alightcreative.effects.streakstrips" name="@am:string/effect_streak_strips_name" desc="@am:string/effect_streak_strips_desc" category="blur" tags="blur,raster" thumb="thumb/brightness_contrast.webp" affinity="media">
 
     <params>
         <texture id="inputImg" srcType="content" />

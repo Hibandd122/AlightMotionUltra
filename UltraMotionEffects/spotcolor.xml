@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.spotcolor" name="@am:string/effect_spotcolor_name" desc="@am:string/effect_spotcolor_desc" category="colorlight" tags="color,raster" thumb="thumb/spotcolor.webp" deprecated="true">
+<effect id="com.alightcreative.spotcolor" name="@am:string/effect_spotcolor_name" desc="@am:string/effect_spotcolor_desc" category="colorlight" tags="color,raster" thumb="thumb/spot_color.webp" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dct_compress_demo" name="JPEG Compression" desc="Approximates JPEG compression artifacts by performing a partial 8x8 DCT per block with quantization and keeping only a subset of frequency coefficients. Quantization scale, kept-frequency level, split view against the original, and grid overlay controls." category="procedural" tags="dct,jpeg,compress,blocks,stylize" thumb="thumb/Stylize/JPEG Compression.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.dct_compress_demo" name="JPEG Compression" desc="Approximates JPEG compression artifacts by performing a partial 8x8 DCT per block with quantization and keeping only a subset of frequency coefficients. Quantization scale, kept-frequency level, split view against the original, and grid overlay controls." category="procedural" tags="dct,jpeg,compress,blocks,stylize" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

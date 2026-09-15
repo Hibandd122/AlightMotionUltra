@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.puddle" name="Puddle" desc="Simulates raindrops hitting a puddle: up to 30 randomly placed expanding ripple rings vertically displace the layer's UVs, with an optional blue-green tint in ripple troughs. Controls include drop amount, progress (auto or manual), scale, position, and rotation." category="procedural" tags="distort" thumb="thumb/Distort and Warp/Puddle.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.puddle" name="Puddle" desc="Simulates raindrops hitting a puddle: up to 30 randomly placed expanding ripple rings vertically displace the layer's UVs, with an optional blue-green tint in ripple troughs. Controls include drop amount, progress (auto or manual), scale, position, and rotation." category="procedural" tags="distort" thumb="thumb/5/puddle.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

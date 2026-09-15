@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.ripple-water" name="Ripple Water" desc="Animated concentric water ripples emitting from a point, distorting the layer like a drop hitting a pond." category="procedural" thumb="thumb/Distort and Warp/Ripple Water.webp" tags="water,ripple,distort,wave,raster,animated">
+<effect id="com.alightcreative.effects.extra.ripple-water" name="Ripple Water" desc="Animated concentric water ripples emitting from a point, distorting the layer like a drop hitting a pond." category="procedural" thumb="thumb/3/sea.png" tags="water,ripple,distort,wave,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

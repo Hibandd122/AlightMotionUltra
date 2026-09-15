@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.drawing.stroketaper" name="@am:string/effect_stroketaper_name" desc="@am:string/effect_stroketaper_desc" affinity="freehand!" type="drawing" category="drawingedge" tags="drawing,stroke,vector" thumb="thumb/stroketaper5.webp">
+<effect id="com.alightcreative.effects.drawing.stroketaper" name="@am:string/effect_stroketaper_name" desc="@am:string/effect_stroketaper_desc" affinity="freehand!" type="drawing" category="drawingedge" tags="drawing,stroke,vector" thumb="thumb/5/hardg.png">
 
     
         

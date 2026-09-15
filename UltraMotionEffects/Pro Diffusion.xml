@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.prodiffusion" name="Pro Diffusion" desc="Multi-pass diffusion filter built from two separable Gaussian blur pairs at different radii. Provides highlight and shadow diffusion, halation, Orton softening, chromatic diffusion, film fog, dream glow, hue-masked skin smoothing, contrast restore, and blend-mode compositing." category="colorlight" tags="diffusion,soft,bloom,halation,orton,fog,dream,cinematic,film" thumb="thumb/Stylize/Pro Diffusion.webp" overdraw="true" max-overdraw="1.5">
+<effect id="com.alightcreative.effects.prodiffusion" name="Pro Diffusion" desc="Multi-pass diffusion filter built from two separable Gaussian blur pairs at different radii. Provides highlight and shadow diffusion, halation, Orton softening, chromatic diffusion, film fog, dream glow, hue-masked skin smoothing, contrast restore, and blend-mode compositing." category="colorlight" tags="diffusion,soft,bloom,halation,orton,fog,dream,cinematic,film" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
     <params>
         <texture id="inputImg" srcType="content" />
         <texture id="blurA" srcType="buffer" downsample="2" />

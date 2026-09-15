@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorblend" name="Cinematic Color Grade" desc="Multi-stage color grading suite: color wash with blend modes, shadow/midtone/highlight zone tinting, pop controls (contrast, saturation, vibrance, punch, clarity), print film emulation (bleach bypass, cross process, fade, density), matte-look lift/crush, temperature/tint, exposure with highlight/shadow recovery, per-channel gain/gamma and HSL-based skin tone protection." category="colorlight" tags="color,film,cinematic,wash,pop,grade" thumb="thumb/Color/Cinematic Color Grade.webp">
+<effect id="com.alightcreative.effects.colorblend" name="Cinematic Color Grade" desc="Multi-stage color grading suite: color wash with blend modes, shadow/midtone/highlight zone tinting, pop controls (contrast, saturation, vibrance, punch, clarity), print film emulation (bleach bypass, cross process, fade, density), matte-look lift/crush, temperature/tint, exposure with highlight/shadow recovery, per-channel gain/gamma and HSL-based skin tone protection." category="colorlight" tags="color,film,cinematic,wash,pop,grade" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

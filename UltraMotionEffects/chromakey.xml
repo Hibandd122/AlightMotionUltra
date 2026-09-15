@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.chromakey" name="@am:string/effect_chromakey_name" desc="@am:string/effect_chromakey_desc" tags="key,matte,mask,compositing,greenscreen,essentials,raster" category="mask" thumb="thumb/chroma-key.png">
+<effect id="com.alightcreative.effects.chromakey" name="@am:string/effect_chromakey_name" desc="@am:string/effect_chromakey_desc" tags="key,matte,mask,compositing,greenscreen,essentials,raster" category="mask" thumb="thumb/chroma_key.webp">
 
     
         

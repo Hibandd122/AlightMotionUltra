@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.custom.effects.multiscalesharpen" name="Multi-Scale Sharpen" desc="Sharpens by isolating four frequency bands with difference-of-Gaussians (4-tap blurs at increasing radii) and re-adding them with per-band weights. Includes an edge threshold gate, separate luma/chroma sharpening via YIQ, and per-RGB-channel gain." category="colorlight" thumb="thumb/Color/Multi-Scale Sharpen.webp" tags="sharpen,enhance,detail" overdraw="true" max-overdraw="1.0">
+<effect id="com.custom.effects.multiscalesharpen" name="Multi-Scale Sharpen" desc="Sharpens by isolating four frequency bands with difference-of-Gaussians (4-tap blurs at increasing radii) and re-adding them with per-band weights. Includes an edge threshold gate, separate luma/chroma sharpening via YIQ, and per-RGB-channel gain." category="colorlight" thumb="thumb/2/3color.png" tags="sharpen,enhance,detail" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

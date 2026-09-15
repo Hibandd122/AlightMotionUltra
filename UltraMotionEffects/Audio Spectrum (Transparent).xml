@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.audio_spectrum_purple" name="Audio Spectrum (Transparent)" desc="Draws spectrum-style bars and dots along a baseline over a transparent background. Bar heights are driven by a keyframeable Audio Level parameter with per-band randomness and wobble; it does not read actual audio." category="procedural" tags="audio,spectrum,visualizer,transparent,bars,dots" thumb="thumb/Procedural/Audio Spectrum (Transparent).webp" overdraw="true" max-overdraw="1.5">
+<effect id="com.alightcreative.effects.audio_spectrum_purple" name="Audio Spectrum (Transparent)" desc="Draws spectrum-style bars and dots along a baseline over a transparent background. Bar heights are driven by a keyframeable Audio Level parameter with per-band randomness and wobble; it does not read actual audio." category="procedural" tags="audio,spectrum,visualizer,transparent,bars,dots" thumb="thumb/1/0audio.png" overdraw="true" max-overdraw="1.5">
 
   <params>
     

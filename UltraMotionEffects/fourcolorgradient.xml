@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.fourcolorgradient" name="@am:string/effect_fourcolorgradient_name" desc="@am:string/effect_fourcolorgradient_desc" category="colorlight" tags="color,stylish,raster,membersOnly" thumb="thumb/fourcolorgradient.webp" deprecated="false" experimental="false">
+<effect id="com.alightcreative.fourcolorgradient" name="@am:string/effect_fourcolorgradient_name" desc="@am:string/effect_fourcolorgradient_desc" category="colorlight" tags="color,stylish,raster,membersOnly" thumb="thumb/four_color_gradient.webp" deprecated="false" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

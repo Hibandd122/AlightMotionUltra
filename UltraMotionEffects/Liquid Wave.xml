@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.liquid-wave" name="Liquid Wave" desc="Warps the layer with smooth flowing sine waves on both axes for an underwater / liquid wobble." category="procedural" thumb="thumb/Distort and Warp/Liquid Wave.webp" tags="wave,distort,liquid,raster,animated">
+<effect id="com.alightcreative.effects.extra.liquid-wave" name="Liquid Wave" desc="Warps the layer with smooth flowing sine waves on both axes for an underwater / liquid wobble." category="procedural" thumb="thumb/5/hardg.png" tags="wave,distort,liquid,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

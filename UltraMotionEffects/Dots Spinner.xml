@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dotsloader" name="Dots Spinner" desc="Draws a ring of orbiting glowing dots: each dot position comes from sine/cosine offsets (Orient and Space X/Y) and is rendered as an inverse-distance glow in the chosen color. Amount sets the dot count." category="procedural" tags="other" thumb="thumb/Procedural/Dots Spinner.webp" experimental="false">
+<effect id="com.alightcreative.effects.dotsloader" name="Dots Spinner" desc="Draws a ring of orbiting glowing dots: each dot position comes from sine/cosine offsets (Orient and Space X/Y) and is rendered as an inverse-distance glow in the chosen color. Amount sets the dot count." category="procedural" tags="other" thumb="thumb/8/dotss.png" experimental="false">
 
     <params>
         <color id="COLOR" default="#FF00FFFF" label="Color" alpha="true" />

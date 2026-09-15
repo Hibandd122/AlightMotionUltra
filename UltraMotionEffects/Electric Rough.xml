@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.electricrough" name="Electric Rough" desc="Draws a rough animated electric arc using texture-based Voronoi noise, with base, fade and glow colors over an optional background color. Strength, Evolution, Phase and Thickness shape the bolt; Normal/Multiply/Screen blending." category="colorlight" tags="other" thumb="thumb/Procedural/Electric Rough.webp" experimental="false">
+<effect id="com.alightcreative.effects.electricrough" name="Electric Rough" desc="Draws a rough animated electric arc using texture-based Voronoi noise, with base, fade and glow colors over an optional background color. Strength, Evolution, Phase and Thickness shape the bolt; Normal/Multiply/Screen blending." category="colorlight" tags="other" thumb="thumb/3/electric.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
         <texture id="comp" srcType="comp" />
-        <texture id="iChannel0" srcType="image" src="textures/noise-rgb-static.png" />
+        <texture id="iChannel0" srcType="image" src="textures/iChannel7.png" />
         
         <point id="position" label="@am:string/effect_param_offset" />
         <slider id="progressa" label="Strength" default="0.5" min="0.05" max="0.5" step="0.01" type="percent" />

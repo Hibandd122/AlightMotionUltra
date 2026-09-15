@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fencingwire" name="Fencing Wire+" desc="Overlays a tiling chain-link fence texture on the layer with offset, stretch, scale, and rotation controls. Strength boosts the overlay and blend mode selects normal, multiply, or screen compositing." category="procedural" tags="other" thumb="thumb/Stylize/Fencing Wire+.webp" experimental="false">
+<effect id="com.alightcreative.effects.fencingwire" name="Fencing Wire+" desc="Overlays a tiling chain-link fence texture on the layer with offset, stretch, scale, and rotation controls. Strength boosts the overlay and blend mode selects normal, multiply, or screen compositing." category="procedural" tags="other" thumb="thumb/1/0wire.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="noisex" srcType="image" src="textures/chainlink-fence-alpha.png" />
+        <texture id="noisex" srcType="image" src="textures/fence.png" />
         
         <point id="position" label="@am:string/effect_param_offset" />
         <point id="stretch" default="1.0,1.0" min="0.01,0.01" max="10, 10" label="@am:string/effect_param_stretch" step="0.01" />

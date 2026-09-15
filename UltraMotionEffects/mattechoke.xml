@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.mattechoke" name="@am:string/effect_mattechoke_name" category="mask" tags="matte,raster" desc="@am:string/effect_mattechoke_desc" thumb="thumb/mattechoke.webp" deprecated="true">
+<effect id="com.alightcreative.mattechoke" name="@am:string/effect_mattechoke_name" category="mask" tags="matte,raster" desc="@am:string/effect_mattechoke_desc" thumb="thumb/5/hardg.png" deprecated="true">
 
 
     <params>

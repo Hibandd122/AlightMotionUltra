@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.split-tone" name="Split Tone" desc="Tints shadows and highlights with two different colors for a stylish graded look." category="colorlight" thumb="thumb/Color/Split Tone.webp" tags="color,grade,tone,raster">
+<effect id="com.alightcreative.effects.extra2.split-tone" name="Split Tone" desc="Tints shadows and highlights with two different colors for a stylish graded look." category="colorlight" thumb="thumb/5/hardg.png" tags="color,grade,tone,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

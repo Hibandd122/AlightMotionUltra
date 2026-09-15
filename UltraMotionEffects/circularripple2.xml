@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.circularripple2" name="@am:string/effect_circularripple_name" desc="@am:string/effect_circularripple_desc" tags="warp,raster" category="warp" thumb="thumb/circularripple.webp">
+<effect id="com.alightcreative.effects.circularripple2" name="@am:string/effect_circularripple_name" desc="@am:string/effect_circularripple_desc" tags="warp,raster" category="warp" thumb="thumb/circular_ripple.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

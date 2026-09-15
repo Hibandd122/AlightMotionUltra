@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhs_suite" name="VHS Suite" desc="Five-preset analog video simulation (Glitch, Camera View, VHS Play, Ghosting TV, CRT Blur) built from three passes: chromatic aberration, sharpen/blur kernels, screen bend, YIQ tape smear, ghost frames, static bands, on-screen text/timecode rendering from a font texture, scanline/grille shading, and a VHS texture overlay with global intensity, speed, and tint." category="other" tags="vhs,glitch,camera,shadertoy" thumb="thumb/Distort and Warp/VHS Suite.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.vhs_suite" name="VHS Suite" desc="Five-preset analog video simulation (Glitch, Camera View, VHS Play, Ghosting TV, CRT Blur) built from three passes: chromatic aberration, sharpen/blur kernels, screen bend, YIQ tape smear, ghost frames, static bands, on-screen text/timecode rendering from a font texture, scanline/grille shading, and a VHS texture overlay with global intensity, speed, and tint." category="other" tags="vhs,glitch,camera,shadertoy" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="vhsTex" srcType="image" src="textures/vhs-player-overlay.png" />
+        <texture id="vhsTex" srcType="image" src="textures/t1.png" />
         <texture id="fontTex" srcType="content" label="Font Texture (16x16 Grid)" />
         <texture id="bufferA" srcType="buffer" />
         <texture id="bufferB" srcType="buffer" />

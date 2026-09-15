@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.gradexposure" name="Gradient Exposure" desc="Splits the frame along a linear, radial, elliptical, diamond, or angular gradient and applies separate exposure, contrast, saturation, gamma, highlight/shadow, tint, and temperature grades to each side, plus master adjustments and a gradient preview." category="colorlight" tags="gradient,exposure,light,grade,vignette,radial,directional,manga" thumb="thumb/Color/Gradient Exposure.webp">
+<effect id="com.alightcreative.effects.gradexposure" name="Gradient Exposure" desc="Splits the frame along a linear, radial, elliptical, diamond, or angular gradient and applies separate exposure, contrast, saturation, gamma, highlight/shadow, tint, and temperature grades to each side, plus master adjustments and a gradient preview." category="colorlight" tags="gradient,exposure,light,grade,vignette,radial,directional,manga" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

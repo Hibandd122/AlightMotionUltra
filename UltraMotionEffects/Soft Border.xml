@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.color-border" name="Soft Border" desc="Blends a solid color into the layer along its rectangular edges, fading smoothly inward over the chosen width. Controls border color, width, and blend amount." category="drawingedge" thumb="thumb/Drawing/Soft Border.webp" tags="drawing,border,frame,neon,raster">
+<effect id="com.alightcreative.effects.extra2.color-border" name="Soft Border" desc="Blends a solid color into the layer along its rectangular edges, fading smoothly inward over the chosen width. Controls border color, width, and blend amount." category="drawingedge" thumb="thumb/5/hardg.png" tags="drawing,border,frame,neon,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

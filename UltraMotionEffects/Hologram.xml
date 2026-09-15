@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.hologram" name="Hologram" desc="Sci-fi hologram look with horizontal scan bands, a color tint, edge flicker and subtle vertical jitter." category="procedural" thumb="thumb/Stylize/Hologram.webp" tags="scifi,neon,scanline,hologram,raster,animated">
+<effect id="com.alightcreative.effects.extra.hologram" name="Hologram" desc="Sci-fi hologram look with horizontal scan bands, a color tint, edge flicker and subtle vertical jitter." category="procedural" thumb="thumb/5/hardg.png" tags="scifi,neon,scanline,hologram,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.spill-cleanup" name="@am:string/effect_key_spill_cleaner_name" desc="@am:string/effect_key_spill_cleaner_desc" tags="key,matte,mask,raster" category="mask" experimental="false" thumb="thumb/chroma-key.png">
+<effect id="com.alightcreative.effects.spill-cleanup" name="@am:string/effect_key_spill_cleaner_name" desc="@am:string/effect_key_spill_cleaner_desc" tags="key,matte,mask,raster" category="mask" experimental="false" thumb="thumb/chroma_key.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

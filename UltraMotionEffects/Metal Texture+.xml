@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.metaltexture" name="Metal Texture+" desc="Generates a brushed-metal surface by layering directional noise samples, with two alternative image-based texture types (dots and plate). Transform controls, brightness, optional two-color gradient map and normal/multiply/screen blending are included." category="procedural" tags="procedural" thumb="thumb/Procedural/Metal Texture+.webp" experimental="false">
+<effect id="com.alightcreative.effects.metaltexture" name="Metal Texture+" desc="Generates a brushed-metal surface by layering directional noise samples, with two alternative image-based texture types (dots and plate). Transform controls, brightness, optional two-color gradient map and normal/multiply/screen blending are included." category="procedural" tags="procedural" thumb="thumb/1/0metal.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="noise" srcType="image" src="textures/noise-red-static.png" />
-        <texture id="dots" srcType="image" src="textures/sphere-shading-gradient.png" />
-        <texture id="t11" srcType="image" src="textures/metal-diamond-plate.png" />
+        <texture id="noise" srcType="image" src="textures/iChannel1.png" />
+        <texture id="dots" srcType="image" src="textures/dots.png" />
+        <texture id="t11" srcType="image" src="textures/t1.png" />
         <menu id="texC" style="radio" default="0" label="Texture">
             <menu label="TYPE 1" value="0" />
             <menu label="TYPE 2" value="1" />

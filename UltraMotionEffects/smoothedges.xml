@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smoothedges" name="@am:string/effect_smooth_edges_name" desc="@am:string/effect_smooth_edges_desc" tags="drawing,edge" category="drawingedge" thumb="thumb/glow.png">
+<effect id="com.alightcreative.effects.smoothedges" name="@am:string/effect_smooth_edges_name" desc="@am:string/effect_smooth_edges_desc" tags="drawing,edge" category="drawingedge" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

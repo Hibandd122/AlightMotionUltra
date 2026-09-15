@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.matrixcode" name="Matrix Code" desc="Matrix-style falling code: tiles random glyphs from a character texture (random or binary set) into a fixed cell grid and animates falling brightness trails down each column. Evolution drives the fall; colors come from a two-color gradient map." category="procedural" tags="other" thumb="thumb/Procedural/Matrix Code.webp" experimental="false">
+<effect id="com.alightcreative.effects.matrixcode" name="Matrix Code" desc="Matrix-style falling code: tiles random glyphs from a character texture (random or binary set) into a fixed cell grid and animates falling brightness trails down each column. Evolution drives the fall; colors come from a two-color gradient map." category="procedural" tags="other" thumb="thumb/1/0matrix.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="codex" srcType="image" src="textures/matrix-glyph-atlas-1.png" />
-        <texture id="codex2" srcType="image" src="textures/matrix-glyph-atlas-2.png" />
+        <texture id="codex" srcType="image" src="textures/code.png" />
+        <texture id="codex2" srcType="image" src="textures/code2.png" />
         
          <menu id="typeC" style="radio" default="0" label="Type Char">
             <menu label="RANDOM" value="0" />

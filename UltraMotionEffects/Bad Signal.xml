@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.badsignal" name="Bad Signal" desc="Simulates poor analog TV reception: barrel screen distortion, horizontal wave jitter, vertical hold slip, noise stripes, vignette and scanlines. Includes a noise-texture or clean mode, optional greyscale, and separate progress controls for jitter, evolution, blink and scanlines." category="other" tags="other" thumb="thumb/Stylize/Bad Signal.webp" experimental="false">
+<effect id="com.alightcreative.effects.badsignal" name="Bad Signal" desc="Simulates poor analog TV reception: barrel screen distortion, horizontal wave jitter, vertical hold slip, noise stripes, vignette and scanlines. Includes a noise-texture or clean mode, optional greyscale, and separate progress controls for jitter, evolution, blink and scanlines." category="other" tags="other" thumb="thumb/1/0oldtv.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="noisex" srcType="image" src="textures/noise-red-static.png" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="noisex" srcType="image" src="textures/iChannel1.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <menu id="typeX" style="radio" default="1" label="Type">
             <menu label="NORMAL" value="0" />
             <menu label="NOISE" value="1" />

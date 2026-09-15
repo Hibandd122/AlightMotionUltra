@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.sposshake" name="S_Pos Shake" desc="Position shake using banded Catmull-Rom noise plus sine waves per axis, with 8 shake modes (handheld, earthquake, whip, bounce, jitter, drift, punch), frequency-band weights, decay/ramp envelope, directional bias, spring oscillation, global angle, and black/tile/reflect edge handling." category="warp" tags="shake,position,move,camera,impact,handheld,earthquake,whip,bounce" thumb="thumb/Move and Transform/S_Pos Shake.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.sposshake" name="S_Pos Shake" desc="Position shake using banded Catmull-Rom noise plus sine waves per axis, with 8 shake modes (handheld, earthquake, whip, bounce, jitter, drift, punch), frequency-band weights, decay/ramp envelope, directional bias, spring oscillation, global angle, and black/tile/reflect edge handling." category="warp" tags="shake,position,move,camera,impact,handheld,earthquake,whip,bounce" thumb="thumb/auto_shake.webp" overdraw="true" max-overdraw="1.0">
     <params>
         <texture id="inputImg" srcType="content" />
 

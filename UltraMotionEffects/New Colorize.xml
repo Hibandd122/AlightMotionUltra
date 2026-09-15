@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newcolorize" name="New Colorize" desc="Recolors the layer by pulling each pixel toward three user colors (shadows, midtones, highlights) weighted by chroma distance in YIQ space. Includes luminance and color-mix strength, an optional low/high threshold filter with feather, and a large set of blend modes." category="colorlight" tags="color" thumb="thumb/Color/New Colorize.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.newcolorize" name="New Colorize" desc="Recolors the layer by pulling each pixel toward three user colors (shadows, midtones, highlights) weighted by chroma distance in YIQ space. Includes luminance and color-mix strength, an optional low/high threshold filter with feather, and a large set of blend modes." category="colorlight" tags="color" thumb="thumb/6/newcol.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <color id="COLOR1" default="#FFFF4444" label="Shadows" alpha="true" />

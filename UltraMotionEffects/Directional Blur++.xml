@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/Blur and Sharpen/Directional Blur++.webp" id="com.custom.effects.directional_blur_adv" name="Directional Blur++" desc="Directional (linear) blur with selectable kernel shape (Gaussian, Linear, Box, Sinc), up to 64 taps along an adjustable angle. Advanced options include one-side blurring, angle spread cone, sample spread/thin, luminance threshold masking, pixel displacement, edge clamping, radial falloff mask and blend modes." category="blur" tags="blur,directional,motion,speed,streak,smear,linear" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect thumb="thumb/lens_blur.webp" id="com.custom.effects.directional_blur_adv" name="Directional Blur++" desc="Directional (linear) blur with selectable kernel shape (Gaussian, Linear, Box, Sinc), up to 64 taps along an adjustable angle. Advanced options include one-side blurring, angle spread cone, sample spread/thin, luminance threshold masking, pixel displacement, edge clamping, radial falloff mask and blend modes." category="blur" tags="blur,directional,motion,speed,streak,smear,linear" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

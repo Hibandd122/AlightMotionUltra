@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.star_tunnel_camera" name="Star Tunnel" desc="Procedural star tunnel rendered on a transparent background, with camera position/rotation controls, forward speed, automatic speed-based motion-blur trails, system rotation, two star colors and 1-3 density passes." category="procedural" tags="star,tunnel,space,procedural,particles" thumb="thumb/3D/Star Tunnel.webp">
+<effect id="com.alightcreative.effects.star_tunnel_camera" name="Star Tunnel" desc="Procedural star tunnel rendered on a transparent background, with camera position/rotation controls, forward speed, automatic speed-based motion-blur trails, system rotation, two star colors and 1-3 density passes." category="procedural" tags="star,tunnel,space,procedural,particles" thumb="thumb/3/tunnel.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

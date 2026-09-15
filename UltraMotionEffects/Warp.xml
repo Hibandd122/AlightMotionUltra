@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warp_styles" name="Warp" desc="Text-warp style distortion with 15 selectable styles (Arc, Arch, Bulge, Shell, Flag, Wave, Fish, Rise, FishEye, Inflate, Twist, Squeeze and more), adjustable bend, horizontal/vertical taper, vertical axis mode, tile modes and blend." category="warp" tags="warp,distort,arc,wave,bulge,twist,squeeze" thumb="thumb/Distort and Warp/Warp.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.warp_styles" name="Warp" desc="Text-warp style distortion with 15 selectable styles (Arc, Arch, Bulge, Shell, Flag, Wave, Fish, Rise, FishEye, Inflate, Twist, Squeeze and more), adjustable bend, horizontal/vertical taper, vertical axis mode, tile modes and blend." category="warp" tags="warp,distort,arc,wave,bulge,twist,squeeze" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

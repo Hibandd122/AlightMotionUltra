@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.channelmap" name="@am:string/effect_channelmap_name" desc="@am:string/effect_channelmap_desc" tags="color,channel,utility,raster,lumaMap" thumb="thumb/cremap.webp" category="other">
+<effect id="com.alightcreative.effects.channelmap" name="@am:string/effect_channelmap_name" desc="@am:string/effect_channelmap_desc" tags="color,channel,utility,raster,lumaMap" thumb="thumb/1/03d.png" category="other">
 
     <params>
         <texture id="inputImg" srcType="content" />

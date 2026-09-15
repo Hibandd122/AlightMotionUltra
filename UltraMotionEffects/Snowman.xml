@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-snowman" name="Snowman" desc="A 3D snowman of two stacked spheres." category="3d" tags="3d,shape,geometric,lighting,raster" thumb="thumb/3D/Snowman.webp" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.extra3d.s3d-snowman" name="Snowman" desc="A 3D snowman of two stacked spheres." category="3d" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

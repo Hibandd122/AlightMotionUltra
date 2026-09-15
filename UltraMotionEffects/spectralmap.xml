@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.spectralmap" name="@am:string/effect_spectralmap_name" desc="@am:string/effect_spectralmap_desc" category="colorlight" tags="color,lumaMap,fun,raster" thumb="thumb/spectralmap.webp" experimental="false" deprecated="false">
+<effect id="com.alightcreative.spectralmap" name="@am:string/effect_spectralmap_name" desc="@am:string/effect_spectralmap_desc" category="colorlight" tags="color,lumaMap,fun,raster" thumb="thumb/spectral_map.webp" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

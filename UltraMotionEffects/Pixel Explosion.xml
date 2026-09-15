@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.pixelexplosion" name="Pixel Explosion" desc="Firework-style burst of up to 40 pixelated particles launched from the center under adjustable gravity, colored by a two-color gradient map. Controls include particle amount, seed, pixel resolution, auto/manual progress, transform, and blend modes." category="procedural" tags="procedural" thumb="thumb/Procedural/Pixel Explosion.webp" experimental="false">
+<effect id="com.alightcreative.effects.pixelexplosion" name="Pixel Explosion" desc="Firework-style burst of up to 40 pixelated particles launched from the center under adjustable gravity, colored by a two-color gradient map. Controls include particle amount, seed, pixel resolution, auto/manual progress, transform, and blend modes." category="procedural" tags="procedural" thumb="thumb/11/14.png" experimental="false">
 
     <params>
         

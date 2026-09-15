@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.granular_dissolve" name="Particle Dissolve" desc="Dissolves the layer along a fractal-noise map while spawning per-cell particles that carry the local image color, scatter with noise-driven flow, and travel in Z with perspective scaling and distance fade. Progress drives the transition; density, size, Z distance, and scatter shape the particles." category="warp" thumb="thumb/Transition/Particle Dissolve.webp" tags="dissolve,particles,transition">
+<effect id="com.alightcreative.effects.granular_dissolve" name="Particle Dissolve" desc="Dissolves the layer along a fractal-noise map while spawning per-cell particles that carry the local image color, scatter with noise-driven flow, and travel in Z with perspective scaling and distance fade. Progress drives the transition; density, size, Z distance, and scatter shape the particles." category="warp" thumb="thumb/11/3.png" tags="dissolve,particles,transition">
 
   <params>
     <texture id="inputImg" srcType="content" />

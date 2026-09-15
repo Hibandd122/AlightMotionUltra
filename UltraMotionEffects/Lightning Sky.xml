@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lighting" name="Lightning Sky" desc="Draws procedural branching lightning bolts (segment-marched with noise-driven arcs, warped by fbm) that flash at random intervals. Controls include strike frequency, bolt length, count, ray opacity, color, transform, and normal/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/Procedural/Lightning Sky.webp" experimental="false">
+<effect id="com.alightcreative.effects.lighting" name="Lightning Sky" desc="Draws procedural branching lightning bolts (segment-marched with noise-driven arcs, warped by fbm) that flash at random intervals. Controls include strike frequency, bolt length, count, ray opacity, color, transform, and normal/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/5/kirin.png" experimental="false">
 
     <params>
         <color id="color1" default="#FFFFFFFF" label="Color" alpha="true" />

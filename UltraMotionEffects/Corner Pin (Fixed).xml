@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cornerpin4" name="Corner Pin (Fixed)" desc="Repositions the four corners of the layer and warps the image by bilinear interpolation between them. Note: this is a bilinear warp, not a true perspective corner pin." category="warp" tags="other" thumb="thumb/Move and Transform/Corner Pin (Fixed).webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.cornerpin4" name="Corner Pin (Fixed)" desc="Repositions the four corners of the layer and warps the image by bilinear interpolation between them. Note: this is a bilinear warp, not a true perspective corner pin." category="warp" tags="other" thumb="thumb/12/16.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <point id="tl" label="Top Left" default="0.0, 1.0" min="-10.0, -10.0" max="10, 10" step="0.01" />

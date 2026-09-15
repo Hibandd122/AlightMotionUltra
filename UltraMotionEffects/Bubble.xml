@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bubble" name="Bubble" desc="Draws animated procedural soap bubbles using jittered cell noise, with six toggleable size classes from massive to tiny; some classes use a supersampled blur. Composited over the layer in normal or screen mode with transform controls. Enabling all classes is expensive." category="procedural" tags="other" thumb="thumb/Procedural/Bubble.webp" experimental="false">
+<effect id="com.alightcreative.effects.bubble" name="Bubble" desc="Draws animated procedural soap bubbles using jittered cell noise, with six toggleable size classes from massive to tiny; some classes use a supersampled blur. Composited over the layer in normal or screen mode with transform controls. Enabling all classes is expensive." category="procedural" tags="other" thumb="thumb/9/bubble.png" experimental="false">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

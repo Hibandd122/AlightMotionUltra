@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.solarize" name="Solarize" desc="Inverts only the tones above a threshold, producing a surreal solarized exposure." category="colorlight" thumb="thumb/Color/Solarize.webp" tags="color,solarize,surreal,raster">
+<effect id="com.alightcreative.effects.extra2.solarize" name="Solarize" desc="Inverts only the tones above a threshold, producing a surreal solarized exposure." category="colorlight" thumb="thumb/5/hardg.png" tags="color,solarize,surreal,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

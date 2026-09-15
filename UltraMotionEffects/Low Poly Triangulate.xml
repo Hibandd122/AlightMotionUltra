@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.polytrace_sampler" name="Low Poly Triangulate" desc="Rebuilds the image from flat facets by resampling each pixel at the centroid of a triangle of jittered, edge-attracted grid points, giving a low-poly or crystallized look. Cell Size sets facet scale, Point Jitter and Seed randomize the layout, Gradient Pull snaps points toward image edges, and Safe Mode uses three fixed neighbor cells instead of the full circumcircle triangle search." category="drawingedge" tags="low poly,triangulate,facet,crystallize,stylize" thumb="thumb/Stylize/Low Poly Triangulate.webp">
+<effect id="com.alightcreative.effects.polytrace_sampler" name="Low Poly Triangulate" desc="Rebuilds the image from flat facets by resampling each pixel at the centroid of a triangle of jittered, edge-attracted grid points, giving a low-poly or crystallized look. Cell Size sets facet scale, Point Jitter and Seed randomize the layout, Gradient Pull snaps points toward image edges, and Safe Mode uses three fixed neighbor cells instead of the full circumcircle triangle search." category="drawingedge" tags="low poly,triangulate,facet,crystallize,stylize" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

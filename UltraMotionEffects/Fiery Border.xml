@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.firey_border" name="Fiery Border" desc="Draws animated procedural flames around the frame edges using fBm value noise: distance-to-edge is distorted by turbulent noise to form a heat mask, colored through a three-tone fire gradient with intensity, speed, detail, distortion and border-size controls." category="procedural" thumb="thumb/Procedural/Fiery Border.webp" tags="fire,border,animated">
+<effect id="com.alightcreative.effects.firey_border" name="Fiery Border" desc="Draws animated procedural flames around the frame edges using fBm value noise: distance-to-edge is distorted by turbulent noise to form a heat mask, colored through a three-tone fire gradient with intensity, speed, detail, distortion and border-size controls." category="procedural" thumb="thumb/1/0burning.png" tags="fire,border,animated">
     <params>
         <texture id="inputImg" srcType="content" />
         <slider id="borderSize" default="0.15" min="0.0" max="0.5" step="0.01" label="Border Size" />

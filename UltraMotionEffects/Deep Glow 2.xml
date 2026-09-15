@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.full_image_soft_glow_mp" name="Deep Glow 2" desc="Multi-pass glow: thresholds the image in linear light, blurs it at three increasing radii with downsampled separable Gaussians, then recombines the layers with exposure, soft-clip knee, tail weighting, tint and Add/Screen/Lighten blending. Includes an optional drop shadow derived from the widest blur's alpha, quality levels, and dither." category="colorlight" tags="glow,bloom,soft,gaussian,additive,multipass" thumb="thumb/Color/Deep Glow 2.webp" overdraw="true" max-overdraw="1.5">
+<effect id="com.alightcreative.effects.full_image_soft_glow_mp" name="Deep Glow 2" desc="Multi-pass glow: thresholds the image in linear light, blurs it at three increasing radii with downsampled separable Gaussians, then recombines the layers with exposure, soft-clip knee, tail weighting, tint and Add/Screen/Lighten blending. Includes an optional drop shadow derived from the widest blur's alpha, quality levels, and dither." category="colorlight" tags="glow,bloom,soft,gaussian,additive,multipass" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
 
   <params>
     <texture id="inputImg" srcType="content" />

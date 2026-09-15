@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.squeeze" name="@am:string/effect_squeeze_name" desc="@am:string/effect_squeeze_desc" category="warp" tags="distort,fun,raster" thumb="thumb/squeeze2.webp">
+<effect id="com.alightcreative.effects.squeeze" name="@am:string/effect_squeeze_name" desc="@am:string/effect_squeeze_desc" category="warp" tags="distort,fun,raster" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

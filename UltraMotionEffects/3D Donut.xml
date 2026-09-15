@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.raymarch-torus" name="3D Donut" desc="A real ray-marched 3D torus that you can spin, textured with the layer and lit in 3D." category="procedural" thumb="thumb/3D/3D Donut.webp" tags="3d,torus,donut,raymarch,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra3d.raymarch-torus" name="3D Donut" desc="A real ray-marched 3D torus that you can spin, textured with the layer and lit in 3D." category="procedural" thumb="thumb/1/03d.png" tags="3d,torus,donut,raymarch,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

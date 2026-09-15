@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.pixel_polly" name="Pixel Polly" desc="Break the image into polygon shards that fly apart" category="warp" tags="shatter,fragment,explode,polygon" thumb="thumb/Distort and Warp/Pixel Polly.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.pixel_polly" name="Pixel Polly" desc="Break the image into polygon shards that fly apart" category="warp" tags="shatter,fragment,explode,polygon" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

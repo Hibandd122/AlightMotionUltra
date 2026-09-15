@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.pulsate" name="@am:string/effect_pulsate_name" desc="@am:string/effect_pulsate_desc" auto-transform="true" category="movetransform" tags="transform,auto,propAdjust" thumb="thumb/pulsate.webp" deprecated="true">
+<effect id="com.alightcreative.effects.pulsate" name="@am:string/effect_pulsate_name" desc="@am:string/effect_pulsate_desc" auto-transform="true" category="movetransform" tags="transform,auto,propAdjust" thumb="thumb/5/hardg.png" deprecated="true">
 
     
         

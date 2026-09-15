@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.precision_glitch" name="Precision Glitch" desc="Time-stepped glitch triggered by a random flicker threshold: horizontal tear bands with X offset, optional colored bands with scanline darkening, and a random block grid that fills cells with either static noise or datamosh-style displaced image. Timing, tear size, grid density and probabilities are adjustable." category="procedural" tags="glitch,datamosh,tearing,scanlines" thumb="thumb/Distort and Warp/Precision Glitch.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.precision_glitch" name="Precision Glitch" desc="Time-stepped glitch triggered by a random flicker threshold: horizontal tear bands with X offset, optional colored bands with scanline darkening, and a random block grid that fills cells with either static noise or datamosh-style displaced image. Timing, tear size, grid density and probabilities are adjustable." category="procedural" tags="glitch,datamosh,tearing,scanlines" thumb="thumb/1/0oldtv.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

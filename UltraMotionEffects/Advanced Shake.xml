@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.shake_advanced" name="Advanced Shake" desc="Script-driven shake that animates the layer transform directly (no pixel resampling): independent random and sine-wave components for X/Y position, zoom, and tilt rotation, with global amplitude, frequency, angle, seed, and reflect/clamp wrap limits." auto-transform="true" category="warp" tags="transform,auto,shake,propAdjust" thumb="thumb/Move and Transform/Advanced Shake.webp">
+<effect id="com.alightcreative.effects.shake_advanced" name="Advanced Shake" desc="Script-driven shake that animates the layer transform directly (no pixel resampling): independent random and sine-wave components for X/Y position, zoom, and tilt rotation, with global amplitude, frequency, angle, seed, and reflect/clamp wrap limits." auto-transform="true" category="warp" tags="transform,auto,shake,propAdjust" thumb="thumb/auto_shake.webp">
 
   <params>
     

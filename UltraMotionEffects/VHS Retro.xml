@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.vhs-retro" name="VHS Retro" desc="VHS tape emulation with sinusoidal horizontal wobble, RGB channel-offset color bleed, per-line animated noise, and scanline darkening. Each artifact is independently adjustable." category="other" thumb="thumb/Stylize/VHS Retro.webp" tags="retro,glitch,scanline,vhs,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra.vhs-retro" name="VHS Retro" desc="VHS tape emulation with sinusoidal horizontal wobble, RGB channel-offset color bleed, per-line animated noise, and scanline darkening. Each artifact is independently adjustable." category="other" thumb="thumb/5/hardg.png" tags="retro,glitch,scanline,vhs,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

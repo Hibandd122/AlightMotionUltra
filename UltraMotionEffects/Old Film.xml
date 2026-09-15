@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.old-film" name="Old Film" desc="Aged film look combining sepia toning, animated grain, brightness flicker, random vertical scratches, and a vignette. Age scales the overall degradation and Flicker sets the luminance jitter." category="other" thumb="thumb/Stylize/Old Film.webp" tags="stylize,vintage,film,grain,raster,animated">
+<effect id="com.alightcreative.effects.extra2.old-film" name="Old Film" desc="Aged film look combining sepia toning, animated grain, brightness flicker, random vertical scratches, and a vignette. Age scales the overall degradation and Flicker sets the luminance jitter." category="other" thumb="thumb/5/hardg.png" tags="stylize,vintage,film,grain,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.contourgrad" name="@am:string/effect_contourgrad_name" category="drawingedge" desc="@am:string/effect_contourgrad_desc" tags="edge,gradient,contour,raster,membersOnly" thumb="thumb/contour-grad.webp">
+<effect id="com.alightcreative.contourgrad" name="@am:string/effect_contourgrad_name" category="drawingedge" desc="@am:string/effect_contourgrad_desc" tags="edge,gradient,contour,raster,membersOnly" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

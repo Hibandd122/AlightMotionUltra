@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fractalwarp" name="@string/name" desc="@string/desc" category="warp" deprecated="true" thumb="thumb/efek.png">
+<effect id="com.alightcreative.effects.fractalwarp" name="@string/name" desc="@string/desc" category="warp" deprecated="true" thumb="thumb/0/efek.png">
 
     
 

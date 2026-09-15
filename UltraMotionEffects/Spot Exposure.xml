@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.spot_exposure" name="Spot Exposure" desc="Multiplies the image by Base Exposure everywhere and adds Spot Boost inside an aspect-corrected circular region. Spot Radius and Spot Softness shape the smoothstep falloff and Center X/Y place the spot; alpha is left unchanged." category="colorlight" tags="color,exposure,spot,mask" thumb="thumb/Color/Spot Exposure.webp">
+<effect id="com.alightcreative.effects.spot_exposure" name="Spot Exposure" desc="Multiplies the image by Base Exposure everywhere and adds Spot Boost inside an aspect-corrected circular region. Spot Radius and Spot Softness shape the smoothstep falloff and Center X/Y place the spot; alpha is left unchanged." category="colorlight" tags="color,exposure,spot,mask" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

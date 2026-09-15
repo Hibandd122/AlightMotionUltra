@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.brightpass_hblur_add" name="Light Streak (Horizontal)" desc="Horizontal light-streak bloom: a luminance bright-pass is blurred horizontally with an S-curve-weighted kernel (up to 257 taps) and added back over the source. Threshold, radius, kernel width, gains, and gamma controls." category="colorlight" tags="bloom, glow, blur" thumb="thumb/Stylize/Light Streak (Horizontal).webp">
+<effect id="com.alightcreative.effects.brightpass_hblur_add" name="Light Streak (Horizontal)" desc="Horizontal light-streak bloom: a luminance bright-pass is blurred horizontally with an S-curve-weighted kernel (up to 257 taps) and added back over the source. Threshold, radius, kernel width, gains, and gamma controls." category="colorlight" tags="bloom, glow, blur" thumb="thumb/5/hardg.png">
 
     <params>
         

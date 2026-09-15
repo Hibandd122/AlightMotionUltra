@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.plasmawave" name="Plasma Wave" desc="Renders a bundle of animated, warped plasma-style lines with traveling dots, faded toward the edges. Amount sets the number of lines, Progress drives the animation, and color, transform, brightness, and blend-mode controls shape the composite." category="colorlight" tags="other" thumb="thumb/Procedural/Plasma Wave.webp" experimental="false">
+<effect id="com.alightcreative.plasmawave" name="Plasma Wave" desc="Renders a bundle of animated, warped plasma-style lines with traveling dots, faded toward the edges. Amount sets the number of lines, Progress drives the animation, and color, transform, brightness, and blend-mode controls shape the composite." category="colorlight" tags="other" thumb="thumb/1/0plasw.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

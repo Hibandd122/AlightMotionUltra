@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.exposure" name="@am:string/effect_exposure_name" affinity="media" desc="@am:string/effect_exposure_desc" category="colorlight" tags="color,colorGrading,essentials,raster" thumb="thumb/exposure.jpg">
+<effect id="com.alightcreative.effects.exposure" name="@am:string/effect_exposure_name" affinity="media" desc="@am:string/effect_exposure_desc" category="colorlight" tags="color,colorGrading,essentials,raster" thumb="thumb/5/hardg.png">
 
     
         

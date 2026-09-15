@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.texttransform" name="@am:string/effect_texttransform_name" desc="@am:string/effect_texttransform_desc" affinity="text!" type="text" category="text" tags="text,kinetic,membersOnly" thumb="thumb/texttransform.webp">
+<effect id="com.alightcreative.effects.texttransform" name="@am:string/effect_texttransform_name" desc="@am:string/effect_texttransform_desc" affinity="text!" type="text" category="text" tags="text,kinetic,membersOnly" thumb="thumb/text_transform.webp">
 
     
         

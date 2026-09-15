@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warpblur" name="@am:string/effect_warpblur_name" desc="@am:string/effect_warpblur_desc" category="blur" tags="distort,fractal,glitch,raster,blur" thumb="thumb/warpblur.webp" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.warpblur" name="@am:string/effect_warpblur_name" desc="@am:string/effect_warpblur_desc" category="blur" tags="distort,fractal,glitch,raster,blur" thumb="thumb/warp_blur.webp" experimental="false" deprecated="false">
 
     
         

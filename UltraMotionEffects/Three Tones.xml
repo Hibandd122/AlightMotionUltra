@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.threetones" name="Three Tones" desc="Three-color gradient map: remaps image luminance onto a shadows/midtones/highlights color ramp with smooth interpolation, then composites the result over the original using one of 25 blend modes with adjustable blend opacity and brightness." category="colorlight" tags="color" thumb="thumb/Color/Three Tones.webp" experimental="false">
+<effect id="com.alightcreative.effects.threetones" name="Three Tones" desc="Three-color gradient map: remaps image luminance onto a shadows/midtones/highlights color ramp with smooth interpolation, then composites the result over the original using one of 25 blend modes with adjustable blend opacity and brightness." category="colorlight" tags="color" thumb="thumb/12/11.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF0000FF" label="Color 1" alpha="true" />

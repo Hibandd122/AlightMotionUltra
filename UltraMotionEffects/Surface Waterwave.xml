@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.waterwave" name="Surface Waterwave" desc="Floods the bottom of the layer with an animated water surface: below the waterline the image is mirrored, wave-displaced, and tinted with a chosen color. Controls include water height, wave strength and frequency, reflection transparency, perspective angle, and auto/manual progress." category="procedural" tags="distort" thumb="thumb/Distort and Warp/Surface Waterwave.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.waterwave" name="Surface Waterwave" desc="Floods the bottom of the layer with an animated water surface: below the waterline the image is mirrored, wave-displaced, and tinted with a chosen color. Controls include water height, wave strength and frequency, reflection transparency, perspective angle, and auto/manual progress." category="procedural" tags="distort" thumb="thumb/10/1.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <color id="water_color" default="#FF808083" label="Color Wave" alpha="true" />

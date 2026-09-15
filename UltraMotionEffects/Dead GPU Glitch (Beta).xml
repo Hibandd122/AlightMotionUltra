@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.deadgpuglitch" name="Dead GPU Glitch (Beta)" desc="Simulates corrupted-VRAM artifacts by remapping the image as a 1D pixel array offset with posterized noise, mixing in rows of random RGB noise. Separate large and high-frequency offset controls with auto progress and blend modes." category="procedural" tags="other" thumb="thumb/Distort and Warp/Dead GPU Glitch (Beta).webp" experimental="false">
+<effect id="com.alightcreative.effects.deadgpuglitch" name="Dead GPU Glitch (Beta)" desc="Simulates corrupted-VRAM artifacts by remapping the image as a 1D pixel array offset with posterized noise, mixing in rows of random RGB noise. Separate large and high-frequency offset controls with auto progress and blend modes." category="procedural" tags="other" thumb="thumb/12/25.png" experimental="false">
 
     <params>
         

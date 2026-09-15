@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.pop-out-3d" name="3D Pop Out" desc="Fakes extrusion by sampling up to 16 offsets behind the layer along a chosen direction and drawing the first opaque hit as a darkened side face beneath the original. Depth sets the extrusion length and Side Shade its darkness." category="drawingedge" thumb="thumb/Drawing/3D Pop Out.webp" tags="3d,extrude,pop,depth,raster">
+<effect id="com.alightcreative.effects.extra3d.pop-out-3d" name="3D Pop Out" desc="Fakes extrusion by sampling up to 16 offsets behind the layer along a chosen direction and drawing the first opaque hit as a darkened side face beneath the original. Depth sets the extrusion length and Side Shade its darkness." category="drawingedge" thumb="thumb/5/hardg.png" tags="3d,extrude,pop,depth,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

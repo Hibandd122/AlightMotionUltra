@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.cylinder-wrap" name="3D Cylinder" desc="Wraps the layer around a curved 3D cylinder with edge shading for depth." category="3d" thumb="thumb/Distort and Warp/3D Cylinder.webp" tags="3d,cylinder,curve,wrap,raster" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.extra3d.cylinder-wrap" name="3D Cylinder" desc="Wraps the layer around a curved 3D cylinder with edge shading for depth." category="3d" thumb="thumb/1/03d.png" tags="3d,cylinder,curve,wrap,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lensflare" name="@am:string/effect_lensflare_name" desc="@am:string/effect_lensflare_desc" category="procedural" tags="procedural,rasster,membersOnly" thumb="thumb/lensflare.webp">
+<effect id="com.alightcreative.effects.lensflare" name="@am:string/effect_lensflare_name" desc="@am:string/effect_lensflare_desc" category="procedural" tags="procedural,rasster,membersOnly" thumb="thumb/lens_flare.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/Drawing/Glow (Classic).webp" deprecated="true" id="com.alightcreative.effects.glow" name="Glow (Classic)" desc="Classic outer glow: computes a two-pass distance field from the layer's edges and shades a soft halo with adjustable radius, hardness and color, blended Normal/Multiply/Screen against the comp. Deprecated legacy version of the built-in Glow." category="colorlight" tags="drawing,edge,neon,classic,raster" overdraw="true" max-overdraw="1.0">
+<effect thumb="thumb/5/hardg.png" deprecated="true" id="com.alightcreative.effects.glow" name="Glow (Classic)" desc="Classic outer glow: computes a two-pass distance field from the layer's edges and shades a soft halo with adjustable radius, hardness and color, blended Normal/Multiply/Screen against the comp. Deprecated legacy version of the built-in Glow." category="colorlight" tags="drawing,edge,neon,classic,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

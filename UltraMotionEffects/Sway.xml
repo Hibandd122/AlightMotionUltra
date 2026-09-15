@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.creative.sway_custom" name="Sway" desc="Displaces the layer along a set direction angle with a travelling sine wave driven by the vertical coordinate, and scales the wave by a vertical falloff so the sway fades out across the layer height. Speed, Frequency, Amplitude, Vertical Decay, and Angle control it." category="warp" thumb="thumb/Distort and Warp/Sway.webp" tags="distortion,sway,wave,glsl" overdraw="true" max-overdraw="1.0">
+<effect id="com.creative.sway_custom" name="Sway" desc="Displaces the layer along a set direction angle with a travelling sine wave driven by the vertical coordinate, and scales the wave by a vertical falloff so the sway fades out across the layer height. Speed, Frequency, Amplitude, Vertical Decay, and Angle control it." category="warp" thumb="thumb/turbulent_displace.webp" tags="distortion,sway,wave,glsl" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputLayer" srcType="content" label="Input Layer" />

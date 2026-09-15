@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.psykostripes" name="Psykostripes" desc="Renders animated psychedelic RGB sine-wave stripes across the layer, warped by Sobel edge detection and image luminance. Controls include stripe direction/magnitude/phase, per-channel color frequency and phase, edge strength/warp/width, tint, saturation, brightness and source mix." category="drawingedge" thumb="thumb/Stylize/Psykostripes.webp" tags="stripes,psychedelic,distortion,color">
+<effect id="com.alightcreative.effects.psykostripes" name="Psykostripes" desc="Renders animated psychedelic RGB sine-wave stripes across the layer, warped by Sobel edge detection and image luminance. Controls include stripe direction/magnitude/phase, per-channel color frequency and phase, edge strength/warp/width, tint, saturation, brightness and source mix." category="drawingedge" thumb="thumb/5/hardg.png" tags="stripes,psychedelic,distortion,color">
 
   <params>
     <texture id="inputImg" srcType="content" />

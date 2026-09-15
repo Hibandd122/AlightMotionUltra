@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glowribbon" name="Glow Ribbon+" desc="Draws a bundle of glowing sine-wave ribbons whose count, wave progress and evolution are adjustable. Key color, hue shift, luminance, scale, stretch, rotation and normal/multiply/screen blending shape the final look." category="colorlight" tags="procedural" thumb="thumb/Procedural/Glow Ribbon+.webp" experimental="false">
+<effect id="com.alightcreative.effects.glowribbon" name="Glow Ribbon+" desc="Draws a bundle of glowing sine-wave ribbons whose count, wave progress and evolution are adjustable. Key color, hue shift, luminance, scale, stretch, rotation and normal/multiply/screen blending shape the final look." category="colorlight" tags="procedural" thumb="thumb/1/0glowr.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <color id="colorkey" default="#FFFFFFFF" label="Key Color" alpha="true" />
         <slider id="AMOUNT" label="Amount" default="5.0" min="1" max="30" step="1.0" type="integer" ticks="5,10,15,20,25" snap="5,10,15,20,25" />
         <slider id="progressa" label="Progress" default="50" min="0" max="1000.0" step="0.05" type="percent" />

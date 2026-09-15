@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.snow" name="Snow" desc="Gentle procedural snowfall with drifting flakes layered over the scene." category="procedural" thumb="thumb/Procedural/Snow.webp" tags="procedural,snow,weather,animated,raster">
+<effect id="com.alightcreative.effects.extra2.snow" name="Snow" desc="Gentle procedural snowfall with drifting flakes layered over the scene." category="procedural" thumb="thumb/5/hardg.png" tags="procedural,snow,weather,animated,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

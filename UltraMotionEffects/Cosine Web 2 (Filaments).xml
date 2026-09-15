@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cos_web_zozuar_2" name="Cosine Web 2 (Filaments)" desc="Generates a drifting web of cosine interference filaments by iteratively rotating the coordinate field and accumulating sine/cosine terms at growing scales (Shadertoy port); a 1/length term adds thin bright threads. Iterations, rotation, start scale, scale growth, color multiplier, bias and gamma shape it, and it replaces the layer content." category="procedural" tags="web, cosine, abstract" thumb="thumb/Procedural/Cosine Web 2 (Filaments).webp">
+<effect id="com.alightcreative.effects.cos_web_zozuar_2" name="Cosine Web 2 (Filaments)" desc="Generates a drifting web of cosine interference filaments by iteratively rotating the coordinate field and accumulating sine/cosine terms at growing scales (Shadertoy port); a 1/length term adds thin bright threads. Iterations, rotation, start scale, scale growth, color multiplier, bias and gamma shape it, and it replaces the layer content." category="procedural" tags="web, cosine, abstract" thumb="thumb/5/hardg.png">
 
     <params>
     <texture id="inputImg" srcType="content" />

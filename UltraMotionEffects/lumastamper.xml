@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lumastamper" name="@am:string/effect_luma_stamper_name" desc="@am:string/effect_luma_stamper_desc" category="mask" tags="raster,compositing,mask,matte,key" thumb="thumb/glowscan.webp">
+<effect id="com.alightcreative.effects.lumastamper" name="@am:string/effect_luma_stamper_name" desc="@am:string/effect_luma_stamper_desc" category="mask" tags="raster,compositing,mask,matte,key" thumb="thumb/glow_scan.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

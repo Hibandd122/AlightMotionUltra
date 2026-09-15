@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.textspacing" name="@am:string/effect_textspacing_name" desc="@am:string/effect_textspacing_desc" affinity="text!" type="text" category="text" tags="text,membersOnly" experimental="false" thumb="thumb/textspacing.webp">
+<effect id="com.alightcreative.effects.textspacing" name="@am:string/effect_textspacing_name" desc="@am:string/effect_textspacing_desc" affinity="text!" type="text" category="text" tags="text,membersOnly" experimental="false" thumb="thumb/text_spacing.webp">
 
     <params>
 

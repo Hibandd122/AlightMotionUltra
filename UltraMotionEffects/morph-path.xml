@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effect.morphpath" name="@am:string/effect_morphpath_name" desc="@am:string/effect_morphpath_desc" category="movetransform" thumb="thumb/movealongpath.webp" experimental="true">
+<effect id="com.alightcreative.effect.morphpath" name="@am:string/effect_morphpath_name" desc="@am:string/effect_morphpath_desc" category="movetransform" thumb="thumb/move_along_path.webp" experimental="true">
 
     <params>
         <slider id="progress" default="0.0" min="0.0" max="1.0" type="percent" step="0.001" label="@am:string/effect_param_progress" ticks="-1.0,0.0,1.0" />

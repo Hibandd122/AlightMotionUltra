@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgb_curves_gamma" name="RGB Gamma &amp; Contrast" desc="Applies an independent gamma curve to each RGB channel plus a master contrast control around mid-gray. Not a full curves editor; each channel has a single gamma value." category="colorlight" tags="color, grading" thumb="thumb/Color/RGB Gamma and Contrast.webp">
+<effect id="com.alightcreative.effects.rgb_curves_gamma" name="RGB Gamma &amp; Contrast" desc="Applies an independent gamma curve to each RGB channel plus a master contrast control around mid-gray. Not a full curves editor; each channel has a single gamma value." category="colorlight" tags="color, grading" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

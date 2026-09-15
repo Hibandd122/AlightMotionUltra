@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.meltings" name="Meltings Screen" desc="Melts the layer downward over time by displacing UVs with three sinusoidal waves (each with its own amplitude and frequency) plus an accelerating gravity drip. Auto or manual progress, transform controls, and an overdraw switch; the animation loops every few seconds." category="procedural" tags="distort" thumb="thumb/Distort and Warp/Meltings Screen.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.meltings" name="Meltings Screen" desc="Melts the layer downward over time by displacing UVs with three sinusoidal waves (each with its own amplitude and frequency) plus an accelerating gravity drip. Auto or manual progress, transform controls, and an overdraw switch; the animation loops every few seconds." category="procedural" tags="distort" thumb="thumb/12/20.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         

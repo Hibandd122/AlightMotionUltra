@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glitchscatter" name="Glitch Scatter" desc="Generates blocky FBM glitch noise and thresholds it into hard-edged scatter shapes rendered through a two-color gradient (background/foreground). Amplitude, glitch FPS and Mask complexity shape the noise; progress/speed animate it." category="procedural" tags="distort" thumb="thumb/Procedural/Glitch Scatter.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.glitchscatter" name="Glitch Scatter" desc="Generates blocky FBM glitch noise and thresholds it into hard-edged scatter shapes rendered through a two-color gradient (background/foreground). Amplitude, glitch FPS and Mask complexity shape the noise; progress/speed animate it." category="procedural" tags="distort" thumb="thumb/12/24.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         

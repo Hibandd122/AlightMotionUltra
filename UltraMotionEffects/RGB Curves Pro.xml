@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgbcurves" name="RGB Curves Pro" desc="Curve-style tonal adjustment using smoothstep-weighted zones: a 7-point master curve, 5-point per-channel R/G/B curves, luminance and saturation-by-zone curves, and shadow/midtone/highlight tinting with luminance preservation." category="colorlight" tags="curves,rgb,red,green,blue,master,luminance,grade,cinematic" thumb="thumb/Color/RGB Curves Pro.webp">
+<effect id="com.alightcreative.effects.rgbcurves" name="RGB Curves Pro" desc="Curve-style tonal adjustment using smoothstep-weighted zones: a 7-point master curve, 5-point per-channel R/G/B curves, luminance and saturation-by-zone curves, and shadow/midtone/highlight tinting with luminance preservation." category="colorlight" tags="curves,rgb,red,green,blue,master,luminance,grade,cinematic" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

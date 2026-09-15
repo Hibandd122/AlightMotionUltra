@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.crt_emulator" name="CRT Emulator" desc="CRT/TV screen emulation with 12 preset color styles, an RGB phosphor grid (dot or aperture-grille), scanlines, chromatic aberration, signal ghosting, glow, sharpening, glitch modes (RGB shift, wavy lines, signal roll, blocks), dark-area noise, a color signal bar, and curved TV borders with bezel." category="other" tags="retro,crt,tv,vhs,glitch,phosphor,stylize,raster" thumb="thumb/Stylize/CRT Emulator.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.crt_emulator" name="CRT Emulator" desc="CRT/TV screen emulation with 12 preset color styles, an RGB phosphor grid (dot or aperture-grille), scanlines, chromatic aberration, signal ghosting, glow, sharpening, glitch modes (RGB shift, wavy lines, signal roll, blocks), dark-area noise, a color signal bar, and curved TV borders with bezel." category="other" tags="retro,crt,tv,vhs,glitch,phosphor,stylize,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.streaks" name="@am:string/effect_linearstreaks_name" desc="@am:string/effect_linearstreaks_desc" category="blur" tags="blur, raster" thumb="thumb/linear-streaks.webp" overdraw="true" max-overdraw="0.1" experimental="false">
+<effect id="com.alightcreative.effects.streaks" name="@am:string/effect_linearstreaks_name" desc="@am:string/effect_linearstreaks_desc" category="blur" tags="blur, raster" thumb="thumb/linear_streaks.webp" overdraw="true" max-overdraw="0.1" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

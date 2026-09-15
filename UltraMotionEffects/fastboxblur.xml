@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fastboxblur" name="@am:string/effect_fastboxblur_name" desc="" category="blur" thumb="thumb/fastboxblur2.webp" deprecated="true" overdraw="true" max-overdraw="0.1">
+<effect id="com.alightcreative.effects.fastboxblur" name="@am:string/effect_fastboxblur_name" desc="" category="blur" thumb="thumb/5/hardg.png" deprecated="true" overdraw="true" max-overdraw="0.1">
 
     <params>
         <texture id="inputImg" srcType="content" />

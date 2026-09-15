@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.grid2" name="@am:string/effect_grid_name" desc="@am:string/effect_grid_desc" category="procedural" tags="procedural,pattern,raster" thumb="thumb/grid2.png">
+<effect id="com.alightcreative.effects.grid2" name="@am:string/effect_grid_name" desc="@am:string/effect_grid_desc" category="procedural" tags="procedural,pattern,raster" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

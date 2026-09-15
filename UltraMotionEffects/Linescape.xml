@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.linescape" name="Linescape" desc="Renders a wireframe-style mountain landscape: stacked fbm noise ridgelines projected in 3D perspective with distance fade and vignette. Amount sets the number of ridgelines; height, evolution, two-color mapping, transform and blend modes are adjustable." category="procedural" tags="procedural" thumb="thumb/Procedural/Linescape.webp" experimental="false">
+<effect id="com.alightcreative.effects.linescape" name="Linescape" desc="Renders a wireframe-style mountain landscape: stacked fbm noise ridgelines projected in 3D perspective with distance fade and vignette. Amount sets the number of ridgelines; height, evolution, two-color mapping, transform and blend modes are adjustable." category="procedural" tags="procedural" thumb="thumb/1/0scape.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

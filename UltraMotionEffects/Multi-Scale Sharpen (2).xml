@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ult_sharpen" name="Multi-Scale Sharpen" desc="Multi-band detail sharpening: extracts Tiny, Small, Medium, and Large frequency bands via difference-of-blurs and boosts each independently. A Sobel-based edge threshold suppresses halos on strong edges, luma and chroma are sharpened separately in YUV, per-channel RGB gains are available, and a luma or alpha matte can restrict the result. Best quality uses Gaussian kernels; Fast uses box blurs." category="blur" tags="sharpen,detail,edge,luma,chroma,unsharp,clarity,crisp" thumb="thumb/Blur and Sharpen/Multi-Scale Sharpen (2).webp" overdraw="false">
+<effect id="com.alightcreative.effects.ult_sharpen" name="Multi-Scale Sharpen" desc="Multi-band detail sharpening: extracts Tiny, Small, Medium, and Large frequency bands via difference-of-blurs and boosts each independently. A Sobel-based edge threshold suppresses halos on strong edges, luma and chroma are sharpened separately in YUV, per-channel RGB gains are available, and a luma or alpha matte can restrict the result. Best quality uses Gaussian kernels; Fast uses box blurs." category="blur" tags="sharpen,detail,edge,luma,chroma,unsharp,clarity,crisp" thumb="thumb/5/hardg.png" overdraw="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhs_glitch" name="VCR Glitch" desc="Retro VHS-style look: intermittent horizontal tape wobble and vertical roll, per-channel RGB offset (chromatic aberration), barrel screen distortion, vignette, value-noise grain, and contrast/saturation shaping." category="other" tags="vhs,glitch,retro,chromatic,scanline,distortion,noise" thumb="thumb/Stylize/VCR Glitch.webp">
+<effect id="com.alightcreative.effects.vhs_glitch" name="VCR Glitch" desc="Retro VHS-style look: intermittent horizontal tape wobble and vertical roll, per-channel RGB offset (chromatic aberration), barrel screen distortion, vignette, value-noise grain, and contrast/saturation shaping." category="other" tags="vhs,glitch,retro,chromatic,scanline,distortion,noise" thumb="thumb/1/0vcr.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

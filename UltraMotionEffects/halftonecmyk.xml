@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.halftonedotscmyk" name="@am:string/effect_halftonedotscmyk_name" desc="@am:string/effect_halftonedotscmyk_desc" category="drawingedge" tags="drawing, color, pop, raster " thumb="thumb/cmykhalftone.webp">
+<effect id="com.alightcreative.effects.halftonedotscmyk" name="@am:string/effect_halftonedotscmyk_name" desc="@am:string/effect_halftonedotscmyk_desc" category="drawingedge" tags="drawing, color, pop, raster " thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

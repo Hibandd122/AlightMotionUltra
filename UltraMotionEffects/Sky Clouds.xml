@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.2dclouds" name="Sky Clouds" desc="Procedural 2D cloudscape built from multiple octaves of simplex noise with a ridged-noise pass, blended over a two-color vertical sky gradient. Controls for cloud darkness, lightness, cover threshold, cloud alpha, sky tint and Progress-driven drift." category="procedural" tags="other" thumb="thumb/Procedural/Sky Clouds.webp" experimental="false">
+<effect id="com.alightcreative.effects.2dclouds" name="Sky Clouds" desc="Procedural 2D cloudscape built from multiple octaves of simplex noise with a ridged-noise pass, blended over a two-color vertical sky gradient. Controls for cloud darkness, lightness, cover threshold, cloud alpha, sky tint and Progress-driven drift." category="procedural" tags="other" thumb="thumb/7/2dc.png" experimental="false">
 
     <params>
         <color id="skycolour2" default="#FF66B3FF" label="BaseSky Color" alpha="true" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extrudeflat" name="3D Extrude Flat" desc="Raymarches a signed-distance box extruded from the layer's alpha to give the layer 3D depth with flat shading. Controls include 3D rotation, position, stretch, extrusion depth, raymarch iteration count, and interior/fade side colors." category="3d" tags="3d,lighting,raster,membersOnly" thumb="thumb/3D/3D Extrude Flat.webp" overdraw="true" max-overdraw="1.5" maxOverdraw="0.2" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.extrudeflat" name="3D Extrude Flat" desc="Raymarches a signed-distance box extruded from the layer's alpha to give the layer 3D depth with flat shading. Controls include 3D rotation, position, stretch, extrusion depth, raymarch iteration count, and interior/fade side colors." category="3d" tags="3d,lighting,raster,membersOnly" thumb="thumb/1/03d.png" overdraw="true" max-overdraw="1.5" maxOverdraw="0.2" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

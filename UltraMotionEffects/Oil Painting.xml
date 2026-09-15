@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.oil-painting" name="Oil Painting" desc="Stylizes the layer into smooth painterly strokes using a Kuwahara-style filter that flattens color regions." category="drawingedge" thumb="thumb/Stylize/Oil Painting.webp" tags="paint,artistic,smooth,stylize,raster">
+<effect id="com.alightcreative.effects.extra.oil-painting" name="Oil Painting" desc="Stylizes the layer into smooth painterly strokes using a Kuwahara-style filter that flattens color regions." category="drawingedge" thumb="thumb/5/hardg.png" tags="paint,artistic,smooth,stylize,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

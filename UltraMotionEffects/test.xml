@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.test" name="@string/name" desc="@string/desc" deprecated="true" thumb="thumb/efek.png" category="other">
+<effect id="com.alightcreative.effects.test" name="@string/name" desc="@string/desc" deprecated="true" thumb="thumb/0/efek.png" category="other">
 
     
 

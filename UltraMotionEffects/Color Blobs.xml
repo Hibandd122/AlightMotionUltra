@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorblubs" name="Color Blobs" desc="Renders two soft noise-distorted blob shapes with specular shading over a background color. Progress (manual or time-driven) animates the noise; amplitude, magnitude, specularity, glow radius, transform controls and blend modes shape the result." category="procedural" tags="procedural" thumb="thumb/Procedural/Color Blobs.webp" experimental="false">
+<effect id="com.alightcreative.effects.colorblubs" name="Color Blobs" desc="Renders two soft noise-distorted blob shapes with specular shading over a background color. Progress (manual or time-driven) animates the noise; amplitude, magnitude, specularity, glow radius, transform controls and blend modes shape the result." category="procedural" tags="procedural" thumb="thumb/12/3.png" experimental="false">
 
     <params>
         

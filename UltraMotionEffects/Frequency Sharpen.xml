@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_sharpen" name="Frequency Sharpen" desc="Multi-frequency sharpening: separates the image into tiny/small/medium/large detail bands using four 5x5 Gaussian blurs, scales each band independently, and adds them back. Includes coring (edge threshold) to suppress strong-edge halos, separate luma/chroma weights, and per-channel RGB mix." category="blur" tags="blur,sharpen,details,frequency,laplacian" thumb="thumb/Blur and Sharpen/Frequency Sharpen.webp" experimental="false">
+<effect id="com.alightcreative.effects.s_sharpen" name="Frequency Sharpen" desc="Multi-frequency sharpening: separates the image into tiny/small/medium/large detail bands using four 5x5 Gaussian blurs, scales each band independently, and adds them back. Includes coring (edge threshold) to suppress strong-edge halos, separate luma/chroma weights, and per-channel RGB mix." category="blur" tags="blur,sharpen,details,frequency,laplacian" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

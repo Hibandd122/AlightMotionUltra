@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tiles_rot_glow" name="Rotating Tiled Boxes Glow" desc="Procedurally generated rotating grid of square tiles whose edge sizes pulse with animated sine waves radiating from the center, colored by per-channel power curves for a glowing look. Controls tile scale, rotation speed, edge animation, and RGB response." category="procedural" tags="tiles, glow, grid" thumb="thumb/Procedural/Rotating Tiled Boxes Glow.webp">
+<effect id="com.alightcreative.effects.tiles_rot_glow" name="Rotating Tiled Boxes Glow" desc="Procedurally generated rotating grid of square tiles whose edge sizes pulse with animated sine waves radiating from the center, colored by per-channel power curves for a glowing look. Controls tile scale, rotation speed, edge animation, and RGB response." category="procedural" tags="tiles, glow, grid" thumb="thumb/5/hardg.png">
 
     <params>
         

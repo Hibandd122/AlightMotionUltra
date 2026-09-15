@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.repeat.path" name="@am:string/effect_repeatpath_name" desc="@am:string/effect_repeatpath_desc" category="repeat" tags="repeat,path,membersOnly" thumb="thumb/repeat-path.png">
+<effect id="com.alightcreative.effects.repeat.path" name="@am:string/effect_repeatpath_name" desc="@am:string/effect_repeatpath_desc" category="repeat" tags="repeat,path,membersOnly" thumb="thumb/5/hardg.png">
 
     
         

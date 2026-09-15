@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.blocknoise2" name="@am:string/effect_blocknoise_name" desc="@am:string/effect_blocknoise_desc" category="procedural" thumb="thumb/blocknoise.webp" tags="random, noise, procedural, auto, glitch, geometric, raster">
+<effect id="com.alightcreative.effects.blocknoise2" name="@am:string/effect_blocknoise_name" desc="@am:string/effect_blocknoise_desc" category="procedural" thumb="thumb/block_noise.webp" tags="random, noise, procedural, auto, glitch, geometric, raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

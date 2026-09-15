@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.motionblur2" name="@am:string/effect_mblur_name" desc="@am:string/effect_mblur_desc" category="blur" tags="blur,auto,essentials,raster" thumb="thumb/mblur.webp" experimental="false" deprecated="true">
+<effect id="com.alightcreative.effects.motionblur2" name="@am:string/effect_mblur_name" desc="@am:string/effect_mblur_desc" category="blur" tags="blur,auto,essentials,raster" thumb="thumb/5/hardg.png" experimental="false" deprecated="true">
 
     
         

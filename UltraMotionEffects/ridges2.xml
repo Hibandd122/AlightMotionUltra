@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ridges2" name="@am:string/effect_ridges_name" desc="@am:string/effect_ridges_desc" category="procedural" tags="distort,random,fractal,raster,membersOnly" thumb="thumb/ridges.webp" deprecated="false">
+<effect id="com.alightcreative.effects.ridges2" name="@am:string/effect_ridges_name" desc="@am:string/effect_ridges_desc" category="procedural" tags="distort,random,fractal,raster,membersOnly" thumb="thumb/5/hardg.png" deprecated="false">
 
     
         

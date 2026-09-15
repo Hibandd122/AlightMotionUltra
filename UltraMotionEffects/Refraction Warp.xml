@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.refractionwarp" name="Refraction Warp" desc="Water-like refraction: sums rotated cosine waves into a height field, then displaces the image by its emboss gradient with a specular reflection highlight. Controls cover wave strength, frequency, steps, angle, reflection gain/cutoff/intensity and drift speed." category="procedural" tags="distort" thumb="thumb/Distort and Warp/Refraction Warp.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.refractionwarp" name="Refraction Warp" desc="Water-like refraction: sums rotated cosine waves into a height field, then displaces the image by its emboss gradient with a specular reflection highlight. Controls cover wave strength, frequency, steps, angle, reflection gain/cutoff/intensity and drift speed." category="procedural" tags="distort" thumb="thumb/9/refract.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

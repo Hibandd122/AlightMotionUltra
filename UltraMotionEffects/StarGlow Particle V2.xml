@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.particlev2" name="StarGlow Particle V2" desc="Drifting glowing particles with motion-stretched bright cores, using a noise texture to drive per-particle positions and tangents. Controls for particle amount, trail length, spacing, amplitude, and a two-color gradient map with blend modes. Cost rises with particle amount." category="procedural" tags="other" thumb="thumb/Procedural/StarGlow Particle V2.webp" experimental="false">
+<effect id="com.alightcreative.effects.particlev2" name="StarGlow Particle V2" desc="Drifting glowing particles with motion-stretched bright cores, using a noise texture to drive per-particle positions and tangents. Controls for particle amount, trail length, spacing, amplitude, and a two-color gradient map with blend modes. Cost rises with particle amount." category="procedural" tags="other" thumb="thumb/10/3.png" experimental="false">
 
     <params>
-        <texture id="noisexx" srcType="image" src="textures/noise-rgb-static.png" />
+        <texture id="noisexx" srcType="image" src="textures/iChannel7.png" />
         <slider id="AMOUNT" label="Amount" default="8" min="1" max="15" step="1.0" type="integer" />
         <color id="color1" default="#00000000" label="Color BG" alpha="true" />
         <color id="color2" default="#FFFFFFFF" label="Color FG" alpha="true" />

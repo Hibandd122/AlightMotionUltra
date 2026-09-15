@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bcc_mixed_colors" name="BCC Mixed Colors" desc="Generates an animated procedural color-noise map (independent R/G/B value-noise fields with fBm detail) in the style of BCC Mixed Colors, then composites it over the source with 17 apply modes. Controls cover offset/scale/rotation, coarseness, detail octaves, mutation speed, brightness/contrast, RGB balance, and mix." category="colorlight" tags="bcc,mixed,colors,noise,texture,rgb,procedural,boris,continuum,color map,animated" thumb="thumb/Color/BCC Mixed Colors.webp" experimental="false">
+<effect id="com.alightcreative.effects.bcc_mixed_colors" name="BCC Mixed Colors" desc="Generates an animated procedural color-noise map (independent R/G/B value-noise fields with fBm detail) in the style of BCC Mixed Colors, then composites it over the source with 17 apply modes. Controls cover offset/scale/rotation, coarseness, detail octaves, mutation speed, brightness/contrast, RGB balance, and mix." category="colorlight" tags="bcc,mixed,colors,noise,texture,rgb,procedural,boris,continuum,color map,animated" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.crt-monitor" name="CRT Monitor" desc="Simulates a CRT screen with barrel curvature, horizontal scanlines, an RGB phosphor stripe mask, and a quadratic vignette. A brightness control compensates for the darkening." category="other" thumb="thumb/Stylize/CRT Monitor.webp" tags="retro,crt,scanline,vignette,raster">
+<effect id="com.alightcreative.effects.extra.crt-monitor" name="CRT Monitor" desc="Simulates a CRT screen with barrel curvature, horizontal scanlines, an RGB phosphor stripe mask, and a quadratic vignette. A brightness control compensates for the darkening." category="other" thumb="thumb/1/03d.png" tags="retro,crt,scanline,vignette,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

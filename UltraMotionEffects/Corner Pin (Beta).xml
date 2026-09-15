@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cornerpin3" name="Corner Pin (Beta)" desc="Warps the layer onto an arbitrary quadrilateral using inverse bilinear interpolation, with draggable offsets for each of the four corners plus overall scale and stretch. Experimental; corner handles are offsets from preset positions." category="warp" tags="other" thumb="thumb/Move and Transform/Corner Pin (Beta).webp" experimental="true">
+<effect id="com.alightcreative.effects.cornerpin3" name="Corner Pin (Beta)" desc="Warps the layer onto an arbitrary quadrilateral using inverse bilinear interpolation, with draggable offsets for each of the four corners plus overall scale and stretch. Experimental; corner handles are offsets from preset positions." category="warp" tags="other" thumb="thumb/12/16.png" experimental="true">
 
     <params>
         

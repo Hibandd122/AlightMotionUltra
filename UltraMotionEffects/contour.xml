@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.contour" name="@am:string/effect_contourlines_name" category="drawingedge" desc="@am:string/effect_contourlines_desc" tags="edge,contour,outline,path,raster" thumb="thumb/contour-lines.webp">
+<effect id="com.alightcreative.contour" name="@am:string/effect_contourlines_name" category="drawingedge" desc="@am:string/effect_contourlines_desc" tags="edge,contour,outline,path,raster" thumb="thumb/contour_lines.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

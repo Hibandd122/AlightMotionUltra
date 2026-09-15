@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cosmic_burn_star" name="Cosmic Burn" desc="Burn-dissolve effect that traces a glowing fire ring along the layer's alpha edge (from a blurred-alpha isoline) with noise-roughened edges, heat ripple distortion, hotspot shaping, outer aura and optional alpha cutout behind the ring. Supports fire or rainbow palettes, tinting, auto-animated burn progression and Normal/Multiply/Screen blending." category="warp" tags="shadertoy,star,plasma,glow" thumb="thumb/Stylize/Cosmic Burn.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.cosmic_burn_star" name="Cosmic Burn" desc="Burn-dissolve effect that traces a glowing fire ring along the layer's alpha edge (from a blurred-alpha isoline) with noise-roughened edges, heat ripple distortion, hotspot shaping, outer aura and optional alpha cutout behind the ring. Supports fire or rainbow palettes, tinting, auto-animated burn progression and Normal/Multiply/Screen blending." category="warp" tags="shadertoy,star,plasma,glow" thumb="thumb/1/0galaxy.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

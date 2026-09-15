@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lensd" name="Lens Distortion+" desc="Lens distortion combining a chromatic aberration pre-pass with iterative radial zoom blur that spreads the R/G/B channels across the blur for fringing. Strength, blur amount, aberration spread, sample iterations and fisheye controls are provided." category="warp" tags="distort" thumb="thumb/Distort and Warp/Lens Distortion+.webp" experimental="false">
+<effect id="com.alightcreative.effects.lensd" name="Lens Distortion+" desc="Lens distortion combining a chromatic aberration pre-pass with iterative radial zoom blur that spreads the R/G/B channels across the blur for fringing. Strength, blur amount, aberration spread, sample iterations and fisheye controls are provided." category="warp" tags="distort" thumb="thumb/5/lensd.png" experimental="false">
 
     <params>
         <switch id="offs" default="false" label="Offside" />

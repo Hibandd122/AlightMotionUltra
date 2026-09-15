@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.gradientdisplace" name="@am:string/effect_gradientdisplace_name" desc="@am:string/effect_gradientdisplace_desc" category="warp" thumb="thumb/testicon.png" experimental="true" deprecated="false">
+<effect id="com.alightcreative.effects.gradientdisplace" name="@am:string/effect_gradientdisplace_name" desc="@am:string/effect_gradientdisplace_desc" category="warp" thumb="thumb/0/efek.png" experimental="true" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

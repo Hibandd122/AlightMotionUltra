@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smoothspeedlines" name="Radial Spike Lines" desc="Draws anime-style radial speed lines: simplex noise sampled around the screen center produces spiky rays whose amount, reach and density are adjustable. Progress animates the flicker; two colors, transform controls and blend modes are included." category="colorlight" tags="procedural" thumb="thumb/Procedural/Radial Spike Lines.webp" experimental="false">
+<effect id="com.alightcreative.effects.smoothspeedlines" name="Radial Spike Lines" desc="Draws anime-style radial speed lines: simplex noise sampled around the screen center produces spiky rays whose amount, reach and density are adjustable. Progress animates the flicker; two colors, transform controls and blend modes are included." category="colorlight" tags="procedural" thumb="thumb/12/13.png" experimental="false">
 
     <params>
         

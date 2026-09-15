@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hsl" name="HSL Mixer" desc="Secondary color correction that adjusts hue, saturation and luminance independently for eight color bands (red, orange, yellow, green, cyan, blue, purple, magenta) with smooth falloff between bands. Includes exposure, alpha and blend mode." category="colorlight" tags="other" thumb="thumb/Color/HSL Mixer.webp" experimental="false">
+<effect id="com.alightcreative.effects.hsl" name="HSL Mixer" desc="Secondary color correction that adjusts hue, saturation and luminance independently for eight color bands (red, orange, yellow, green, cyan, blue, purple, magenta) with smooth falloff between bands. Includes exposure, alpha and blend mode." category="colorlight" tags="other" thumb="thumb/1/0hsl.png" experimental="false">
 
     <params>
         

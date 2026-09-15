@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-frustum" name="Frustum" desc="A ray-marched 3D truncated cone (frustum) textured with the layer. Includes orientation, position and size controls, six shading modes (flat, point light, directional light, depth, normal, normal-with-depth), and texture repeat/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/3D/Frustum.webp" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.extra3d.s3d-frustum" name="Frustum" desc="A ray-marched 3D truncated cone (frustum) textured with the layer. Includes orientation, position and size controls, six shading modes (flat, point light, directional light, depth, normal, normal-with-depth), and texture repeat/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

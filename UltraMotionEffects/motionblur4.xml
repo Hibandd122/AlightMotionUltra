@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.motionblur4" name="@am:string/effect_mblur_name" desc="@am:string/effect_mblur_desc" affinity="transform-animation!" category="blur" tags="blur,auto,essentials,raster,camera" thumb="thumb/mblur.webp" experimental="false">
+<effect id="com.alightcreative.effects.motionblur4" name="@am:string/effect_mblur_name" desc="@am:string/effect_mblur_desc" affinity="transform-animation!" category="blur" tags="blur,auto,essentials,raster,camera" thumb="thumb/5/hardg.png" experimental="false">
 
     
         

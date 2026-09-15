@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-lens" name="Lens" desc="Raymarches a biconvex 3D lens shape (intersection of two spheres) and texture-maps the layer onto it. Includes rotation/position/scale, five shading modes (flat, point light, directional light, depth map, normal map) with light and specular controls, and texture repeat/angle/twirl/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/3D/Lens.webp" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect id="com.alightcreative.effects.extra3d.s3d-lens" name="Lens" desc="Raymarches a biconvex 3D lens shape (intersection of two spheres) and texture-maps the layer onto it. Includes rotation/position/scale, five shading modes (flat, point light, directional light, depth map, normal map) with light and specular controls, and texture repeat/angle/twirl/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

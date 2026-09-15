@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.depth-particles" name="Depth Particles" desc="Overlays four parallax layers of procedural twinkling dots that scroll at different speeds and sizes to suggest depth, screen-blended over the layer. Controls: Particle Color, Density, Speed." category="procedural" thumb="thumb/Procedural/Depth Particles.webp" tags="3d,particles,bokeh,depth,raster,animated">
+<effect id="com.alightcreative.effects.extra3d.depth-particles" name="Depth Particles" desc="Overlays four parallax layers of procedural twinkling dots that scroll at different speeds and sizes to suggest depth, screen-blended over the layer. Controls: Particle Color, Density, Speed." category="procedural" thumb="thumb/11/3.png" tags="3d,particles,bokeh,depth,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

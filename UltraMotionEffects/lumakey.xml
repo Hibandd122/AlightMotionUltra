@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lumakey" name="@am:string/effect_lumakey_name" desc="@am:string/effect_lumakey_desc" category="mask" thumb="thumb/luma-key.png" deprecated="true">
+<effect id="com.alightcreative.effects.lumakey" name="@am:string/effect_lumakey_name" desc="@am:string/effect_lumakey_desc" category="mask" thumb="thumb/5/hardg.png" deprecated="true">
 
     
         

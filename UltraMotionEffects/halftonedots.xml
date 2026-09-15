@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.halftonedots" name="@am:string/effect_halftonedots_name" desc="@am:string/effect_halftonedots_desc" category="drawingedge" tags="drawing,pop,raster" thumb="thumb/halftonedots.webp">
+<effect id="com.alightcreative.effects.halftonedots" name="@am:string/effect_halftonedots_name" desc="@am:string/effect_halftonedots_desc" category="drawingedge" tags="drawing,pop,raster" thumb="thumb/halftone_dots.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

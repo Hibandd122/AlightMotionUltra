@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.halftone" name="Halftone" desc="Renders the image as a rotatable grid of dots whose size follows brightness, like comic-book or newsprint printing. Monochrome mode uses selectable ink and paper colors." category="drawingedge" thumb="thumb/Stylize/Halftone.webp" tags="comic,halftone,print,dots,raster">
+<effect id="com.alightcreative.effects.extra.halftone" name="Halftone" desc="Renders the image as a rotatable grid of dots whose size follows brightness, like comic-book or newsprint printing. Monochrome mode uses selectable ink and paper colors." category="drawingedge" thumb="thumb/5/hardg.png" tags="comic,halftone,print,dots,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

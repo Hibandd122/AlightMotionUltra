@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dropshadow.custom" name="Drop Shadow" desc="Two-pass distance-field drop shadow behind the layer's alpha, with color, opacity, direction, distance, and softness controls and an optional shadow-only output." category="drawingedge" thumb="thumb/Stylize/Drop Shadow.webp" tags="shadow,drop,stylize" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.dropshadow.custom" name="Drop Shadow" desc="Two-pass distance-field drop shadow behind the layer's alpha, with color, opacity, direction, distance, and softness controls and an optional shadow-only output." category="drawingedge" thumb="thumb/5/hardg.png" tags="shadow,drop,stylize" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

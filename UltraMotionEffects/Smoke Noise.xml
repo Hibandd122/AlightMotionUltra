@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smokenoise" name="Smoke Noise" desc="Generates a static smoke-like plume from five-octave value noise, tinted with a chosen color and faded vertically. A luma threshold keys out darker regions; includes thickness, position, rotation, and normal/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/Procedural/Smoke Noise.webp" experimental="false">
+<effect id="com.alightcreative.effects.smokenoise" name="Smoke Noise" desc="Generates a static smoke-like plume from five-octave value noise, tinted with a chosen color and faded vertically. A luma threshold keys out darker regions; includes thickness, position, rotation, and normal/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/1/0smoke.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
         <color id="color" default="#FFFFFFFF" label="@am:string/effect_param_color" alpha="true" />
         <point id="position" label="@am:string/effect_param_offset" />
         <slider id="lowThreshold" default="0.4" min="0" max="1" step="0.001" label="Threshold" />

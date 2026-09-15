@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.diff" name="@string/name" desc="@string/desc" category="colorlight" internal="true" thumb="thumb/efek.png">
+<effect id="com.alightcreative.effects.diff" name="@string/name" desc="@string/desc" category="colorlight" internal="true" thumb="thumb/0/efek.png">
 
     
 

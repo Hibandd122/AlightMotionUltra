@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhs" name="VHS" desc="Emulates VHS tape playback: separate luma/chroma bandwidth reduction, unsharp masking, tracking and wave warp, bottom-edge tearing, animated grain, noise lines, and a vignette. Includes levels, saturation, and shadow tint controls." category="other" thumb="thumb/Stylize/VHS.webp" tags="vhs,retro,noise,interlace,distort">
+<effect id="com.alightcreative.effects.vhs" name="VHS" desc="Emulates VHS tape playback: separate luma/chroma bandwidth reduction, unsharp masking, tracking and wave warp, bottom-edge tearing, animated grain, noise lines, and a vignette. Includes levels, saturation, and shadow tint controls." category="other" thumb="thumb/5/hardg.png" tags="vhs,retro,noise,interlace,distort">
 
   <params>
     <texture id="inputImg" srcType="content" />

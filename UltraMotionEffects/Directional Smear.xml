@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ccscalewipe" name="Directional Smear" desc="Stretches pixels from a start point toward an end point with a radial falloff mask, smearing the image along that direction. Strength sets stretch amount, Radius the affected area, and Keep Edge clamps sampling at the borders." category="warp" tags="wipe,stretch,distort,shadertoy" thumb="thumb/Distort and Warp/Directional Smear.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.ccscalewipe" name="Directional Smear" desc="Stretches pixels from a start point toward an end point with a radial falloff mask, smearing the image along that direction. Strength sets stretch amount, Radius the affected area, and Keep Edge clamps sampling at the borders." category="warp" tags="wipe,stretch,distort,shadertoy" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

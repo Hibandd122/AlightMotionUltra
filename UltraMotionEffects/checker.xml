@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.checker" name="@am:string/effect_checker_name" desc="@am:string/effect_checker_desc" tags="pattern,procedural,block,raster" category="procedural" thumb="thumb/checker.png" deprecated="true">
+<effect id="com.alightcreative.effects.checker" name="@am:string/effect_checker_name" desc="@am:string/effect_checker_desc" tags="pattern,procedural,block,raster" category="procedural" thumb="thumb/5/hardg.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.breaktransition" name="Break Transition (Beta)" desc="Shatter-style transition that splits the frame into random Voronoi cells which fly apart as Progress advances, revealing a background color. Amount sets the cell count; Scale FX and Scale Comp resize the pieces and the source frame." category="warp" tags="distort" thumb="thumb/Transition/Break Transition (Beta).webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.breaktransition" name="Break Transition (Beta)" desc="Shatter-style transition that splits the frame into random Voronoi cells which fly apart as Progress advances, revealing a background color. Amount sets the cell count; Scale FX and Scale Comp resize the pieces and the source frame." category="warp" tags="distort" thumb="thumb/12/26.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         

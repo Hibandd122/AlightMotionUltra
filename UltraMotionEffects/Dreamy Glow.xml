@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.dreamy-glow" name="Dreamy Glow" desc="Screen-blends a 12-sample ring blur of the image over itself for a soft hazy glow. Radius sets the blur size and Glow sets the blend strength." category="colorlight" thumb="thumb/Stylize/Dreamy Glow.webp" tags="stylize,glow,soft,dream,raster">
+<effect id="com.alightcreative.effects.extra2.dreamy-glow" name="Dreamy Glow" desc="Screen-blends a 12-sample ring blur of the image over itself for a soft hazy glow. Radius sets the blur size and Glow sets the blend strength." category="colorlight" thumb="thumb/5/hardg.png" tags="stylize,glow,soft,dream,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

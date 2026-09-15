@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.inner-glow" name="@am:string/effect_glowinner_name" desc="@am:string/effect_glowinner_desc" category="drawingedge" tags="edge,drawing,neon,raster" thumb="thumb/glowinner.webp">
+<effect id="com.alightcreative.inner-glow" name="@am:string/effect_glowinner_name" desc="@am:string/effect_glowinner_desc" category="drawingedge" tags="edge,drawing,neon,raster" thumb="thumb/5/hardg.png">
 
     
         

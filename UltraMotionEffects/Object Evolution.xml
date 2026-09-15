@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.objectevo" name="Object Evolution" desc="Multi-tool transform effect: offsets the layer's position, scale, and rotation via script, and adds axis stretching, a pinch/bulge distortion, a feathered linear wipe, a color blend overlay, and invert switches for each transform axis." category="warp" tags="transform" thumb="thumb/Move and Transform/Object Evolution.webp">
+<effect id="com.alightcreative.effects.objectevo" name="Object Evolution" desc="Multi-tool transform effect: offsets the layer's position, scale, and rotation via script, and adds axis stretching, a pinch/bulge distortion, a feathered linear wipe, a color blend overlay, and invert switches for each transform axis." category="warp" tags="transform" thumb="thumb/1/0tra.png">
 
     <params>
     <texture id="inputImg" srcType="content" />

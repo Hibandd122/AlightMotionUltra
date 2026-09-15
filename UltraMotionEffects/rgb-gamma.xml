@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgb-gamma" name="@am:string/effect_rgb_gamma_name" desc="@am:string/effect_rgb_gamma_desc" category="colorlight" tags="raster,blur" thumb="thumb/glowscan.webp" experimental="true">
+<effect id="com.alightcreative.effects.rgb-gamma" name="@am:string/effect_rgb_gamma_name" desc="@am:string/effect_rgb_gamma_desc" category="colorlight" tags="raster,blur" thumb="thumb/2/rgb2.png" experimental="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

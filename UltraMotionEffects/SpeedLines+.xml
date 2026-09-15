@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.speedlines" name="SpeedLines+" desc="Anime-style radial speed lines built from four octaves of angular Perlin noise streaking outward from a movable center. Modes render the lines solid over the layer, as an outline (max blend), or as a mask (min blend); controls include evolution, density, highlight, feather, scale, and rotation." category="drawingedge" tags="stylize" thumb="thumb/Stylize/SpeedLines+.webp" experimental="false">
+<effect id="com.alightcreative.effects.speedlines" name="SpeedLines+" desc="Anime-style radial speed lines built from four octaves of angular Perlin noise streaking outward from a movable center. Modes render the lines solid over the layer, as an outline (max blend), or as a mask (min blend); controls include evolution, density, highlight, feather, scale, and rotation." category="drawingedge" tags="stylize" thumb="thumb/1/0speed.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="black" srcType="image" src="textures/solid-black.png" />
-        <texture id="white" srcType="image" src="textures/solid-white.png" />
+        <texture id="black" srcType="image" src="textures/black.png" />
+        <texture id="white" srcType="image" src="textures/white.png" />
         <menu id="blendMode" style="radio" default="0" label="@am:string/effect_param_blendmode">
             <menu label="SOLID" value="0" />
             <menu label="OUTLINE" value="2" />

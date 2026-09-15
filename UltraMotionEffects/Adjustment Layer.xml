@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.adjustment_layer" name="Adjustment Layer" desc="Samples the composite beneath the layer into the layer's own coordinate space, so subsequent effects and layer transforms (move, scale, shake) apply to the background content." category="warp" tags="color,composite,adjustment,background" thumb="thumb/Other/Adjustment Layer.webp">
+<effect id="com.alightcreative.effects.adjustment_layer" name="Adjustment Layer" desc="Samples the composite beneath the layer into the layer's own coordinate space, so subsequent effects and layer transforms (move, scale, shake) apply to the background content." category="warp" tags="color,composite,adjustment,background" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

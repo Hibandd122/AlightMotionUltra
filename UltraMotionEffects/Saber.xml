@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.electricedges_saber" name="Saber" desc="Draws a glowing energy outline along the layer's alpha edges using a blurred distance field, with 10 selectable saber styles (electric, plasma, fire, laser, etc.). Controls include core/glow color and size, noise distortion, pulse, flicker, a turbulence mask, and optional contour lines." category="drawingedge" thumb="thumb/Drawing/Saber.webp" tags="drawing,edge,neon,saber">
+<effect id="com.alightcreative.effects.electricedges_saber" name="Saber" desc="Draws a glowing energy outline along the layer's alpha edges using a blurred distance field, with 10 selectable saber styles (electric, plasma, fire, laser, etc.). Controls include core/glow color and size, noise distortion, pulse, flicker, a turbulence mask, and optional contour lines." category="drawingedge" thumb="thumb/5/hardg.png" tags="drawing,edge,neon,saber">
 
     <params>
         <texture id="inputImg" srcType="content" />

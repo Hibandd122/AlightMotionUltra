@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.creative.monitor_on_table" name="3D Monitor Scene (Raymarched)" desc="Replaces the layer with a raymarched room containing a desk and a monitor, mapping the layer content onto the monitor screen. Zoom dollies the camera and View Rotation orbits it; the render includes checkered floor, soft shadows, specular highlights, distance fog and an opaque output." category="3d" thumb="thumb/3D/3D Monitor Scene (Raymarched).webp" tags="3d,monitor,desk,raymarching,glsl">
+<effect id="com.creative.monitor_on_table" name="3D Monitor Scene (Raymarched)" desc="Replaces the layer with a raymarched room containing a desk and a monitor, mapping the layer content onto the monitor screen. Zoom dollies the camera and View Rotation orbits it; the render includes checkered floor, soft shadows, specular highlights, distance fog and an opaque output." category="3d" thumb="thumb/1/03d.png" tags="3d,monitor,desk,raymarching,glsl">
 
     <params>
         <texture id="iChannel0" srcType="content" label="Screen Texture" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.softglow" name="@am:string/effect_soft_glow_name" desc="@am:string/effect_soft_glow_desc" category="colorlight" tags="color,colorGrading" thumb="thumb/glowscan.webp" experimental="false">
+<effect id="com.alightcreative.effects.softglow" name="@am:string/effect_soft_glow_name" desc="@am:string/effect_soft_glow_desc" category="colorlight" tags="color,colorGrading" thumb="thumb/glow_scan.webp" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

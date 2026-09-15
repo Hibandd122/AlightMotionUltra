@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cartoon_outline" name="Cartoon Outline" desc="Draws a colored outline on image edges using Sobel edge detection combined with 8-direction difference sampling. Controls include width, intensity, threshold, outline color, edge smoothing and an option to overlay the outline on the original." category="drawingedge" tags="extra" thumb="thumb/Drawing/Cartoon Outline.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.cartoon_outline" name="Cartoon Outline" desc="Draws a colored outline on image edges using Sobel edge detection combined with 8-direction difference sampling. Controls include width, intensity, threshold, outline color, edge smoothing and an option to overlay the outline on the original." category="drawingedge" tags="extra" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

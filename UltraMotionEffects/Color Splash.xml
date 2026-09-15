@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.color-splash" name="Color Splash" desc="Converts the layer to grayscale except pixels whose hue falls near a chosen target. Keep Hue selects the color, Range widens the preserved hue band, Strength blends between full color and the splash result." category="colorlight" thumb="thumb/Color/Color Splash.webp" tags="color,selective,grayscale,raster">
+<effect id="com.alightcreative.effects.extra2.color-splash" name="Color Splash" desc="Converts the layer to grayscale except pixels whose hue falls near a chosen target. Keep Hue selects the color, Range widens the preserved hue band, Strength blends between full color and the splash result." category="colorlight" thumb="thumb/5/hardg.png" tags="color,selective,grayscale,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

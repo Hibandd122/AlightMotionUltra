@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.voronoi3" name="Shape Voronoi" desc="Generates an animated Voronoi cell pattern using Chebyshev (square-shaped) distance, producing blocky cells shaded by random per-cell values. Progress animates the cells (manual or time-driven); two-color mapping, transform controls and blend modes are included." category="procedural" tags="procedural" thumb="thumb/Procedural/Shape Voronoi.webp" experimental="false">
+<effect id="com.alightcreative.effects.voronoi3" name="Shape Voronoi" desc="Generates an animated Voronoi cell pattern using Chebyshev (square-shaped) distance, producing blocky cells shaded by random per-cell values. Progress animates the cells (manual or time-driven); two-color mapping, transform controls and blend modes are included." category="procedural" tags="procedural" thumb="thumb/11/7.png" experimental="false">
 
     <params>
         

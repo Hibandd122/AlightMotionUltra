@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.bloom" name="Bloom" desc="Extracts pixels above a brightness threshold with a 12-sample radial blur and adds them back over the image as a glow. Threshold sets the cutoff, Radius the halo size, Intensity the glow strength." category="colorlight" thumb="thumb/Stylize/Bloom.webp" tags="stylize,bloom,glow,light,raster">
+<effect id="com.alightcreative.effects.extra2.bloom" name="Bloom" desc="Extracts pixels above a brightness threshold with a 12-sample radial blur and adds them back over the image as a glow. Threshold sets the cutoff, Radius the halo size, Intensity the glow strength." category="colorlight" thumb="thumb/5/hardg.png" tags="stylize,bloom,glow,light,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

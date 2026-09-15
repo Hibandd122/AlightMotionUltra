@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.minimaxblur" compat="acScreenNorm-y" name="Minimax" desc="Morphological min/max filter (erode or dilate) with a square kernel, applied as separable horizontal and vertical passes. Operates on a chosen channel or full color, with adjustable radius, direction and edge preservation." category="blur" tags="extra" thumb="thumb/Blur and Sharpen/Minimax.webp" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
+<effect id="com.alightcreative.effects.minimaxblur" compat="acScreenNorm-y" name="Minimax" desc="Morphological min/max filter (erode or dilate) with a square kernel, applied as separable horizontal and vertical passes. Operates on a chosen channel or full color, with adjustable radius, direction and edge preservation." category="blur" tags="extra" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0" maxOverdraw="0.1">
 
   
   <params>

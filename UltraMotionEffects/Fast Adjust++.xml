@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fastadjusting" name="Fast Adjust++" category="colorlight" desc="All-in-one color adjustment: exposure, gamma, brightness/contrast, highlight and shadow recovery, saturation, vibrance, color temperature, three-way color balance (shadows/midtones/highlights), hue rotation, per-channel RGB gamma and RGBA channel remapping. Optional comp mode samples the composite beneath the layer." tags="color" thumb="thumb/Color/Fast Adjust++.webp" deprecated="false">
+<effect id="com.alightcreative.effects.fastadjusting" name="Fast Adjust++" category="colorlight" desc="All-in-one color adjustment: exposure, gamma, brightness/contrast, highlight and shadow recovery, saturation, vibrance, color temperature, three-way color balance (shadows/midtones/highlights), hue rotation, per-channel RGB gamma and RGBA channel remapping. Optional comp mode samples the composite beneath the layer." tags="color" thumb="thumb/2/coloradjustment.png" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

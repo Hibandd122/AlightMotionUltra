@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.perlindisplace" name="@am:string/effect_simplexdisplace_name" desc="@am:string/effect_simplexdisplace_desc" auto-transform="true" category="movetransform" thumb="thumb/simplexdisplace.webp" deprecated="true">
+<effect id="com.alightcreative.effects.perlindisplace" name="@am:string/effect_simplexdisplace_name" desc="@am:string/effect_simplexdisplace_desc" auto-transform="true" category="movetransform" thumb="thumb/5/hardg.png" deprecated="true">
 
     
         

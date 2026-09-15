@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.solidmatte" name="@am:string/effect_solidmatte_name" desc="@am:string/effect_solidmatte_desc" category="mask" tags="matte,raster" thumb="thumb/solidmatte.webp">
+<effect id="com.alightcreative.solidmatte" name="@am:string/effect_solidmatte_name" desc="@am:string/effect_solidmatte_desc" category="mask" tags="matte,raster" thumb="thumb/solid_matte.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

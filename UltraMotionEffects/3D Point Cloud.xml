@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.3d_point_cloud" name="3D Point Cloud" desc="Re-renders the layer as a grid of glowing 3D points, using each sample's luminance as depth, with perspective projection and position/rotation controls. Density sets the point grid size and has a very large performance cost at high values." category="3d" tags="3d,pointcloud,particles,extrusion,luminance" thumb="thumb/3D/3D Point Cloud.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.3d_point_cloud" name="3D Point Cloud" desc="Re-renders the layer as a grid of glowing 3D points, using each sample's luminance as depth, with perspective projection and position/rotation controls. Density sets the point grid size and has a very large performance cost at high values." category="3d" tags="3d,pointcloud,particles,extrusion,luminance" thumb="thumb/11/3.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

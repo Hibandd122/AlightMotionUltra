@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.advanced_filters" name="Cinematic Filters" desc="30 preset color looks (teal and orange, bleach bypass, film stocks, B&amp;W, cyberpunk, and others) with per-personality overlays such as grain, scratches, light leaks, scanlines, and letterbox. Includes intensity, VHS chromatic aberration, bloom, vignette, and global brightness/contrast/saturation controls." category="colorlight" tags="color,cc,filter,lut,cinematic,teal,orange" thumb="thumb/Color/Cinematic Filters.webp" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.advanced_filters" name="Cinematic Filters" desc="30 preset color looks (teal and orange, bleach bypass, film stocks, B&amp;W, cyberpunk, and others) with per-personality overlays such as grain, scratches, light leaks, scanlines, and letterbox. Includes intensity, VHS chromatic aberration, bloom, vignette, and global brightness/contrast/saturation controls." category="colorlight" tags="color,cc,filter,lut,cinematic,teal,orange" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

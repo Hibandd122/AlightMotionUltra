@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgbstrip" name="RGB Strips" desc="Renders layered diagonal strips of rainbow glow: fifteen rotated, repeating strip fields scroll over time and accumulate inverse-distance glow with a cosine color palette." category="procedural" tags="other" thumb="thumb/Procedural/RGB Strips.webp" experimental="false">
+<effect id="com.alightcreative.effects.rgbstrip" name="RGB Strips" desc="Renders layered diagonal strips of rainbow glow: fifteen rotated, repeating strip fields scroll over time and accumulate inverse-distance glow with a cosine color palette." category="procedural" tags="other" thumb="thumb/12/4.png" experimental="false">
 
     <params>
         

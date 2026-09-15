@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fade" name="@am:string/effect_fade_name" desc="@am:string/effect_fade_desc" category="opacity" tags="opacity,visibility,auto,propAdjust" thumb="thumb/fade.webp">
+<effect id="com.alightcreative.effects.fade" name="@am:string/effect_fade_name" desc="@am:string/effect_fade_desc" category="opacity" tags="opacity,visibility,auto,propAdjust" thumb="thumb/fade_in_out.webp">
 
     
         

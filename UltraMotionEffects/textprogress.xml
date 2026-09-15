@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.textprogress" name="@am:string/effect_textprogress_name" desc="@am:string/effect_textprogress_desc" affinity="text!" type="text" category="text" tags="text,progress,essentials,kinetic,propAdjust" thumb="thumb/textprogress.webp">
+<effect id="com.alightcreative.effects.textprogress" name="@am:string/effect_textprogress_name" desc="@am:string/effect_textprogress_desc" affinity="text!" type="text" category="text" tags="text,progress,essentials,kinetic,propAdjust" thumb="thumb/text_progress.webp">
 
     
         

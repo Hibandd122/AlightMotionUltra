@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fibersglow" name="Glow Fibers" desc="Procedural glowing wave-fiber pattern: sums four animated sine waves, lights the resulting surface with a moving point light, and shades it in a chosen line color over a background color. Includes optional two-color gradient-map recolor, transform controls, and normal/layer/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/Procedural/Glow Fibers.webp" experimental="false">
+<effect id="com.alightcreative.effects.fibersglow" name="Glow Fibers" desc="Procedural glowing wave-fiber pattern: sums four animated sine waves, lights the resulting surface with a moving point light, and shades it in a chosen line color over a background color. Includes optional two-color gradient-map recolor, transform controls, and normal/layer/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/10/7.png" experimental="false">
 
     <params>
         <color id="COLORS" default="#FFFF4D4D" label="Color Lines" alpha="true" />

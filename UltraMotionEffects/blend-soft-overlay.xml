@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.blend.softoverlay" name="Blend/Soft Overlay" internal="true" thumb="thumb/efek.png" category="other">
+<effect id="com.alightcreative.blend.softoverlay" name="Blend/Soft Overlay" internal="true" thumb="thumb/0/efek.png" category="other">
 
 <params>
     <texture id="inputImg" srcType="content" />

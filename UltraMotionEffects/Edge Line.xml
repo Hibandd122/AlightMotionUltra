@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.edgeline" name="Edge Line" desc="Detects edges with a 3x3 Sobel-style luminance filter and maps them to foreground/background colors. Controls include smoothing radius, threshold, amplitude, invert, a noise-fix option, and normal/multiply/screen blending." category="drawingedge" tags="edge,drawing,neon,raster" thumb="thumb/Drawing/Edge Line.webp" overdraw="true" max-overdraw="1.0">
+<effect id="com.alightcreative.effects.edgeline" name="Edge Line" desc="Detects edges with a 3x3 Sobel-style luminance filter and maps them to foreground/background colors. Controls include smoothing radius, threshold, amplitude, invert, a noise-fix option, and normal/multiply/screen blending." category="drawingedge" tags="edge,drawing,neon,raster" thumb="thumb/1/0edge.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

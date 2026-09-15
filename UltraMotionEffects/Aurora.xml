@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.aurora" name="Aurora" desc="Draws animated aurora-style light bands from a noise texture plus a sparkling star field. Evolution animates the bands; Particle and Offset shape the stars and band position, with scale, rotate, offset and Normal/Multiply/Screen blending." category="procedural" tags="other" thumb="thumb/Procedural/Aurora.webp" experimental="false">
+<effect id="com.alightcreative.effects.aurora" name="Aurora" desc="Draws animated aurora-style light bands from a noise texture plus a sparkling star field. Evolution animates the bands; Particle and Offset shape the stars and band position, with scale, rotate, offset and Normal/Multiply/Screen blending." category="procedural" tags="other" thumb="thumb/1/0aurora.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />
-        <texture id="texx" srcType="image" src="textures/bokeh-red-bubbles.png" />
+        <texture id="texx" srcType="image" src="textures/iChannel4.png" />
         <point id="position" label="@am:string/effect_param_offset" />
         <slider id="progressa" label="Evolution" default="1.0" min="0" max="100.0" step="0.01" type="percent" />
         <slider id="progressb" label="Particle" default="0.5" min="0" max="10.0" step="0.01" type="percent" />

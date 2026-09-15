@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.eclipse" name="Eclipse" desc="Renders a procedural eclipse: a bright ring formed by two offset circles with an orbiting occluding disc, mapped to background/foreground colors by luminance. Progress animates the orbit (manual or time-driven); transform, brightness and blend-mode controls included." category="colorlight" tags="procedural" thumb="thumb/Procedural/Eclipse.webp" experimental="false">
+<effect id="com.alightcreative.effects.eclipse" name="Eclipse" desc="Renders a procedural eclipse: a bright ring formed by two offset circles with an orbiting occluding disc, mapped to background/foreground colors by luminance. Progress animates the orbit (manual or time-driven); transform, brightness and blend-mode controls included." category="colorlight" tags="procedural" thumb="thumb/9/eclipse.png" experimental="false">
 
     <params>
         <color id="color1" default="#00000000" label="Color BG" alpha="true" />
