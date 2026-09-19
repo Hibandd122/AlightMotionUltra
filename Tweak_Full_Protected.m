@@ -108,6 +108,7 @@ static void AMApplyProSettings(void) {
     [ud setObject:@YES forKey:@"isSubscribedToUltra"];
     [ud setObject:@YES forKey:@"isPremium"];
     [ud setObject:@YES forKey:@"hasMembership"];
+    [ud setObject:@NO forKey:@"isFreeUser"];
     [ud setObject:@"alightcreative.motion.1y_t80" forKey:@"AM_ActiveProductID"];
     
     // Alight Motion internal Monetization storage
@@ -121,8 +122,69 @@ static void AMApplyProSettings(void) {
         }
     };
     [ud setObject:subInfo forKey:@"active_subscriptions"];
+    [ud setObject:@[@"alightcreative.motion.1y_t80"] forKey:@"activeSubscriptionsOverride"];
+    [ud setObject:@[@"alightcreative.motion.1y_t80"] forKey:@"activeLifetimesOverride"];
+    [ud setObject:@[@"alightcreative.motion.1y_t80"] forKey:@"activeBundleSubscriptionsOverride"];
     [ud setObject:@YES forKey:@"monetization.storage.fake.flow"];
     [ud synchronize];
+}
+
+// Swizzle NSUserDefaults dynamically to guarantee Pro state
+static id (*orig_NSUserDefaults_objectForKey)(NSUserDefaults *, SEL, NSString *);
+static id hook_NSUserDefaults_objectForKey(NSUserDefaults *self, SEL _cmd, NSString *defaultName) {
+    if ([defaultName isEqualToString:@"UnlockAllProFeatures"] ||
+        [defaultName isEqualToString:@"isSubscribedToUltra"] ||
+        [defaultName isEqualToString:@"isPremium"] ||
+        [defaultName isEqualToString:@"hasMembership"] ||
+        [defaultName isEqualToString:@"private_membership"] ||
+        [defaultName isEqualToString:@"monetization.storage.fake.flow"]) {
+        return @YES;
+    }
+    if ([defaultName isEqualToString:@"isFreeUser"]) {
+        return @NO;
+    }
+    if ([defaultName isEqualToString:@"AM_ActiveProductID"]) {
+        return @"alightcreative.motion.1y_t80";
+    }
+    if ([defaultName isEqualToString:@"active_subscriptions"]) {
+        return @{
+            @"alightcreative.motion.1y_t80": @{
+                @"product_id": @"alightcreative.motion.1y_t80",
+                @"status": @"active",
+                @"expires_date_ms": @"4102444800000",
+                @"is_trial_period": @NO,
+                @"auto_renew_status": @YES
+            }
+        };
+    }
+    if ([defaultName isEqualToString:@"activeSubscriptionsOverride"] ||
+        [defaultName isEqualToString:@"activeLifetimesOverride"] ||
+        [defaultName isEqualToString:@"activeBundleSubscriptionsOverride"]) {
+        return @[@"alightcreative.motion.1y_t80"];
+    }
+    if (orig_NSUserDefaults_objectForKey) {
+        return orig_NSUserDefaults_objectForKey(self, _cmd, defaultName);
+    }
+    return nil;
+}
+
+static BOOL (*orig_NSUserDefaults_boolForKey)(NSUserDefaults *, SEL, NSString *);
+static BOOL hook_NSUserDefaults_boolForKey(NSUserDefaults *self, SEL _cmd, NSString *defaultName) {
+    if ([defaultName isEqualToString:@"UnlockAllProFeatures"] ||
+        [defaultName isEqualToString:@"isSubscribedToUltra"] ||
+        [defaultName isEqualToString:@"isPremium"] ||
+        [defaultName isEqualToString:@"hasMembership"] ||
+        [defaultName isEqualToString:@"private_membership"] ||
+        [defaultName isEqualToString:@"monetization.storage.fake.flow"]) {
+        return YES;
+    }
+    if ([defaultName isEqualToString:@"isFreeUser"]) {
+        return NO;
+    }
+    if (orig_NSUserDefaults_boolForKey) {
+        return orig_NSUserDefaults_boolForKey(self, _cmd, defaultName);
+    }
+    return NO;
 }
 
 // Swizzle DTXWatermarkView to make it completely invisible
@@ -1923,6 +1985,18 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
 
         // 3. Apply Pro Monetization state
         AMApplyProSettings();
+
+        // 3.1 Swizzle NSUserDefaults objectForKey: & boolForKey:
+        Method mObjForKey = class_getInstanceMethod([NSUserDefaults class], @selector(objectForKey:));
+        if (mObjForKey) {
+            orig_NSUserDefaults_objectForKey = (void *)method_getImplementation(mObjForKey);
+            method_setImplementation(mObjForKey, (IMP)hook_NSUserDefaults_objectForKey);
+        }
+        Method mBoolForKey = class_getInstanceMethod([NSUserDefaults class], @selector(boolForKey:));
+        if (mBoolForKey) {
+            orig_NSUserDefaults_boolForKey = (void *)method_getImplementation(mBoolForKey);
+            method_setImplementation(mBoolForKey, (IMP)hook_NSUserDefaults_boolForKey);
+        }
 
         // 4. Swizzle NSFileManager containerURLForSecurityApplicationGroupIdentifier:
         Method mContainer = class_getInstanceMethod([NSFileManager class], @selector(containerURLForSecurityApplicationGroupIdentifier:));
