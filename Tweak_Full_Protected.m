@@ -1062,50 +1062,7 @@ static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cm
     }
 }
 
-static void (*orig_UIViewController_viewDidLayoutSubviews)(UIViewController *, SEL);
-static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, SEL _cmd) {
-    if (orig_UIViewController_viewDidLayoutSubviews) {
-        orig_UIViewController_viewDidLayoutSubviews(self, _cmd);
-    }
-    const char *cname = object_getClassName(self);
-    if (!cname) return;
-
-    // 1. STRICT ISOLATION: NEVER touch iOS system controllers
-    if (!strstr(cname, "AlightMotion") && !strstr(cname, "AlightCommons") && 
-        !strstr(cname, "AiProjectCreation") && !strstr(cname, "PresetsEditingPanel")) {
-        return;
-    }
-
-    // 2. STRICT CANVAS PROTECTION: NEVER touch Video Editor, Canvas, Metal, or Preview controllers!
-    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || 
-        strstr(cname, "Editor") || strstr(cname, "Preview") || 
-        strstr(cname, "CameraView") || strstr(cname, "Canvas")) {
-        return;
-    }
-
-    if (strstr(cname, "MainVC")) {
-        applyMainVCTheme(self);
-    } else if (strstr(cname, "HomeVC")) {
-        applyHomeVCTheme(self);
-    } else if (strstr(cname, "FeedVC")) {
-        applyFeedVCTheme(self);
-    } else if (strstr(cname, "ProjectsVC") || strstr(cname, "ProjectsListVC")) {
-        applyProjectsVCTheme(self);
-    } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
-        applyTemplatesVCTheme(self);
-    } else if (strstr(cname, "CreateVC")) {
-        applyCreateVCTheme(self);
-    } else if (strstr(cname, "Setting") || strstr(cname, "Account") || strstr(cname, "About")) {
-        applySettingsVCTheme(self);
-    } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
-        applyExportShareVCTheme(self);
-    } else if (strstr(cname, "ShapeLibrary") || strstr(cname, "EditingPanel") || strstr(cname, "ColorFill")) {
-        if (self.view) {
-            self.view.backgroundColor = UM_BG_COLOR;
-            themeEntireViewTreeRecursively(self.view, 0);
-        }
-    }
-}
+// [PURGED viewDidLayoutSubviews hook to eliminate recursion 21063 depth stack overflow]
 // 12. Hook MainVC Status Bar Style
 static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
@@ -1214,11 +1171,8 @@ static void AMOLEDThemeEngineInit(void) {
         orig_UIViewController_viewWillAppear = (void *)method_getImplementation(mAppear);
         method_setImplementation(mAppear, (IMP)hook_UIViewController_viewWillAppear);
     }
-    Method mLayout = class_getInstanceMethod([UIViewController class], @selector(viewDidLayoutSubviews));
-    if (mLayout) {
-        orig_UIViewController_viewDidLayoutSubviews = (void *)method_getImplementation(mLayout);
-        method_setImplementation(mLayout, (IMP)hook_UIViewController_viewDidLayoutSubviews);
-    }
+    // [PURGED viewDidLayoutSubviews swizzle]
+
 
     // 5. Hook MainVC Status Bar Style
     Class mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
