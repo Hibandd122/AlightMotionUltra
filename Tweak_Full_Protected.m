@@ -275,6 +275,13 @@ static void AMUnlockProjectPackageLimit(void) {
 #define UM_BG_COLOR     [UIColor colorWithRed:(0x13/255.0) green:(0x12/255.0) blue:(0x15/255.0) alpha:1.0] // #131215
 #define UM_CARD_COLOR   [UIColor colorWithRed:(0x1C/255.0) green:(0x1C/255.0) blue:(0x1E/255.0) alpha:1.0] // #1C1C1E
 
+// Forward declarations
+static void applyHomeVCTheme(UIViewController *self);
+static void applyFeedVCTheme(UIViewController *self);
+static void applyProjectsVCTheme(UIViewController *self);
+static void applyTemplatesVCTheme(UIViewController *self);
+static void applyMainVCTheme(UIViewController *self);
+
 // Recursive pill / category tab styling
 static void stylePillButtons(UIView *view) {
     if (!view) return;
@@ -283,7 +290,7 @@ static void stylePillButtons(UIView *view) {
         if ([sub isKindOfClass:[UIButton class]]) {
             UIButton *btn = (UIButton *)sub;
             if (btn.isSelected) {
-                btn.backgroundColor = [UIColor colorWithRed:0.20 green:0.21 blue:0.25 alpha:1.0];
+                btn.backgroundColor = [UIColor colorWithRed:(0x2C/255.0) green:(0x2C/255.0) blue:(0x30/255.0) alpha:1.0];
             } else {
                 btn.backgroundColor = UM_CARD_COLOR;
             }
@@ -316,11 +323,281 @@ static void styleTabBarRecursively(UIView *view) {
     }
 }
 
-// MainVC Theme Applier
+// Targeted cell & header view styling
+static void styleAnyHomeOrProjectCell(UIView *self) {
+    if (!self) return;
+    const char *cname = object_getClassName(self);
+    if (!cname) return;
+
+    // 1. ProjectsCell
+    if (strcmp(cname, "_TtC12AlightMotion12ProjectsCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            ((UICollectionViewCell *)self).contentView.backgroundColor = [UIColor clearColor];
+        }
+        @try {
+            UIView *card = [self valueForKey:@"selectedColorView"];
+            if (card) {
+                card.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+                card.layer.cornerRadius = 14.0;
+                card.clipsToBounds = YES;
+            }
+            UILabel *nameLbl = [self valueForKey:@"projectNameLabel"];
+            if (nameLbl) nameLbl.textColor = [UIColor whiteColor];
+            
+            UILabel *infoLbl = [self valueForKey:@"projectInfoLabel"];
+            if (infoLbl) infoLbl.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
+            
+            UIView *bottomLine = [self valueForKey:@"bottomLineView"];
+            if (bottomLine) bottomLine.hidden = YES;
+            
+            UIImageView *thumb = [self valueForKey:@"thumbnailImageView"];
+            if (thumb) {
+                thumb.layer.cornerRadius = 8.0;
+                thumb.clipsToBounds = YES;
+            }
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 2. FeedCardCell (Home Feed)
+    if (strcmp(cname, "_TtC12AlightMotion12FeedCardCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            UIView *cv = ((UICollectionViewCell *)self).contentView;
+            cv.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+            cv.layer.cornerRadius = 14.0;
+            cv.clipsToBounds = YES;
+        }
+        @try {
+            UIView *imgContainer = [self valueForKey:@"imageContainerView"];
+            if (imgContainer) {
+                imgContainer.layer.cornerRadius = 10.0;
+                imgContainer.clipsToBounds = YES;
+            }
+            UILabel *titleLbl = [self valueForKey:@"titleLabel"];
+            if (titleLbl) titleLbl.textColor = [UIColor whiteColor];
+            
+            UILabel *dateLbl = [self valueForKey:@"dateLabel"];
+            if (dateLbl) dateLbl.textColor = [UIColor colorWithWhite:0.65 alpha:1.0];
+            
+            UILabel *textLbl = [self valueForKey:@"textLabel"];
+            if (textLbl) textLbl.textColor = [UIColor colorWithWhite:0.85 alpha:1.0];
+            
+            UICollectionView *effCV = [self valueForKey:@"effectCollectionView"];
+            if (effCV) effCV.backgroundColor = [UIColor clearColor];
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 3. GettingStartedTableViewCell (Home Tutorials)
+    if (strcmp(cname, "_TtC12AlightMotion27GettingStartedTableViewCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            UIView *cv = ((UITableViewCell *)self).contentView;
+            cv.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+            cv.layer.cornerRadius = 14.0;
+            cv.clipsToBounds = YES;
+        }
+        @try {
+            UILabel *titleLbl = [self valueForKey:@"titleLabel"];
+            if (titleLbl) titleLbl.textColor = [UIColor whiteColor];
+            
+            UILabel *descLbl = [self valueForKey:@"descLabel"];
+            if (descLbl) descLbl.textColor = [UIColor colorWithWhite:0.75 alpha:1.0];
+            
+            UILabel *bDescLbl = [self valueForKey:@"bottomDescLabel"];
+            if (bDescLbl) bDescLbl.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 4. TutorialCollectionCell
+    if (strcmp(cname, "_TtC12AlightMotion22TutorialCollectionCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            UIView *cv = ((UICollectionViewCell *)self).contentView;
+            cv.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+            cv.layer.cornerRadius = 12.0;
+            cv.clipsToBounds = YES;
+        }
+        @try {
+            UILabel *titleLbl = [self valueForKey:@"title"];
+            if (titleLbl) titleLbl.textColor = [UIColor whiteColor];
+            
+            UILabel *subLbl = [self valueForKey:@"subtitle"];
+            if (subLbl) subLbl.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
+            
+            UIImageView *thumb = [self valueForKey:@"thumbnailView"];
+            if (thumb) {
+                thumb.layer.cornerRadius = 8.0;
+                thumb.clipsToBounds = YES;
+            }
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 5. DownloadableProjectCollectionCell (Home / Projects)
+    if (strcmp(cname, "_TtC12AlightMotion33DownloadableProjectCollectionCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            ((UICollectionViewCell *)self).contentView.backgroundColor = [UIColor clearColor];
+        }
+        @try {
+            UIView *holder = [self valueForKey:@"holder"];
+            if (holder) {
+                holder.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+                holder.layer.cornerRadius = 14.0;
+                holder.clipsToBounds = YES;
+            }
+            UILabel *titleLbl = [self valueForKey:@"titleLabel"];
+            if (titleLbl) titleLbl.textColor = [UIColor whiteColor];
+            
+            UILabel *subLbl = [self valueForKey:@"subtitleLabel"];
+            if (subLbl) subLbl.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
+            
+            UIImageView *thumb = [self valueForKey:@"thumbnailView"];
+            if (thumb) {
+                thumb.layer.cornerRadius = 8.0;
+                thumb.clipsToBounds = YES;
+            }
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 6. MoreSampleProjectsCollectionCell
+    if (strcmp(cname, "_TtC12AlightMotion32MoreSampleProjectsCollectionCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            UIView *cv = ((UICollectionViewCell *)self).contentView;
+            cv.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+            cv.layer.cornerRadius = 14.0;
+            cv.clipsToBounds = YES;
+        }
+        @try {
+            UILabel *lbl = [self valueForKey:@"moreSampleLabel"];
+            if (lbl) lbl.textColor = [UIColor whiteColor];
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 7. ProjectsReusableHeaderView ("Dự án của bạn")
+    if (strcmp(cname, "_TtC12AlightMotion26ProjectsReusableHeaderView") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        @try {
+            UILabel *lbl = [self valueForKey:@"titleLabel"];
+            if (lbl) lbl.textColor = [UIColor whiteColor];
+        } @catch (NSException *e) {}
+        return;
+    }
+
+    // 8. FeedEffectCell
+    if (strcmp(cname, "_TtC12AlightMotion14FeedEffectCell") == 0) {
+        self.backgroundColor = [UIColor clearColor];
+        if ([self respondsToSelector:@selector(contentView)]) {
+            UIView *cv = ((UICollectionViewCell *)self).contentView;
+            cv.backgroundColor = [UIColor colorWithRed:(0x24/255.0) green:(0x23/255.0) blue:(0x28/255.0) alpha:1.0];
+            cv.layer.cornerRadius = 10.0;
+            cv.clipsToBounds = YES;
+        }
+        @try {
+            UILabel *lbl = [self valueForKey:@"titleLabel"];
+            if (lbl) lbl.textColor = [UIColor whiteColor];
+            UILabel *cat = [self valueForKey:@"categoryLabel"];
+            if (cat) cat.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
+        } @catch (NSException *e) {}
+        return;
+    }
+}
+
+// 1. HomeVC Theme Applier
+static void applyHomeVCTheme(UIViewController *self) {
+    @try {
+        if (self.view) {
+            self.view.backgroundColor = UM_BG_COLOR;
+            for (UIView *sub in self.view.subviews) {
+                if ([sub isKindOfClass:[UIScrollView class]]) {
+                    sub.backgroundColor = UM_BG_COLOR;
+                }
+            }
+        }
+        UITableView *tv = [self valueForKey:@"feedTableView"];
+        if (tv) {
+            tv.backgroundColor = UM_BG_COLOR;
+            tv.separatorColor = [UIColor colorWithWhite:0.18 alpha:1.0];
+            if (tv.backgroundView) tv.backgroundView.backgroundColor = UM_BG_COLOR;
+        }
+        UICollectionView *cv = [self valueForKey:@"feedCollectionView"];
+        if (cv) {
+            cv.backgroundColor = UM_BG_COLOR;
+            if (cv.backgroundView) cv.backgroundView.backgroundColor = UM_BG_COLOR;
+        }
+        UIView *social = [self valueForKey:@"feedSocialLinkView"];
+        if (social) {
+            social.backgroundColor = UM_CARD_COLOR;
+            social.layer.cornerRadius = 14.0;
+            social.clipsToBounds = YES;
+        }
+        UILabel *socialLbl = [self valueForKey:@"feedSocialLabel"];
+        if (socialLbl) socialLbl.textColor = [UIColor whiteColor];
+    } @catch (NSException *e) {}
+}
+
+// 2. FeedVC Theme Applier
+static void applyFeedVCTheme(UIViewController *self) {
+    @try {
+        if (self.view) {
+            self.view.backgroundColor = UM_BG_COLOR;
+        }
+        UICollectionView *cv = [self valueForKey:@"cardCollectionView"];
+        if (cv) {
+            cv.backgroundColor = UM_BG_COLOR;
+            if (cv.backgroundView) cv.backgroundView.backgroundColor = UM_BG_COLOR;
+        }
+        UIView *noNet = [self valueForKey:@"noNetworkView"];
+        if (noNet) {
+            noNet.backgroundColor = UM_BG_COLOR;
+        }
+    } @catch (NSException *e) {}
+}
+
+// 3. ProjectsVC Theme Applier
+static void applyProjectsVCTheme(UIViewController *self) {
+    @try {
+        if (self.view) {
+            self.view.backgroundColor = UM_BG_COLOR;
+        }
+        UICollectionView *cv = [self valueForKey:@"pCollectionView"];
+        if (cv) {
+            cv.backgroundColor = UM_BG_COLOR;
+            if (cv.backgroundView) cv.backgroundView.backgroundColor = UM_BG_COLOR;
+        }
+    } @catch (NSException *e) {}
+}
+
+// 4. TemplatesVC Theme Applier
+static void applyTemplatesVCTheme(UIViewController *self) {
+    @try {
+        if (self.view) {
+            self.view.backgroundColor = UM_BG_COLOR;
+            for (UIView *sub in self.view.subviews) {
+                if ([sub isKindOfClass:[UIScrollView class]]) {
+                    sub.backgroundColor = UM_BG_COLOR;
+                }
+            }
+        }
+    } @catch (NSException *e) {}
+}
+
+// 5. MainVC Theme Applier
 static void applyMainVCTheme(UIViewController *self) {
     @try {
         if (self.view) {
             self.view.backgroundColor = UM_BG_COLOR;
+        }
+        UIView *mainView = [self valueForKey:@"mainView"];
+        if (mainView) {
+            mainView.backgroundColor = UM_BG_COLOR;
         }
         UIView *topBar = [self valueForKey:@"topBar"];
         if (topBar) topBar.backgroundColor = UM_BG_COLOR;
@@ -336,6 +613,9 @@ static void applyMainVCTheme(UIViewController *self) {
         
         UIButton *accBtn = [self valueForKey:@"accountButton"];
         if (accBtn) accBtn.tintColor = [UIColor whiteColor];
+
+        UIButton *tutBtn = [self valueForKey:@"tutorialsTopBarButton"];
+        if (tutBtn) tutBtn.tintColor = [UIColor whiteColor];
         
         // 1. Style Cloud / XML Banner (cloudUploadVC)
         UIViewController *uploadVC = [self valueForKey:@"cloudUploadVC"];
@@ -350,7 +630,7 @@ static void applyMainVCTheme(UIViewController *self) {
                         ((UILabel *)v).textColor = [UIColor whiteColor];
                     } else if ([v isKindOfClass:[UIButton class]]) {
                         UIButton *b = (UIButton *)v;
-                        b.backgroundColor = [UIColor colorWithRed:0.24 green:0.25 blue:0.30 alpha:1.0];
+                        b.backgroundColor = [UIColor colorWithRed:(0x28/255.0) green:(0x28/255.0) blue:(0x2C/255.0) alpha:1.0];
                         [b setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                         b.layer.cornerRadius = 10.0;
                         b.clipsToBounds = YES;
@@ -375,21 +655,28 @@ static void applyMainVCTheme(UIViewController *self) {
             tabBarContainer.backgroundColor = UM_BG_COLOR;
         }
 
-        // 4. Style Project List VC & Collection View
+        // 4. Style Project List VC
         UIViewController *projVC = [self valueForKey:@"projectListVC"];
-        if (projVC && projVC.view) {
-            projVC.view.backgroundColor = UM_BG_COLOR;
-            @try {
-                UICollectionView *cv = [projVC valueForKey:@"pCollectionView"];
-                if (cv) {
-                    cv.backgroundColor = UM_BG_COLOR;
-                }
-            } @catch (NSException *e) {}
+        if (projVC) applyProjectsVCTheme(projVC);
+
+        // 5. Style Templates List VC
+        UIViewController *tplVC = [self valueForKey:@"templatesListVC"];
+        if (tplVC) applyTemplatesVCTheme(tplVC);
+
+        // 6. Recursively theme all child view controllers
+        for (UIViewController *child in self.childViewControllers) {
+            if (child.view) child.view.backgroundColor = UM_BG_COLOR;
+            const char *cname = object_getClassName(child);
+            if (!cname) continue;
+            if (strstr(cname, "HomeVC")) applyHomeVCTheme(child);
+            else if (strstr(cname, "FeedVC")) applyFeedVCTheme(child);
+            else if (strstr(cname, "ProjectsVC") || strstr(cname, "ProjectsListVC")) applyProjectsVCTheme(child);
+            else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) applyTemplatesVCTheme(child);
         }
     } @catch (NSException *e) {}
 }
 
-// 1. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews
+// Hook UIViewController viewWillAppear: and viewDidLayoutSubviews
 static void (*orig_UIViewController_viewWillAppear)(UIViewController *, SEL, BOOL);
 static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     if (orig_UIViewController_viewWillAppear) {
@@ -398,13 +685,18 @@ static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cm
     if (@available(iOS 13.0, *)) {
         self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     }
-    static Class s_mainVC = nil;
-    static dispatch_once_t onceMain;
-    dispatch_once(&onceMain, ^{
-        s_mainVC = objc_getClass("_TtC12AlightMotion6MainVC");
-    });
-    if (s_mainVC && [self isKindOfClass:s_mainVC]) {
+    const char *cname = object_getClassName(self);
+    if (!cname) return;
+    if (strstr(cname, "MainVC")) {
         applyMainVCTheme(self);
+    } else if (strstr(cname, "HomeVC")) {
+        applyHomeVCTheme(self);
+    } else if (strstr(cname, "FeedVC")) {
+        applyFeedVCTheme(self);
+    } else if (strstr(cname, "ProjectsVC") || strstr(cname, "ProjectsListVC")) {
+        applyProjectsVCTheme(self);
+    } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
+        applyTemplatesVCTheme(self);
     }
 }
 
@@ -413,79 +705,39 @@ static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, 
     if (orig_UIViewController_viewDidLayoutSubviews) {
         orig_UIViewController_viewDidLayoutSubviews(self, _cmd);
     }
-    static Class s_mainVC = nil;
-    static dispatch_once_t onceMain;
-    dispatch_once(&onceMain, ^{
-        s_mainVC = objc_getClass("_TtC12AlightMotion6MainVC");
-    });
-    if (s_mainVC && [self isKindOfClass:s_mainVC]) {
+    const char *cname = object_getClassName(self);
+    if (!cname) return;
+    if (strstr(cname, "MainVC")) {
         applyMainVCTheme(self);
+    } else if (strstr(cname, "HomeVC")) {
+        applyHomeVCTheme(self);
+    } else if (strstr(cname, "FeedVC")) {
+        applyFeedVCTheme(self);
+    } else if (strstr(cname, "ProjectsVC") || strstr(cname, "ProjectsListVC")) {
+        applyProjectsVCTheme(self);
+    } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
+        applyTemplatesVCTheme(self);
     }
 }
 
-// 2. Hook MainVC Status Bar Style
+// Hook MainVC Status Bar Style
 static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
 }
 
-// 3. Hook UIView didMoveToWindow for ProjectsCell & Header
+// Hook UIView didMoveToWindow for all Home & Project cells
 static void (*orig_UIView_didMoveToWindow)(UIView *, SEL);
 static void hook_UIView_didMoveToWindow(UIView *self, SEL _cmd) {
     if (orig_UIView_didMoveToWindow) {
         orig_UIView_didMoveToWindow(self, _cmd);
     }
     if (self && self.window) {
-        static Class s_cellClass = nil;
-        static Class s_hdrClass = nil;
-        static dispatch_once_t onceInit;
-        dispatch_once(&onceInit, ^{
-            s_cellClass = objc_getClass("_TtC12AlightMotion12ProjectsCell");
-            s_hdrClass = objc_getClass("_TtC12AlightMotion26ProjectsReusableHeaderView");
-        });
-
-        // Style ProjectsCell
-        if (s_cellClass && [self isKindOfClass:s_cellClass]) {
-            self.backgroundColor = [UIColor clearColor];
-            if ([self respondsToSelector:@selector(contentView)]) {
-                ((UICollectionViewCell *)self).contentView.backgroundColor = [UIColor clearColor];
-            }
-            @try {
-                UIView *card = [self valueForKey:@"selectedColorView"];
-                if (card) {
-                    card.backgroundColor = UM_CARD_COLOR; // #1C1C1E
-                    card.layer.cornerRadius = 14.0;
-                    card.clipsToBounds = YES;
-                }
-                UILabel *nameLbl = [self valueForKey:@"projectNameLabel"];
-                if (nameLbl) nameLbl.textColor = [UIColor whiteColor];
-                
-                UILabel *infoLbl = [self valueForKey:@"projectInfoLabel"];
-                if (infoLbl) infoLbl.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
-                
-                UIView *bottomLine = [self valueForKey:@"bottomLineView"];
-                if (bottomLine) bottomLine.hidden = YES;
-                
-                UIImageView *thumb = [self valueForKey:@"thumbnailImageView"];
-                if (thumb) {
-                    thumb.layer.cornerRadius = 8.0;
-                    thumb.clipsToBounds = YES;
-                }
-            } @catch (NSException *e) {}
-        }
-
-        // Style ProjectsReusableHeaderView ("Dự án của bạn")
-        if (s_hdrClass && [self isKindOfClass:s_hdrClass]) {
-            self.backgroundColor = [UIColor clearColor];
-            @try {
-                UILabel *lbl = [self valueForKey:@"titleLabel"];
-                if (lbl) lbl.textColor = [UIColor whiteColor];
-            } @catch (NSException *e) {}
-        }
+        styleAnyHomeOrProjectCell(self);
     }
 }
 
-// 4. Custom ProjectsCell layoutSubviews
-static void my_ProjectsCell_layoutSubviews(UICollectionViewCell *self, SEL _cmd) {
+// Custom cell layoutSubviews
+static void my_ThemeCell_layoutSubviews(UIView *self, SEL _cmd) {
     struct objc_super sup = {
         .receiver = self,
         .super_class = class_getSuperclass(object_getClass(self))
@@ -493,32 +745,35 @@ static void my_ProjectsCell_layoutSubviews(UICollectionViewCell *self, SEL _cmd)
     void (*msgSendSuper)(struct objc_super *, SEL) = (void *)objc_msgSendSuper;
     msgSendSuper(&sup, _cmd);
 
-    self.backgroundColor = [UIColor clearColor];
-    if ([self respondsToSelector:@selector(contentView)]) {
-        self.contentView.backgroundColor = [UIColor clearColor];
+    styleAnyHomeOrProjectCell(self);
+}
+
+// Custom cell prepareForReuse
+static void my_ThemeCell_prepareForReuse(UIView *self, SEL _cmd) {
+    struct objc_super sup = {
+        .receiver = self,
+        .super_class = class_getSuperclass(object_getClass(self))
+    };
+    void (*msgSendSuper)(struct objc_super *, SEL) = (void *)objc_msgSendSuper;
+    msgSendSuper(&sup, _cmd);
+
+    styleAnyHomeOrProjectCell(self);
+}
+
+static void registerCellHooks(const char *className) {
+    Class cellCls = objc_getClass(className);
+    if (!cellCls) return;
+
+    BOOL addedLayout = class_addMethod(cellCls, @selector(layoutSubviews), (IMP)my_ThemeCell_layoutSubviews, "v@:");
+    if (!addedLayout) {
+        Method m = class_getInstanceMethod(cellCls, @selector(layoutSubviews));
+        if (m) method_setImplementation(m, (IMP)my_ThemeCell_layoutSubviews);
     }
-    @try {
-        UIView *card = [self valueForKey:@"selectedColorView"];
-        if (card) {
-            card.backgroundColor = UM_CARD_COLOR; // #1C1C1E
-            card.layer.cornerRadius = 14.0;
-            card.clipsToBounds = YES;
-        }
-        UILabel *nameLbl = [self valueForKey:@"projectNameLabel"];
-        if (nameLbl) nameLbl.textColor = [UIColor whiteColor];
-        
-        UILabel *infoLbl = [self valueForKey:@"projectInfoLabel"];
-        if (infoLbl) infoLbl.textColor = [UIColor colorWithWhite:0.7 alpha:1.0];
-        
-        UIView *bottomLine = [self valueForKey:@"bottomLineView"];
-        if (bottomLine) bottomLine.hidden = YES;
-        
-        UIImageView *thumb = [self valueForKey:@"thumbnailImageView"];
-        if (thumb) {
-            thumb.layer.cornerRadius = 8.0;
-            thumb.clipsToBounds = YES;
-        }
-    } @catch (NSException *e) {}
+    BOOL addedReuse = class_addMethod(cellCls, @selector(prepareForReuse), (IMP)my_ThemeCell_prepareForReuse, "v@:");
+    if (!addedReuse) {
+        Method m = class_getInstanceMethod(cellCls, @selector(prepareForReuse));
+        if (m) method_setImplementation(m, (IMP)my_ThemeCell_prepareForReuse);
+    }
 }
 
 static void AMOLEDThemeEngineInit(void) {
@@ -554,22 +809,22 @@ static void AMOLEDThemeEngineInit(void) {
         }
     }
 
-    // 4. Hook UIView didMoveToWindow for ProjectsCell & Header
+    // 4. Hook UIView didMoveToWindow for cells & views
     Method mMove = class_getInstanceMethod([UIView class], @selector(didMoveToWindow));
     if (mMove) {
         orig_UIView_didMoveToWindow = (void *)method_getImplementation(mMove);
         method_setImplementation(mMove, (IMP)hook_UIView_didMoveToWindow);
     }
 
-    // 5. Add or swizzle layoutSubviews on ProjectsCell
-    Class cellCls = objc_getClass("_TtC12AlightMotion12ProjectsCell");
-    if (cellCls) {
-        BOOL added = class_addMethod(cellCls, @selector(layoutSubviews), (IMP)my_ProjectsCell_layoutSubviews, "v@:");
-        if (!added) {
-            Method m = class_getInstanceMethod(cellCls, @selector(layoutSubviews));
-            if (m) method_setImplementation(m, (IMP)my_ProjectsCell_layoutSubviews);
-        }
-    }
+    // 5. Register layoutSubviews & prepareForReuse for all Home & Project cells
+    registerCellHooks("_TtC12AlightMotion12ProjectsCell");
+    registerCellHooks("_TtC12AlightMotion12FeedCardCell");
+    registerCellHooks("_TtC12AlightMotion27GettingStartedTableViewCell");
+    registerCellHooks("_TtC12AlightMotion22TutorialCollectionCell");
+    registerCellHooks("_TtC12AlightMotion33DownloadableProjectCollectionCell");
+    registerCellHooks("_TtC12AlightMotion32MoreSampleProjectsCollectionCell");
+    registerCellHooks("_TtC12AlightMotion26ProjectsReusableHeaderView");
+    registerCellHooks("_TtC12AlightMotion14FeedEffectCell");
 }
 
 
