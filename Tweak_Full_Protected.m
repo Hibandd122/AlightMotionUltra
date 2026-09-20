@@ -175,97 +175,100 @@ static void hook_VungleAds_initWithPlacementId(id self, SEL _cmd, id placementId
 }
 
 static void AMNeutralizeAdNetworks(void) {
-    // 1. Google Mobile Ads
-    Class gadClass = objc_getClass("GADMobileAds");
-    if (gadClass) {
-        Method mStart = class_getInstanceMethod(gadClass, @selector(startWithCompletionHandler:));
-        if (mStart) {
-            method_setImplementation(mStart, (IMP)hook_GADMobileAds_startWithCompletionHandler);
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        // 1. Google Mobile Ads
+        Class gadClass = objc_getClass("GADMobileAds");
+        if (gadClass) {
+            Method mStart = class_getInstanceMethod(gadClass, @selector(startWithCompletionHandler:));
+            if (mStart) {
+                method_setImplementation(mStart, (IMP)hook_GADMobileAds_startWithCompletionHandler);
+            }
         }
-    }
 
-    // 2. IronSource SDK
-    Class isAdapterClass = objc_getClass("ISIronSourceAdapter");
-    if (isAdapterClass) {
-        Method mInit = class_getInstanceMethod(isAdapterClass, @selector(initSDK:));
-        if (mInit) {
-            method_setImplementation(mInit, (IMP)hook_IronSource_initSDK);
+        // 2. IronSource SDK
+        Class isAdapterClass = objc_getClass("ISIronSourceAdapter");
+        if (isAdapterClass) {
+            Method mInit = class_getInstanceMethod(isAdapterClass, @selector(initSDK:));
+            if (mInit) {
+                method_setImplementation(mInit, (IMP)hook_IronSource_initSDK);
+            }
         }
-    }
-    Class isAdsInternal = objc_getClass("IronSourceAdsInternal");
-    if (isAdsInternal) {
-        Method mReq = class_getInstanceMethod(isAdsInternal, @selector(initWithRequest:completion:));
-        if (mReq) {
-            method_setImplementation(mReq, (IMP)hook_IronSourceAdsInternal_initWithRequest);
+        Class isAdsInternal = objc_getClass("IronSourceAdsInternal");
+        if (isAdsInternal) {
+            Method mReq = class_getInstanceMethod(isAdsInternal, @selector(initWithRequest:completion:));
+            if (mReq) {
+                method_setImplementation(mReq, (IMP)hook_IronSourceAdsInternal_initWithRequest);
+            }
         }
-    }
 
-    // 3. Firebase Analytics
-    Class firAnalyticsClass = objc_getClass("FIRAnalytics");
-    if (firAnalyticsClass) {
-        Method mLog = class_getClassMethod(firAnalyticsClass, @selector(logEventWithName:parameters:));
-        if (mLog) {
-            method_setImplementation(mLog, (IMP)hook_FIRAnalytics_logEventWithName);
+        // 3. Firebase Analytics
+        Class firAnalyticsClass = objc_getClass("FIRAnalytics");
+        if (firAnalyticsClass) {
+            Method mLog = class_getClassMethod(firAnalyticsClass, @selector(logEventWithName:parameters:));
+            if (mLog) {
+                method_setImplementation(mLog, (IMP)hook_FIRAnalytics_logEventWithName);
+            }
         }
-    }
 
-    // 4. Vungle Ads
-    Class vungleBanner = objc_getClass("_TtC12VungleAdsSDK12VungleBanner");
-    if (vungleBanner) {
-        Method mInitVungle = class_getInstanceMethod(vungleBanner, @selector(initWithPlacementId:vungleAdSize:));
-        if (mInitVungle) {
-            method_setImplementation(mInitVungle, (IMP)hook_VungleAds_initWithPlacementId);
+        // 4. Vungle Ads
+        Class vungleBanner = objc_getClass("_TtC12VungleAdsSDK12VungleBanner");
+        if (vungleBanner) {
+            Method mInitVungle = class_getInstanceMethod(vungleBanner, @selector(initWithPlacementId:vungleAdSize:));
+            if (mInitVungle) {
+                method_setImplementation(mInitVungle, (IMP)hook_VungleAds_initWithPlacementId);
+            }
         }
-    }
+    });
 }
 
 #pragma mark - =========================================================
 #pragma mark 2.6. Group A: Unlimited Project Package Engine (> 5 MB Unlocker)
 #pragma mark - =========================================================
 
-// Unlock 5MB limit for Project Package Import & Export
 static int64_t hook_ProjectPackage_freeUserMaxDownloadSize(id self, SEL _cmd) {
-    // Return 50 GB limit instead of 5 MB
-    return 53687091200LL;
+    return 53687091200LL; // 50 GB
 }
 
 static void AMUnlockProjectPackageLimit(void) {
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    // Override local config and user defaults to unlimited
-    [ud setDouble:53687091200.0 forKey:@"project_package_freeuser_maxdownloadsize"];
-    [ud setDouble:53687091200.0 forKey:@"freeUserMaxDownloadSize"];
-    [ud setObject:@YES forKey:@"project_package_sharing"];
-    [ud setObject:@YES forKey:@"benefit_project_package_sharing"];
-    [ud synchronize];
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        [ud setDouble:53687091200.0 forKey:@"project_package_freeuser_maxdownloadsize"];
+        [ud setDouble:53687091200.0 forKey:@"freeUserMaxDownloadSize"];
+        [ud setObject:@YES forKey:@"project_package_sharing"];
+        [ud setObject:@YES forKey:@"benefit_project_package_sharing"];
+        [ud synchronize];
 
-    // Hook any classes responding to freeUserMaxDownloadSize
-    const char *targetClasses[] = {
-        "_TtC12AlightMotion15ProjectPackager",
-        "_TtC12AlightMotion15PackageImporter",
-        "_TtC12AlightMotion21ShareProjectPackageVC",
-        "AlightMotion.ProjectPackager",
-        "AlightMotion.PackageImporter",
-        NULL
-    };
+        // Hook any classes responding to freeUserMaxDownloadSize
+        const char *targetClasses[] = {
+            "_TtC12AlightMotion15ProjectPackager",
+            "_TtC12AlightMotion15PackageImporter",
+            "_TtC12AlightMotion21ShareProjectPackageVC",
+            "AlightMotion.ProjectPackager",
+            "AlightMotion.PackageImporter",
+            NULL
+        };
 
-    for (int i = 0; targetClasses[i] != NULL; i++) {
-        Class cls = objc_getClass(targetClasses[i]);
-        if (!cls) continue;
+        for (int i = 0; targetClasses[i] != NULL; i++) {
+            Class cls = objc_getClass(targetClasses[i]);
+            if (!cls) continue;
 
-        SEL sel = @selector(freeUserMaxDownloadSize);
-        Method m = class_getInstanceMethod(cls, sel);
-        if (m) {
-            method_setImplementation(m, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize);
-        } else {
-            class_addMethod(cls, sel, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize, "q@:");
+            SEL sel = @selector(freeUserMaxDownloadSize);
+            Method m = class_getInstanceMethod(cls, sel);
+            if (m) {
+                method_setImplementation(m, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize);
+            } else {
+                class_addMethod(cls, sel, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize, "q@:");
+            }
+
+            SEL selClass = @selector(freeUserMaxDownloadSize);
+            Method mClass = class_getClassMethod(cls, selClass);
+            if (mClass) {
+                method_setImplementation(mClass, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize);
+            }
         }
-
-        SEL selClass = @selector(freeUserMaxDownloadSize);
-        Method mClass = class_getClassMethod(cls, selClass);
-        if (mClass) {
-            method_setImplementation(mClass, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize);
-        }
-    }
+    });
 }
 
 #pragma mark - =========================================================
@@ -570,11 +573,12 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
     const char *cname = object_getClassName(view);
     if (!cname) return;
 
-    // NEVER touch Project Editor Preview canvas, Metal, OpenGL, Player layers or Timeline
+    // NEVER touch Project Editor Preview canvas, Metal, OpenGL, Player layers or Timeline, NOR system snapshot/replicant views (prevents black screenshots)
     if (strstr(cname, "Preview") || strstr(cname, "Canvas") || strstr(cname, "MTKView") ||
         strstr(cname, "Player") || strstr(cname, "TimelineLane") || strstr(cname, "Render") ||
         strstr(cname, "OpenGL") || strstr(cname, "Metal") || strstr(cname, "VideoControl") ||
-        strstr(cname, "Playhead")) {
+        strstr(cname, "Playhead") || strstr(cname, "Snapshot") || strstr(cname, "Replicant") ||
+        strstr(cname, "TextEffects") || strstr(cname, "Keyboard")) {
         return;
     }
 
@@ -970,14 +974,15 @@ static void applyMainVCTheme(UIViewController *self) {
         tabBarContainer.backgroundColor = UM_BG_COLOR;
     }
 
-    // Child View Controllers
+    // Child View Controllers (Safely apply theme only if view is already loaded)
     UIViewController *projVC = safeGetPropertyOrIvar(self, "projectListVC");
-    if (projVC) applyProjectsVCTheme(projVC);
+    if (projVC && projVC.isViewLoaded) applyProjectsVCTheme(projVC);
 
     UIViewController *tplVC = safeGetPropertyOrIvar(self, "templatesListVC");
-    if (tplVC) applyTemplatesVCTheme(tplVC);
+    if (tplVC && tplVC.isViewLoaded) applyTemplatesVCTheme(tplVC);
 
     for (UIViewController *child in self.childViewControllers) {
+        if (!child.isViewLoaded) continue;
         if (child.view) child.view.backgroundColor = UM_BG_COLOR;
         const char *cname = object_getClassName(child);
         if (!cname) continue;
@@ -993,56 +998,85 @@ static void applyMainVCTheme(UIViewController *self) {
     }
 }
 
-// 11. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Zero Screenshot Bug, Safe)
+// 11. Hook UIViewController viewWillAppear: (Zero Recursion, Zero Screenshot Bug, Full Safe)
 static void (*orig_UIViewController_viewWillAppear)(UIViewController *, SEL, BOOL);
 static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     if (orig_UIViewController_viewWillAppear) {
         orig_UIViewController_viewWillAppear(self, _cmd, animated);
     }
-    if (@available(iOS 13.0, *)) {
-        self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-    }
-    const char *cname = object_getClassName(self);
-    if (!cname) return;
 
-    // 1. STRICT ISOLATION: NEVER touch iOS system controllers (Zero Black Screen on screenshots, keyboards, transitions)
-    if (!strstr(cname, "AlightMotion") && !strstr(cname, "AlightCommons") && 
-        !strstr(cname, "AiProjectCreation") && !strstr(cname, "PresetsEditingPanel")) {
-        return;
-    }
+    // Reentrancy guard: strictly prevent infinite circular call chains
+    static __thread BOOL in_viewWillAppear = NO;
+    if (in_viewWillAppear) return;
+    in_viewWillAppear = YES;
 
-    // 2. STRICT CANVAS PROTECTION: NEVER touch Video Editor, Canvas, Metal, or Preview controllers!
-    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || 
-        strstr(cname, "Editor") || strstr(cname, "Preview") || 
-        strstr(cname, "CameraView") || strstr(cname, "Canvas")) {
-        return;
-    }
-
-    if (strstr(cname, "MainVC")) {
-        applyMainVCTheme(self);
-    } else if (strstr(cname, "HomeVC")) {
-        applyHomeVCTheme(self);
-    } else if (strstr(cname, "FeedVC")) {
-        applyFeedVCTheme(self);
-    } else if (strstr(cname, "ProjectsVC") || strstr(cname, "ProjectsListVC")) {
-        applyProjectsVCTheme(self);
-    } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
-        applyTemplatesVCTheme(self);
-    } else if (strstr(cname, "CreateVC")) {
-        applyCreateVCTheme(self);
-    } else if (strstr(cname, "Setting") || strstr(cname, "Account") || strstr(cname, "About")) {
-        applySettingsVCTheme(self);
-    } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
-        applyExportShareVCTheme(self);
-    } else if (strstr(cname, "ShapeLibrary") || strstr(cname, "EditingPanel") || strstr(cname, "ColorFill")) {
-        if (self.view) {
-            self.view.backgroundColor = UM_BG_COLOR;
-            themeEntireViewTreeRecursively(self.view, 0);
+    @try {
+        if (@available(iOS 13.0, *)) {
+            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
         }
-    }
+        const char *cname = object_getClassName(self);
+        if (!cname) {
+            in_viewWillAppear = NO;
+            return;
+        }
+
+        // 1. STRICT ISOLATION: NEVER touch iOS system controllers, snapshots, or keyboards (Zero Black Screen on screenshots, keyboards, transitions)
+        if (strstr(cname, "Snapshot") || strstr(cname, "Replicant") || 
+            strstr(cname, "Keyboard") || strstr(cname, "TextEffects") ||
+            strstr(cname, "UIAlert") || strstr(cname, "UICompatibility")) {
+            in_viewWillAppear = NO;
+            return;
+        }
+
+        if (!strstr(cname, "AlightMotion") && !strstr(cname, "AlightCommons") && 
+            !strstr(cname, "AiProjectCreation") && !strstr(cname, "PresetsEditingPanel")) {
+            in_viewWillAppear = NO;
+            return;
+        }
+
+        // 2. STRICT CANVAS PROTECTION: NEVER touch Video Editor, Canvas, Metal, or Preview controllers!
+        if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || 
+            strstr(cname, "Editor") || strstr(cname, "Preview") || 
+            strstr(cname, "CameraView") || strstr(cname, "Canvas")) {
+            in_viewWillAppear = NO;
+            return;
+        }
+
+        // 3. Instance guard: Theme each VC instance cleanly without repeating heavy tree walks
+        static char kVCThemedKey;
+        if (objc_getAssociatedObject(self, &kVCThemedKey)) {
+            in_viewWillAppear = NO;
+            return;
+        }
+        objc_setAssociatedObject(self, &kVCThemedKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+        if (strstr(cname, "MainVC")) {
+            applyMainVCTheme(self);
+        } else if (strstr(cname, "HomeVC")) {
+            applyHomeVCTheme(self);
+        } else if (strstr(cname, "FeedVC")) {
+            applyFeedVCTheme(self);
+        } else if (strstr(cname, "ProjectsVC") || strstr(cname, "ProjectsListVC")) {
+            applyProjectsVCTheme(self);
+        } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
+            applyTemplatesVCTheme(self);
+        } else if (strstr(cname, "CreateVC")) {
+            applyCreateVCTheme(self);
+        } else if (strstr(cname, "Setting") || strstr(cname, "Account") || strstr(cname, "About")) {
+            applySettingsVCTheme(self);
+        } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
+            applyExportShareVCTheme(self);
+        } else if (strstr(cname, "ShapeLibrary") || strstr(cname, "EditingPanel") || strstr(cname, "ColorFill")) {
+            if (self.isViewLoaded && self.view) {
+                self.view.backgroundColor = UM_BG_COLOR;
+                themeEntireViewTreeRecursively(self.view, 0);
+            }
+        }
+    } @catch (NSException *e) {}
+
+    in_viewWillAppear = NO;
 }
 
-// [PURGED viewDidLayoutSubviews hook to eliminate recursion 21063 depth stack overflow]
 // 12. Hook MainVC Status Bar Style
 static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
@@ -1051,11 +1085,15 @@ static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
 static void (*orig_UIWindow_makeKeyAndVisible)(UIWindow *, SEL);
 static void hook_UIWindow_makeKeyAndVisible(UIWindow *self, SEL _cmd) {
     if (@available(iOS 13.0, *)) {
-        self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-        if (self.rootViewController) {
-            self.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            if (self.rootViewController.view) {
-                self.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        const char *wname = object_getClassName(self);
+        if (!wname || (!strstr(wname, "Snapshot") && !strstr(wname, "Replicant") && 
+                       !strstr(wname, "Keyboard") && !strstr(wname, "TextEffects"))) {
+            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            if (self.rootViewController) {
+                self.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                if (self.rootViewController.isViewLoaded && self.rootViewController.view) {
+                    self.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                }
             }
         }
     }
@@ -1067,11 +1105,15 @@ static void hook_UIWindow_makeKeyAndVisible(UIWindow *self, SEL _cmd) {
 static void (*orig_UIWindow_setRootViewController)(UIWindow *, SEL, UIViewController *);
 static void hook_UIWindow_setRootViewController(UIWindow *self, SEL _cmd, UIViewController *root) {
     if (@available(iOS 13.0, *)) {
-        self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-        if (root) {
-            root.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            if (root.view) {
-                root.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        const char *wname = object_getClassName(self);
+        if (!wname || (!strstr(wname, "Snapshot") && !strstr(wname, "Replicant") && 
+                       !strstr(wname, "Keyboard") && !strstr(wname, "TextEffects"))) {
+            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            if (root) {
+                root.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                if (root.isViewLoaded && root.view) {
+                    root.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                }
             }
         }
     }
@@ -1086,6 +1128,11 @@ static void hook_UIViewController_viewDidLoad(UIViewController *self, SEL _cmd) 
     if (orig_UIViewController_viewDidLoad) {
         orig_UIViewController_viewDidLoad(self, _cmd);
     }
+    const char *cname = object_getClassName(self);
+    if (cname && (strstr(cname, "Snapshot") || strstr(cname, "Replicant") || 
+                  strstr(cname, "Keyboard") || strstr(cname, "TextEffects"))) {
+        return;
+    }
     if (@available(iOS 13.0, *)) {
         self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     }
@@ -1095,63 +1142,73 @@ static UIWindow* (*orig_UIWindow_initWithFrame)(UIWindow *, SEL, CGRect);
 static UIWindow* hook_UIWindow_initWithFrame(UIWindow *self, SEL _cmd, CGRect frame) {
     UIWindow *w = orig_UIWindow_initWithFrame(self, _cmd, frame);
     if (@available(iOS 13.0, *)) {
-        w.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        const char *wname = object_getClassName(self);
+        if (!wname || (!strstr(wname, "Snapshot") && !strstr(wname, "Replicant") && 
+                       !strstr(wname, "Keyboard") && !strstr(wname, "TextEffects"))) {
+            w.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        }
     }
     return w;
 }
 
 static void AMOLEDThemeEngineInit(void) {
-    // 1. Enforce UIUserInterfaceStyleDark on current application windows immediately
-    if (@available(iOS 13.0, *)) {
-        for (UIWindow *win in [UIApplication sharedApplication].windows) {
-            win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            if (win.rootViewController) {
-                win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        // 1. Enforce UIUserInterfaceStyleDark on current application windows immediately
+        if (@available(iOS 13.0, *)) {
+            for (UIWindow *win in [UIApplication sharedApplication].windows) {
+                const char *wname = object_getClassName(win);
+                if (wname && (strstr(wname, "Snapshot") || strstr(wname, "Replicant") || 
+                              strstr(wname, "Keyboard") || strstr(wname, "TextEffects"))) {
+                    continue;
+                }
+                win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                if (win.rootViewController) {
+                    win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                }
             }
         }
-    }
 
-    // 3. Hook UIWindow initWithFrame:, makeKeyAndVisible & setRootViewController
-    Method mInitFrame = class_getInstanceMethod([UIWindow class], @selector(initWithFrame:));
-    if (mInitFrame) {
-        orig_UIWindow_initWithFrame = (void *)method_getImplementation(mInitFrame);
-        method_setImplementation(mInitFrame, (IMP)hook_UIWindow_initWithFrame);
-    }
-    Method mMakeKey = class_getInstanceMethod([UIWindow class], @selector(makeKeyAndVisible));
-    if (mMakeKey) {
-        orig_UIWindow_makeKeyAndVisible = (void *)method_getImplementation(mMakeKey);
-        method_setImplementation(mMakeKey, (IMP)hook_UIWindow_makeKeyAndVisible);
-    }
-    Method mRoot = class_getInstanceMethod([UIWindow class], @selector(setRootViewController:));
-    if (mRoot) {
-        orig_UIWindow_setRootViewController = (void *)method_getImplementation(mRoot);
-        method_setImplementation(mRoot, (IMP)hook_UIWindow_setRootViewController);
-    }
-
-    // 4. Hook UIViewController viewDidLoad, viewWillAppear: and viewDidLayoutSubviews
-    Method mVieDidLoad = class_getInstanceMethod([UIViewController class], @selector(viewDidLoad));
-    if (mVieDidLoad) {
-        orig_UIViewController_viewDidLoad = (void *)method_getImplementation(mVieDidLoad);
-        method_setImplementation(mVieDidLoad, (IMP)hook_UIViewController_viewDidLoad);
-    }
-    Method mAppear = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
-    if (mAppear) {
-        orig_UIViewController_viewWillAppear = (void *)method_getImplementation(mAppear);
-        method_setImplementation(mAppear, (IMP)hook_UIViewController_viewWillAppear);
-    }
-    // [PURGED viewDidLayoutSubviews swizzle]
-
-
-    // 5. Hook MainVC Status Bar Style
-    Class mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
-    if (mainVCClass) {
-        Method mStatus = class_getInstanceMethod(mainVCClass, @selector(preferredStatusBarStyle));
-        if (mStatus) {
-            method_setImplementation(mStatus, (IMP)hook_MainVC_preferredStatusBarStyle);
-        } else {
-            class_addMethod(mainVCClass, @selector(preferredStatusBarStyle), (IMP)hook_MainVC_preferredStatusBarStyle, "q@:");
+        // 2. Hook UIWindow initWithFrame:, makeKeyAndVisible & setRootViewController
+        Method mInitFrame = class_getInstanceMethod([UIWindow class], @selector(initWithFrame:));
+        if (mInitFrame) {
+            orig_UIWindow_initWithFrame = (void *)method_getImplementation(mInitFrame);
+            method_setImplementation(mInitFrame, (IMP)hook_UIWindow_initWithFrame);
         }
-    }
+        Method mMakeKey = class_getInstanceMethod([UIWindow class], @selector(makeKeyAndVisible));
+        if (mMakeKey) {
+            orig_UIWindow_makeKeyAndVisible = (void *)method_getImplementation(mMakeKey);
+            method_setImplementation(mMakeKey, (IMP)hook_UIWindow_makeKeyAndVisible);
+        }
+        Method mRoot = class_getInstanceMethod([UIWindow class], @selector(setRootViewController:));
+        if (mRoot) {
+            orig_UIWindow_setRootViewController = (void *)method_getImplementation(mRoot);
+            method_setImplementation(mRoot, (IMP)hook_UIWindow_setRootViewController);
+        }
+
+        // 3. Hook UIViewController viewDidLoad and viewWillAppear:
+        Method mVieDidLoad = class_getInstanceMethod([UIViewController class], @selector(viewDidLoad));
+        if (mVieDidLoad) {
+            orig_UIViewController_viewDidLoad = (void *)method_getImplementation(mVieDidLoad);
+            method_setImplementation(mVieDidLoad, (IMP)hook_UIViewController_viewDidLoad);
+        }
+        Method mAppear = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
+        if (mAppear) {
+            orig_UIViewController_viewWillAppear = (void *)method_getImplementation(mAppear);
+            method_setImplementation(mAppear, (IMP)hook_UIViewController_viewWillAppear);
+        }
+
+        // 4. Hook MainVC Status Bar Style
+        Class mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
+        if (mainVCClass) {
+            Method mStatus = class_getInstanceMethod(mainVCClass, @selector(preferredStatusBarStyle));
+            if (mStatus) {
+                method_setImplementation(mStatus, (IMP)hook_MainVC_preferredStatusBarStyle);
+            } else {
+                class_addMethod(mainVCClass, @selector(preferredStatusBarStyle), (IMP)hook_MainVC_preferredStatusBarStyle, "q@:");
+            }
+        }
+    });
 }
 
 #pragma mark 2. UMEffectRegistry & UMEffectSearchEngine (Lazy & Safe Loaded)
@@ -3140,7 +3197,6 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
         AMApplyProSettings();
         AMNeutralizeAdNetworks();
         AMUnlockProjectPackageLimit();
-        AMOLEDThemeEngineInit();
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification
                                                           object:nil
                                                            queue:[NSOperationQueue mainQueue]
@@ -3150,10 +3206,15 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             AMUnlockProjectPackageLimit();
             if (@available(iOS 13.0, *)) {
                 for (UIWindow *win in [UIApplication sharedApplication].windows) {
+                    const char *wname = object_getClassName(win);
+                    if (wname && (strstr(wname, "Snapshot") || strstr(wname, "Replicant") || 
+                                  strstr(wname, "Keyboard") || strstr(wname, "TextEffects"))) {
+                        continue;
+                    }
                     win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
                     if (win.rootViewController) {
                         win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-                        if (win.rootViewController.view) {
+                        if (win.rootViewController.isViewLoaded && win.rootViewController.view) {
                             win.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
                         }
                     }
