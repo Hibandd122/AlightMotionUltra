@@ -126,8 +126,99 @@ static void AMApplyProSettings(void) {
     [ud setObject:@[@"alightcreative.motion.1y_t80"] forKey:@"activeSubscriptionsOverride"];
     [ud setObject:@[@"alightcreative.motion.1y_t80"] forKey:@"activeLifetimesOverride"];
     [ud setObject:@[@"alightcreative.motion.1y_t80"] forKey:@"activeBundleSubscriptionsOverride"];
-    [ud setObject:@YES forKey:@"monetization.storage.fake.flow"];
+    [ud setBool:NO forKey:@"google_analytics_default_allow_analytics_storage"];
+    [ud setBool:NO forKey:@"google_analytics_default_allow_ad_storage"];
+    [ud setBool:NO forKey:@"google_analytics_default_allow_ad_user_data"];
+    [ud setBool:NO forKey:@"google_analytics_default_allow_ad_personalization_signals"];
+    [ud setBool:NO forKey:@"firebase_analytics_collection_enabled"];
+    [ud setBool:NO forKey:@"firebase_analytics_collection_deactivated"];
+    [ud setBool:NO forKey:@"FIREBASE_ANALYTICS_COLLECTION_ENABLED"];
+    [ud setBool:NO forKey:@"FirebaseCrashlyticsCollectionEnabled"];
+    [ud setBool:NO forKey:@"is_in_app_tracking_consent_enabled"];
     [ud synchronize];
+}
+
+#pragma mark - =========================================================
+#pragma mark 2.5. Ad-Networks & Telemetry Neutralizer Engine (Zero Lag & Pure Speed)
+#pragma mark - =========================================================
+
+// Block Google Mobile Ads (GAD)
+static void hook_GADMobileAds_startWithCompletionHandler(id self, SEL _cmd, void (^completionHandler)(id status)) {
+    NSLog(@"[AlightMotionUltra] Neutralized GADMobileAds startWithCompletionHandler");
+    if (completionHandler) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completionHandler(nil);
+        });
+    }
+}
+
+// Block IronSource SDK
+static void hook_IronSource_initSDK(id self, SEL _cmd, id config) {
+    NSLog(@"[AlightMotionUltra] Neutralized IronSource initSDK");
+}
+
+static void hook_IronSourceAdsInternal_initWithRequest(id self, SEL _cmd, id request, void (^completion)(id result, NSError *error)) {
+    NSLog(@"[AlightMotionUltra] Neutralized IronSourceAdsInternal initWithRequest");
+    if (completion) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(nil, nil);
+        });
+    }
+}
+
+// Block Firebase Analytics Events & Screen Views
+static void hook_FIRAnalytics_logEventWithName(id self, SEL _cmd, NSString *name, NSDictionary *params) {
+    // Drop all background telemetry silently to save CPU & battery
+}
+
+// Block Vungle Ads SDK
+static void hook_VungleAds_initWithPlacementId(id self, SEL _cmd, id placementId, id size) {
+    NSLog(@"[AlightMotionUltra] Neutralized VungleAds initWithPlacementId");
+}
+
+static void AMNeutralizeAdNetworks(void) {
+    // 1. Google Mobile Ads
+    Class gadClass = objc_getClass("GADMobileAds");
+    if (gadClass) {
+        Method mStart = class_getInstanceMethod(gadClass, @selector(startWithCompletionHandler:));
+        if (mStart) {
+            method_setImplementation(mStart, (IMP)hook_GADMobileAds_startWithCompletionHandler);
+        }
+    }
+
+    // 2. IronSource SDK
+    Class isAdapterClass = objc_getClass("ISIronSourceAdapter");
+    if (isAdapterClass) {
+        Method mInit = class_getInstanceMethod(isAdapterClass, @selector(initSDK:));
+        if (mInit) {
+            method_setImplementation(mInit, (IMP)hook_IronSource_initSDK);
+        }
+    }
+    Class isAdsInternal = objc_getClass("IronSourceAdsInternal");
+    if (isAdsInternal) {
+        Method mReq = class_getInstanceMethod(isAdsInternal, @selector(initWithRequest:completion:));
+        if (mReq) {
+            method_setImplementation(mReq, (IMP)hook_IronSourceAdsInternal_initWithRequest);
+        }
+    }
+
+    // 3. Firebase Analytics
+    Class firAnalyticsClass = objc_getClass("FIRAnalytics");
+    if (firAnalyticsClass) {
+        Method mLog = class_getClassMethod(firAnalyticsClass, @selector(logEventWithName:parameters:));
+        if (mLog) {
+            method_setImplementation(mLog, (IMP)hook_FIRAnalytics_logEventWithName);
+        }
+    }
+
+    // 4. Vungle Ads
+    Class vungleBanner = objc_getClass("_TtC12VungleAdsSDK12VungleBanner");
+    if (vungleBanner) {
+        Method mInitVungle = class_getInstanceMethod(vungleBanner, @selector(initWithPlacementId:vungleAdSize:));
+        if (mInitVungle) {
+            method_setImplementation(mInitVungle, (IMP)hook_VungleAds_initWithPlacementId);
+        }
+    }
 }
 
 
@@ -2120,11 +2211,13 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
     dispatch_async(dispatch_get_main_queue(), ^{
         // 2. Apply Pro Monetization state immediately and on launch notification
         AMApplyProSettings();
+        AMNeutralizeAdNetworks();
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification
                                                           object:nil
                                                            queue:[NSOperationQueue mainQueue]
                                                       usingBlock:^(NSNotification * _Nonnull note) {
             AMApplyProSettings();
+            AMNeutralizeAdNetworks();
         }];
 
         // 3. Swizzle NSFileManager containerURLForSecurityApplicationGroupIdentifier:
