@@ -129,199 +129,8 @@ static void AMApplyProSettings(void) {
     [ud synchronize];
 }
 
-// Swizzle DTXWatermarkView to make it completely invisible without breaking AutoLayout constraints
-static void (*orig_DTXWatermarkView_layoutSubviews)(UIView *, SEL);
-static void hook_DTXWatermarkView_layoutSubviews(UIView *self, SEL _cmd) {
-    if (orig_DTXWatermarkView_layoutSubviews) {
-        orig_DTXWatermarkView_layoutSubviews(self, _cmd);
-    }
-    self.hidden = YES;
-    self.alpha = 0.0;
-}
 
-// Swizzle Watermark popup layoutSubviews (safe hide without breaking view hierarchy)
-static void (*orig_WatermarkPopup_layoutSubviews)(UIView *, SEL);
-static void hook_WatermarkPopup_layoutSubviews(UIView *self, SEL _cmd) {
-    if (orig_WatermarkPopup_layoutSubviews) {
-        orig_WatermarkPopup_layoutSubviews(self, _cmd);
-    }
-    self.hidden = YES;
-    self.alpha = 0.0;
-}
 
-// ---------------------------------------------------------
-// iOS AutoLayout Crash Shield: Absorb _nearestAncestorLayoutItem and constraint activation crashes
-// ---------------------------------------------------------
-static void (*orig_NSLayoutConstraint_activateConstraints)(id, SEL, NSArray *);
-static void hook_NSLayoutConstraint_activateConstraints(id self, SEL _cmd, NSArray *constraints) {
-    @try {
-        if (orig_NSLayoutConstraint_activateConstraints) {
-            orig_NSLayoutConstraint_activateConstraints(self, _cmd, constraints);
-        }
-    } @catch (NSException *e) {
-        NSLog(@"[AlightMotionUltra] Safely absorbed NSLayoutConstraint activateConstraints exception: %@", e.reason);
-    }
-}
-
-static void (*orig_NSLayoutConstraint_deactivateConstraints)(id, SEL, NSArray *);
-static void hook_NSLayoutConstraint_deactivateConstraints(id self, SEL _cmd, NSArray *constraints) {
-    @try {
-        if (orig_NSLayoutConstraint_deactivateConstraints) {
-            orig_NSLayoutConstraint_deactivateConstraints(self, _cmd, constraints);
-        }
-    } @catch (NSException *e) {
-        NSLog(@"[AlightMotionUltra] Safely absorbed NSLayoutConstraint deactivateConstraints exception: %@", e.reason);
-    }
-}
-
-// ---------------------------------------------------------
-// iOS 18 Crash Mitigation: AppLovin Consent Flow & UIViewController Presentation Safety
-// ---------------------------------------------------------
-static void (*orig_UIViewController_presentViewController)(UIViewController *, SEL, UIViewController *, BOOL, id);
-static void hook_UIViewController_presentViewController(UIViewController *self, SEL _cmd, UIViewController *vc, BOOL animated, id completion) {
-    @try {
-        if (orig_UIViewController_presentViewController) {
-            orig_UIViewController_presentViewController(self, _cmd, vc, animated, completion);
-        }
-    } @catch (NSException *e) {
-        NSLog(@"[AlightMotionUltra] Safely caught presentation exception: %@", e.reason);
-        if (completion) {
-            void (^block)(void) = completion;
-            block();
-        }
-    }
-}
-
-static void (*orig_ALConsentFlowStateMachine_transitionToState)(id, SEL, id);
-static void hook_ALConsentFlowStateMachine_transitionToState(id self, SEL _cmd, id state) {
-    // Neutralize ad consent flow state machine on Pro version
-}
-
-static void (*orig_ALConsentFlowManager_showConsentFlow)(id, SEL);
-static void hook_ALConsentFlowManager_showConsentFlow(id self, SEL _cmd) {
-    // Neutralize ad consent flow initiation on Pro version
-}
-
-#pragma mark 1. UMThemeManager: Centralized Full Dark Mode OLED (#07080B)
-
-#pragma mark - =========================================================
-
-
-
-@interface UMThemeManager : NSObject
-
-@property (nonatomic, assign) BOOL isOLEDDarkEnabled;
-
-+ (instancetype)sharedManager;
-
-- (UIColor *)oledBackgroundColor;
-
-- (UIColor *)elevatedPanelColor;
-
-- (UIColor *)secondaryCardColor;
-
-- (UIColor *)accentGreenColor;
-
-- (UIColor *)primaryTextColor;
-
-- (UIColor *)secondaryTextColor;
-
-- (UIColor *)separatorLineColor;
-
-- (void)applyThemeToView:(UIView *)view;
-
-@end
-
-
-
-@implementation UMThemeManager
-
-
-
-+ (instancetype)sharedManager {
-
-    static UMThemeManager *mgr = nil;
-
-    static dispatch_once_t onceToken;
-
-    dispatch_once(&onceToken, ^{
-
-        mgr = [[self alloc] init];
-
-        mgr.isOLEDDarkEnabled = YES;
-
-    });
-
-    return mgr;
-
-}
-
-
-
-- (UIColor *)oledBackgroundColor {
-
-    return [UIColor colorWithRed:0.03 green:0.03 blue:0.04 alpha:1.0]; // #08080A
-
-}
-
-
-
-- (UIColor *)elevatedPanelColor {
-
-    return [UIColor colorWithRed:0.07 green:0.08 blue:0.11 alpha:0.98]; // #12141C
-
-}
-
-
-
-- (UIColor *)secondaryCardColor {
-
-    return [UIColor colorWithRed:0.11 green:0.12 blue:0.16 alpha:1.0]; // #1C1F29
-
-}
-
-
-
-- (UIColor *)accentGreenColor {
-
-    return [UIColor colorWithRed:0.00 green:0.90 blue:0.46 alpha:1.0]; // Ultra Green #00E676
-
-}
-
-
-
-- (UIColor *)primaryTextColor {
-
-    return [UIColor colorWithWhite:0.96 alpha:1.0];
-
-}
-
-
-
-- (UIColor *)secondaryTextColor {
-
-    return [UIColor colorWithWhite:0.65 alpha:1.0];
-
-}
-
-
-
-- (UIColor *)separatorLineColor {
-
-    return [UIColor colorWithWhite:0.18 alpha:0.6];
-
-}
-
-
-
-- (void)applyThemeToView:(UIView *)view {
-    // Disabled aggressive background override to prevent black screen issues on initial launch
-    return;
-}
-
-
-
-@end
 
 
 
@@ -2114,13 +1923,7 @@ static BOOL hook_UITextView_becomeFirstResponder(UITextView *self, SEL _cmd) {
 #pragma mark 7. View Controller Lifecycle & Home Screen Floating HUD
 #pragma mark - =========================================================
 
-static void (*orig_UIViewController_viewDidAppear)(UIViewController *, SEL, BOOL);
 
-static void hook_UIViewController_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
-    if (orig_UIViewController_viewDidAppear) {
-        orig_UIViewController_viewDidAppear(self, _cmd, animated);
-    }
-}
 
 #pragma mark - =========================================================
 #pragma mark 8. Ultra High Framerate Engine (50..1920 FPS ProMotion & Ultra Export)
@@ -2376,67 +2179,7 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             method_setImplementation(mContainer, (IMP)hook_containerURLForSecurityApplicationGroupIdentifier);
         }
 
-        // 5. Swizzle DTXWatermarkView
-        Class wmkClass = objc_getClass("DTXWatermarkView");
-        if (wmkClass) {
-            Method mLayout = class_getInstanceMethod(wmkClass, @selector(layoutSubviews));
-            if (mLayout) {
-                orig_DTXWatermarkView_layoutSubviews = (void *)method_getImplementation(mLayout);
-                method_setImplementation(mLayout, (IMP)hook_DTXWatermarkView_layoutSubviews);
-            }
-        }
-
-        // 6. Swizzle WatermarkPopup layoutSubviews
-        Class popClass = objc_getClass("_TtC12AlightMotion14WatermarkPopup");
-        if (popClass) {
-            Method mLayout = class_getInstanceMethod(popClass, @selector(layoutSubviews));
-            if (mLayout) {
-                orig_WatermarkPopup_layoutSubviews = (void *)method_getImplementation(mLayout);
-                method_setImplementation(mLayout, (IMP)hook_WatermarkPopup_layoutSubviews);
-            }
-        }
-
-        // 6.1 Swizzle UIViewController presentViewController:animated:completion: (iOS 18 Crash Guard)
-        Method mPresent = class_getInstanceMethod([UIViewController class], @selector(presentViewController:animated:completion:));
-        if (mPresent) {
-            orig_UIViewController_presentViewController = (void *)method_getImplementation(mPresent);
-            method_setImplementation(mPresent, (IMP)hook_UIViewController_presentViewController);
-        }
-
-        // 6.1.1 Swizzle NSLayoutConstraint activate/deactivate (Absorb AutoLayout crashes on view transitions)
-        Class lcClass = [NSLayoutConstraint class];
-        if (lcClass) {
-            Method mAct = class_getClassMethod(lcClass, @selector(activateConstraints:));
-            if (mAct) {
-                orig_NSLayoutConstraint_activateConstraints = (void *)method_getImplementation(mAct);
-                method_setImplementation(mAct, (IMP)hook_NSLayoutConstraint_activateConstraints);
-            }
-            Method mDeact = class_getClassMethod(lcClass, @selector(deactivateConstraints:));
-            if (mDeact) {
-                orig_NSLayoutConstraint_deactivateConstraints = (void *)method_getImplementation(mDeact);
-                method_setImplementation(mDeact, (IMP)hook_NSLayoutConstraint_deactivateConstraints);
-            }
-        }
-
-        // 6.2 Suppress AppLovin Consent Flow crashes
-        Class alStateClass = objc_getClass("ALConsentFlowStateMachine");
-        if (alStateClass) {
-            Method mTrans = class_getInstanceMethod(alStateClass, sel_registerName("transitionToState:"));
-            if (mTrans) {
-                orig_ALConsentFlowStateMachine_transitionToState = (void *)method_getImplementation(mTrans);
-                method_setImplementation(mTrans, (IMP)hook_ALConsentFlowStateMachine_transitionToState);
-            }
-        }
-        Class alMgrClass = objc_getClass("ALConsentFlowManager");
-        if (alMgrClass) {
-            Method mShow = class_getInstanceMethod(alMgrClass, sel_registerName("showConsentFlowIfNeededAndInitialize"));
-            if (mShow) {
-                orig_ALConsentFlowManager_showConsentFlow = (void *)method_getImplementation(mShow);
-                method_setImplementation(mShow, (IMP)hook_ALConsentFlowManager_showConsentFlow);
-            }
-        }
-
-        // 7. Swizzle UIActivityViewController (Auto Save)
+        // 4. Hook UIActivityViewController for UMV Engine FastStart Auto-Save
         Class actClass = [UIActivityViewController class];
         Method mAct = class_getInstanceMethod(actClass, @selector(initWithActivityItems:applicationActivities:));
         if (mAct) {
@@ -2444,13 +2187,7 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             method_setImplementation(mAct, (IMP)hook_UIActivityViewController_initWithActivityItems);
         }
 
-        // 8. Swizzle UIViewController viewDidAppear
-        Class vcClass = [UIViewController class];
-        Method mAppear = class_getInstanceMethod(vcClass, @selector(viewDidAppear:));
-        if (mAppear) {
-            orig_UIViewController_viewDidAppear = (void *)method_getImplementation(mAppear);
-            method_setImplementation(mAppear, (IMP)hook_UIViewController_viewDidAppear);
-        }
+
 
         // 9. Hook TextInputVC & UITextView (Lyrics Accessory Bar)
         Class textInputClass = objc_getClass("_TtC12AlightMotion11TextInputVC");
