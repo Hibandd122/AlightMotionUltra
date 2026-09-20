@@ -221,6 +221,116 @@ static void AMNeutralizeAdNetworks(void) {
     }
 }
 
+#pragma mark - =========================================================
+#pragma mark 2.6. Group A: Unlimited Project Package Engine (> 5 MB Unlocker)
+#pragma mark - =========================================================
+
+// Unlock 5MB limit for Project Package Import & Export
+static int64_t hook_ProjectPackage_freeUserMaxDownloadSize(id self, SEL _cmd) {
+    // Return 50 GB limit instead of 5 MB
+    return 53687091200LL;
+}
+
+static void AMUnlockProjectPackageLimit(void) {
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    // Override local config and user defaults to unlimited
+    [ud setDouble:53687091200.0 forKey:@"project_package_freeuser_maxdownloadsize"];
+    [ud setDouble:53687091200.0 forKey:@"freeUserMaxDownloadSize"];
+    [ud setObject:@YES forKey:@"project_package_sharing"];
+    [ud setObject:@YES forKey:@"benefit_project_package_sharing"];
+    [ud synchronize];
+
+    // Hook any classes responding to freeUserMaxDownloadSize
+    const char *targetClasses[] = {
+        "_TtC12AlightMotion15ProjectPackager",
+        "_TtC12AlightMotion15PackageImporter",
+        "_TtC12AlightMotion21ShareProjectPackageVC",
+        "AlightMotion.ProjectPackager",
+        "AlightMotion.PackageImporter",
+        NULL
+    };
+
+    for (int i = 0; targetClasses[i] != NULL; i++) {
+        Class cls = objc_getClass(targetClasses[i]);
+        if (!cls) continue;
+
+        SEL sel = @selector(freeUserMaxDownloadSize);
+        Method m = class_getInstanceMethod(cls, sel);
+        if (m) {
+            method_setImplementation(m, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize);
+        } else {
+            class_addMethod(cls, sel, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize, "q@:");
+        }
+
+        SEL selClass = @selector(freeUserMaxDownloadSize);
+        Method mClass = class_getClassMethod(cls, selClass);
+        if (mClass) {
+            method_setImplementation(mClass, (IMP)hook_ProjectPackage_freeUserMaxDownloadSize);
+        }
+    }
+}
+
+#pragma mark - =========================================================
+#pragma mark 2.7. Group D: OLED Pure Black Theme Engine (Super Retina XDR)
+#pragma mark - =========================================================
+
+static BOOL s_oledThemeEnabled = YES;
+
+static void applyOLEDThemeToView(UIView *view) {
+    if (!view || !s_oledThemeEnabled) return;
+
+    UIColor *bg = view.backgroundColor;
+    if (bg) {
+        CGFloat r = 0, g = 0, b = 0, a = 0;
+        if ([bg getRed:&r green:&g blue:&b alpha:&a]) {
+            // If background is dark grey (#101010 to #2e2e38), deepen it to pure pitch black #000000
+            if (r < 0.22 && g < 0.22 && b < 0.26 && a > 0.5) {
+                view.backgroundColor = [UIColor blackColor];
+            }
+        }
+    }
+}
+
+static void (*orig_UIView_didMoveToWindow)(UIView *, SEL);
+static void hook_UIView_didMoveToWindow(UIView *self, SEL _cmd) {
+    if (orig_UIView_didMoveToWindow) {
+        orig_UIView_didMoveToWindow(self, _cmd);
+    }
+    if (self && self.window && s_oledThemeEnabled) {
+        applyOLEDThemeToView(self);
+    }
+}
+
+static void (*orig_UIViewController_viewWillAppear_OLED)(UIViewController *, SEL, BOOL);
+static void hook_UIViewController_viewWillAppear_OLED(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_UIViewController_viewWillAppear_OLED) {
+        orig_UIViewController_viewWillAppear_OLED(self, _cmd, animated);
+    }
+    if (self && self.view && s_oledThemeEnabled) {
+        self.view.backgroundColor = [UIColor blackColor];
+        applyOLEDThemeToView(self.view);
+        for (UIView *sub in self.view.subviews) {
+            applyOLEDThemeToView(sub);
+        }
+    }
+}
+
+static void AMOLEDThemeEngineInit(void) {
+    // Swizzle UIView didMoveToWindow for continuous OLED deep black application
+    Method mMove = class_getInstanceMethod([UIView class], @selector(didMoveToWindow));
+    if (mMove) {
+        orig_UIView_didMoveToWindow = (void *)method_getImplementation(mMove);
+        method_setImplementation(mMove, (IMP)hook_UIView_didMoveToWindow);
+    }
+
+    // Swizzle UIViewController viewWillAppear
+    Method mApp = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
+    if (mApp) {
+        orig_UIViewController_viewWillAppear_OLED = (void *)method_getImplementation(mApp);
+        method_setImplementation(mApp, (IMP)hook_UIViewController_viewWillAppear_OLED);
+    }
+}
+
 
 
 
@@ -2212,12 +2322,15 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
         // 2. Apply Pro Monetization state immediately and on launch notification
         AMApplyProSettings();
         AMNeutralizeAdNetworks();
+        AMUnlockProjectPackageLimit();
+        AMOLEDThemeEngineInit();
         [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification
                                                           object:nil
                                                            queue:[NSOperationQueue mainQueue]
                                                       usingBlock:^(NSNotification * _Nonnull note) {
             AMApplyProSettings();
             AMNeutralizeAdNetworks();
+            AMUnlockProjectPackageLimit();
         }];
 
         // 3. Swizzle NSFileManager containerURLForSecurityApplicationGroupIdentifier:
