@@ -1561,7 +1561,7 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
     [card3 addSubview:l3];
 
     UILabel *l3Sub = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, card3.bounds.size.width - 32, 56)];
-    l3Sub.text = @"🟢 Full Premium Pro v6.2.56 Unlocked (4K, No Watermark)\n🟢 UMV Engine v6.6.6: FastStart Moov & Lossless Bitrate\n🟢 Tự động tối ưu hoá lưu video vào Camera Roll\n🟢 Đã triệt tiêu 100% SDK quảng cáo & Trình theo dõi ngầm";
+    l3Sub.text = @"🟢 Full Premium Pro v6.2.56 Unlocked (4K, No Watermark)\n🟢 Tối ưu hóa FastStart Moov & Chất lượng Pro Cực Đại\n🟢 Tự động lưu video chất lượng cao vào Camera Roll\n🟢 Đã triệt tiêu 100% SDK quảng cáo & Trình theo dõi ngầm";
     l3Sub.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
     l3Sub.font = [UIFont systemFontOfSize:10.5 weight:UIFontWeightMedium];
     l3Sub.numberOfLines = 4;
@@ -2060,45 +2060,27 @@ static void updateShareVideoQualityUI(UIViewController *self, UISlider *slider) 
         if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
     }
     
-    UILabel *qualityHigh = nil;
-    @try { qualityHigh = [self valueForKey:@"quailityHighLabel"]; } @catch (NSException *e) {}
-    if (!qualityHigh) qualityHigh = (UILabel *)getObjcIvar(self, "quailityHighLabel");
-    if (qualityHigh && [qualityHigh isKindOfClass:[UILabel class]]) {
-        qualityHigh.text = @"UMV Lossless";
-        qualityHigh.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
-        qualityHigh.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
-    }
-    
-    UILabel *kbpsLbl = nil;
-    @try { kbpsLbl = [self valueForKey:@"kbpsLabel"]; } @catch (NSException *e) {}
-    if (!kbpsLbl) kbpsLbl = (UILabel *)getObjcIvar(self, "kbpsLabel");
-    
     if (slider && [slider isKindOfClass:[UISlider class]]) {
         float val = slider.value;
-        if (val >= 0.80f) {
-            if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
-                kbpsLbl.text = @"⚡ Cực đại: 100 Mbps • UMV Lossless (Không giới hạn bitrate)";
-                kbpsLbl.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
-                kbpsLbl.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
-            }
-            [[NSUserDefaults standardUserDefaults] setFloat:1.0f forKey:@"video_export_quality"];
-        } else {
-            if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
-                int approxMbps = (int)(val * 100.0f);
-                if (approxMbps < 5) approxMbps = 5;
-                kbpsLbl.text = [NSString stringWithFormat:@"Khoảng %d Mbps • Kéo hết sang phải để đạt UMV Lossless", approxMbps];
-                kbpsLbl.textColor = [UIColor lightTextColor];
-                kbpsLbl.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
-            }
-            [[NSUserDefaults standardUserDefaults] setFloat:val forKey:@"video_export_quality"];
+        UILabel *kbpsLbl = nil;
+        @try { kbpsLbl = [self valueForKey:@"kbpsLabel"]; } @catch (NSException *e) {}
+        if (!kbpsLbl) kbpsLbl = (UILabel *)getObjcIvar(self, "kbpsLabel");
+        
+        if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
+            float approxMbps = 6.0f + (val * 18.0f); // Tối ưu hiển thị mượt mà từ 6 - 24 Mbps thực tế
+            kbpsLbl.text = [NSString stringWithFormat:@"Khoảng %.1f Mbps", approxMbps];
+            kbpsLbl.textColor = [UIColor lightTextColor];
+            kbpsLbl.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
         }
+        
+        [[NSUserDefaults standardUserDefaults] setFloat:val forKey:@"video_export_quality"];
         [[NSUserDefaults standardUserDefaults] synchronize];
     }
 }
 
 static void (*orig_ShareVideoVC_onSliderQuailty)(UIViewController *, SEL, UISlider *);
 static void hook_ShareVideoVC_onSliderQuailty(UIViewController *self, SEL _cmd, UISlider *slider) {
-    // Completely bypass orig_ShareVideoVC_onSliderQuailty to eliminate 0x1008fba34 brk #1 crash!
+    // Chặn hoàn toàn hàm gốc để triệt tiêu lỗi crash 0x1008fba34 brk #1 khi kéo slider
     updateShareVideoQualityUI(self, slider);
 }
 
@@ -2121,8 +2103,6 @@ static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, B
         
         [slider addTarget:self action:@selector(onSliderQuailty:) forControlEvents:UIControlEventValueChanged];
     }
-    
-    updateShareVideoQualityUI(self, slider);
 }
 
 static void (*orig_ShareVideoVC_viewDidAppear)(UIViewController *, SEL, BOOL);
@@ -2130,10 +2110,6 @@ static void hook_ShareVideoVC_viewDidAppear(UIViewController *self, SEL _cmd, BO
     if (orig_ShareVideoVC_viewDidAppear) {
         orig_ShareVideoVC_viewDidAppear(self, _cmd, animated);
     }
-    UISlider *slider = nil;
-    @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
-    if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
-    updateShareVideoQualityUI(self, slider);
 }
 
 #pragma mark - =========================================================
