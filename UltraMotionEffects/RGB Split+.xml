@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgbsepnew" name="RGB Split+" desc="Splits the RGB channels by sampling a Gaussian-smoothed copy of the layer at opposite offsets along a chosen angle, keeping a selectable center channel unshifted. Smoothest sets the blur radius; includes light, dark, mask and luma composite modes." category="colorlight" tags="color,pop,channel,retro,raster" thumb="thumb/4/rgb.png">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.rgbsepnew" name="RGB Split+" desc="Splits the RGB channels by sampling a Gaussian-smoothed copy of the layer at opposite offsets along a chosen angle, keeping a selectable center channel unshifted. Smoothest sets the blur radius; includes light, dark, mask and luma composite modes." category="distort" tags="color,pop,channel,retro,raster" thumb="thumb/4/rgb.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

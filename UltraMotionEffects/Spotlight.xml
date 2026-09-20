@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.spotlight" name="Spotlight" desc="Keeps a circular region around a chosen point at full brightness and dims everything outside it, with adjustable radius and edge softness." category="colorlight" thumb="thumb/5/hardg.png" tags="drawing,light,spotlight,raster">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.extra2.spotlight" name="Spotlight" desc="Keeps a circular region around a chosen point at full brightness and dims everything outside it, with adjustable radius and edge softness." category="color" thumb="thumb/5/hardg.png" tags="drawing,light,spotlight,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

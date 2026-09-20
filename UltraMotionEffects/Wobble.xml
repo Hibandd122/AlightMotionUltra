@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.wobble" name="Wobble" desc="Animated jelly wobble that gently pulses the whole layer in and out over time." category="warp" thumb="thumb/5/hardg.png" tags="distort,wobble,jelly,raster,animated">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.extra2.wobble" name="Wobble" desc="Animated jelly wobble that gently pulses the whole layer in and out over time." category="distort" thumb="thumb/5/hardg.png" tags="distort,wobble,jelly,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

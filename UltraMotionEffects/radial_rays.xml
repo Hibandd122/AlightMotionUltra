@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.radialrays" name="@am:string/effect_radialrays_name" desc="@am:string/effect_radialrays_desc" category="procedural" tags="procedural,retro,pop,raster" thumb="thumb/radial_rays.webp">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.radialrays" name="@am:string/effect_radialrays_name" desc="@am:string/effect_radialrays_desc" category="color" tags="procedural,retro,pop,raster" thumb="thumb/radial_rays.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

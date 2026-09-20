@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newlensflare" name="New Lensflare" desc="Procedural lens flare: layers ten pseudo-random circles, rings and hexagonal ghosts along the flare axis plus a sun core with animated rays over a two-color sky gradient. Orient X/Y aim the flare; Strength, Reflection and Luminance scale its components." category="colorlight" tags="other" thumb="thumb/2/newflare.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.newlensflare" name="New Lensflare" desc="Procedural lens flare: layers ten pseudo-random circles, rings and hexagonal ghosts along the flare axis plus a sun core with animated rays over a two-color sky gradient. Orient X/Y aim the flare; Strength, Reflection and Luminance scale its components." category="procedural" tags="other" thumb="thumb/2/newflare.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

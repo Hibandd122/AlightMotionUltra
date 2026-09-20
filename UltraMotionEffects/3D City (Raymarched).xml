@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.city_sdf" name="3D City (Raymarched)" desc="Raymarches a procedural SDF city (buildings, roads, moving cars) with sun lighting, soft shadows, ambient occlusion and an equirectangular environment map. The layer content can optionally be placed as a textured quad inside the 3D scene; camera position, yaw/pitch and auto-rotate are controllable. Very GPU-intensive." category="3d" thumb="thumb/1/03d.png" tags="shadertoy,raymarch,city,envmap">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.city_sdf" name="3D City (Raymarched)" desc="Raymarches a procedural SDF city (buildings, roads, moving cars) with sun lighting, soft shadows, ambient occlusion and an equirectangular environment map. The layer content can optionally be placed as a textured quad inside the 3D scene; camera position, yaw/pitch and auto-rotate are controllable. Very GPU-intensive." category="procedural" thumb="thumb/1/03d.png" tags="shadertoy,raymarch,city,envmap">
 
   <params>
     <texture id="inputImg" srcType="content" />

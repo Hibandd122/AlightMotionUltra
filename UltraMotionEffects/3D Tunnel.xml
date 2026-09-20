@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.tunnel-3d" name="3D Tunnel" desc="Wraps the layer around an infinite 3D tunnel flying toward the camera." category="procedural" thumb="thumb/3/tunnel.png" tags="3d,tunnel,depth,wrap,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.extra3d.tunnel-3d" name="3D Tunnel" desc="Wraps the layer around an infinite 3D tunnel flying toward the camera." category="repeat" thumb="thumb/3/tunnel.png" tags="3d,tunnel,depth,wrap,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

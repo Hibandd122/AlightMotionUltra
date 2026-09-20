@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effect.glass2" name="@am:string/effect_glass_name" desc="@am:string/effect_glass_desc" category="warp" tags="distort,raster,membersOnly" thumb="thumb/glass.webp">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effect.glass2" name="@am:string/effect_glass_name" desc="@am:string/effect_glass_desc" category="distort" tags="distort,raster,membersOnly" thumb="thumb/glass.webp">
 
     
         

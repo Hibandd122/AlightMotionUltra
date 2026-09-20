@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.neon-edge-glow" name="Neon Edges" desc="Detects edges of the layer's alpha channel with finite differences and draws them in a chosen color. Thickness sets the sampling radius, Glow Intensity boosts edge response, and Keep Original blends the source image back in." category="drawingedge" thumb="thumb/5/hardg.png" tags="edge,neon,glow,raster,stylize" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.extra.neon-edge-glow" name="Neon Edges" desc="Detects edges of the layer's alpha channel with finite differences and draws them in a chosen color. Thickness sets the sampling radius, Glow Intensity boosts edge response, and Keep Original blends the source image back in." category="color" thumb="thumb/5/hardg.png" tags="edge,neon,glow,raster,stylize" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

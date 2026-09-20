@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tunnel" name="@am:string/effect_tunnel_name" desc="@am:string/effect_tunnel_desc" category="3d" tags="3d,lighting,raster" thumb="thumb/tunnel.webp" overdraw="true" max-overdraw="0.2">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.tunnel" name="@am:string/effect_tunnel_name" desc="@am:string/effect_tunnel_desc" category="repeat" tags="3d,lighting,raster" thumb="thumb/tunnel.webp" overdraw="true" max-overdraw="0.2">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cheapstars" name="Cheap Stars" desc="Draws a single procedural four-point star glint with position, scale, stretch and rotation controls. Optional blink and scale animations (manual evolution or time-driven speed), luminance-based two-color mapping, and normal/layer/multiply/screen blending." category="colorlight" tags="procedural" thumb="thumb/9/cstars.png" experimental="false">
+<effect category_ultra="Color Looks & Tone Maps" id="com.alightcreative.effects.cheapstars" name="Cheap Stars" desc="Draws a single procedural four-point star glint with position, scale, stretch and rotation controls. Optional blink and scale animations (manual evolution or time-driven speed), luminance-based two-color mapping, and normal/layer/multiply/screen blending." category="color" tags="procedural" thumb="thumb/9/cstars.png" experimental="false">
 
     <params>
         <color id="color1" default="#00000000" label="Color BG" alpha="true" />

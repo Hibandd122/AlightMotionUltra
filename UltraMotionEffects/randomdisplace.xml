@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.randomdisplace" name="@am:string/effect_simplexdisplace_name" desc="@am:string/effect_simplexdisplace_desc" auto-transform="true" category="movetransform" tags="transform,shake,propAdjust,parenting,camera" thumb="thumb/5/hardg.png">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.randomdisplace" name="@am:string/effect_simplexdisplace_name" desc="@am:string/effect_simplexdisplace_desc" auto-transform="true" category="3d" tags="transform,shake,propAdjust,parenting,camera" thumb="thumb/5/hardg.png">
 
     <params>
         <slider id="mag" min="0" max="2000" step="1" default="50" label="@am:string/effect_param_mag" />

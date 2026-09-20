@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cube" name="@am:string/effect_cube_name" desc="@am:string/effect_cube_desc" category="3d" thumb="thumb/1/03d.png" overdraw="true" tags="3d,shape,lighting,raster,membersOnly" max-overdraw="0.2" experimental="false" deprecated="true">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.cube" name="@am:string/effect_cube_name" desc="@am:string/effect_cube_desc" category="3d" thumb="thumb/1/03d.png" overdraw="true" tags="3d,shape,lighting,raster,membersOnly" max-overdraw="0.2" experimental="false" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

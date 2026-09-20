@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cos_web_zozuar" name="Cosine Web" desc="Generates an abstract rotating web pattern by iteratively accumulating cosine fields at growing scales (Shadertoy port). Controls include time speed, iteration count, rotation, scale growth, color multiplier and gamma." category="procedural" tags="web, cosine, abstract" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.cos_web_zozuar" name="Cosine Web" desc="Generates an abstract rotating web pattern by iteratively accumulating cosine fields at growing scales (Shadertoy port). Controls include time speed, iteration count, rotation, scale growth, color multiplier and gamma." category="color" tags="web, cosine, abstract" thumb="thumb/5/hardg.png">
 
     
     <params>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.wingsline" name="Wings Line" desc="Draws five rotated, glowing sine-wave strands that fan out like wing feathers, faded toward one side. Progress animates the wave phase; foreground/background colors, transform, hardness, and blend modes control the composite." category="colorlight" tags="other" thumb="thumb/8/wings.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.wingsline" name="Wings Line" desc="Draws five rotated, glowing sine-wave strands that fan out like wing feathers, faded toward one side. Progress animates the wave phase; foreground/background colors, transform, hardness, and blend modes control the composite." category="color" tags="other" thumb="thumb/8/wings.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF000000" label="Color BG" alpha="true" />

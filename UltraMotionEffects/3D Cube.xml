@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.cube-rotate" name="3D Cube" desc="Wraps the layer onto a real rotating 3D cube, shading each visible face." category="3d" thumb="thumb/1/03d.png" tags="3d,cube,box,rotate,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.extra3d.cube-rotate" name="3D Cube" desc="Wraps the layer onto a real rotating 3D cube, shading each visible face." category="3d" thumb="thumb/1/03d.png" tags="3d,cube,box,rotate,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

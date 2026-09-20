@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tritone" name="Tritone" desc="Maps highlights, midtones, and shadows to three custom colors" category="colorlight" tags="color,tritone,tint,mapping" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.tritone" name="Tritone" desc="Maps highlights, midtones, and shadows to three custom colors" category="color" tags="color,tritone,tint,mapping" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

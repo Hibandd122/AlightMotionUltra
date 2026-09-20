@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.zigzag" name="Zig Zag" desc="Displaces pixels radially from a center point using an animated triangle wave, creating sharp-crested concentric ripples. Controls: center, amplitude, ridge frequency, and speed." category="procedural" thumb="thumb/5/hardg.png" tags="distort,ripple,zigzag,raster,animated">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.extra2.zigzag" name="Zig Zag" desc="Displaces pixels radially from a center point using an animated triangle wave, creating sharp-crested concentric ripples. Controls: center, amplitude, ridge frequency, and speed." category="distort" thumb="thumb/5/hardg.png" tags="distort,ripple,zigzag,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

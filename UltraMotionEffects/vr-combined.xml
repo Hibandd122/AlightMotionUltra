@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vrcombined" name="@am:string/effect_vrcombined_name" desc="@am:string/effect_vrcombined_desc" category="warp" thumb="thumb/5/hardg.png" overdraw="false" experimental="true" deprecated="false">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.vrcombined" name="@am:string/effect_vrcombined_name" desc="@am:string/effect_vrcombined_desc" category="distort" thumb="thumb/5/hardg.png" overdraw="false" experimental="true" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

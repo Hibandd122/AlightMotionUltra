@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.displacemap" name="@am:string/effect_displacemap_name" desc="@am:string/effect_displacemap_desc" category="warp" thumb="thumb/5/hardg.png" deprecated="true">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.displacemap" name="@am:string/effect_displacemap_name" desc="@am:string/effect_displacemap_desc" category="distort" thumb="thumb/5/hardg.png" deprecated="true">
 
     
         

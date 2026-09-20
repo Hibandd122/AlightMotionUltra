@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cosmic_nebula" name="Cosmic Nebula" desc="Procedural space background: layered value-noise nebula mixed from three colors, plus four depth layers of animated stars with cross flares. Replaces the layer content; gamma and noise-overlay controls." category="procedural" tags="space, nebula, stars" thumb="thumb/5/hardg.png">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.cosmic_nebula" name="Cosmic Nebula" desc="Procedural space background: layered value-noise nebula mixed from three colors, plus four depth layers of animated stars with cross flares. Replaces the layer content; gamma and noise-overlay controls." category="procedural" tags="space, nebula, stars" thumb="thumb/5/hardg.png">
 
     <params>
         

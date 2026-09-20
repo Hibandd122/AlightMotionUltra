@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.eye_split_bend" name="Eye Split" desc="Cuts an eye-shaped transparent opening along the axis between two points; the outside shows the layer (invertible). Split height, tip sharpness, lobe shaping, asymmetric upper/lower scales, and bend controls allow animated open/close." category="warp" tags="split,mask,transition,shadertoy,procedural" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Looks & Tone Maps" id="com.alightcreative.effects.eye_split_bend" name="Eye Split" desc="Cuts an eye-shaped transparent opening along the axis between two points; the outside shows the layer (invertible). Split height, tip sharpness, lobe shaping, asymmetric upper/lower scales, and bend controls allow animated open/close." category="color" tags="split,mask,transition,shadertoy,procedural" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

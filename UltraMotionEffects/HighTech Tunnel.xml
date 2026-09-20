@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hightechtunnel" name="HighTech Tunnel" desc="Raymarches a repeating Menger-sponge fractal corridor colored by step count, optionally remapped to two custom colors by luminance. Steps and Iterations control quality and detail; camera position, direction and plane vectors set the view." category="procedural" tags="other" thumb="thumb/9/htunnel.png" experimental="false">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.hightechtunnel" name="HighTech Tunnel" desc="Raymarches a repeating Menger-sponge fractal corridor colored by step count, optionally remapped to two custom colors by luminance. Steps and Iterations control quality and detail; camera position, direction and plane vectors set the view." category="repeat" tags="other" thumb="thumb/9/htunnel.png" experimental="false">
 
     <params>
         <slider id="MAX_RAY_STEPS" label="Steps" default="64" min="0" max="70" step="1.0" type="integer" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.film_damage_dots" name="Film Damage Dots" desc="Overlays procedural film dust/damage dots (one jittered dot per random grid cell) with controls for size, softness, density, color, drift, flicker and blend mode (Normal, Add, Screen, Multiply)." category="other" tags="film,dust,damage,grain,dots" thumb="thumb/5/hardg.png">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.film_damage_dots" name="Film Damage Dots" desc="Overlays procedural film dust/damage dots (one jittered dot per random grid cell) with controls for size, softness, density, color, drift, flicker and blend mode (Normal, Add, Screen, Multiply)." category="procedural" tags="film,dust,damage,grain,dots" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

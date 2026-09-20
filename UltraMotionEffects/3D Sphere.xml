@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.sphere-wrap" name="3D Sphere" desc="Maps the layer onto a rotating 3D globe with lighting on the front hemisphere." category="3d" thumb="thumb/1/0360.png" tags="3d,sphere,globe,wrap,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.extra3d.sphere-wrap" name="3D Sphere" desc="Maps the layer onto a rotating 3D globe with lighting on the front hemisphere." category="3d" thumb="thumb/1/0360.png" tags="3d,sphere,globe,wrap,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.stretch2" name="@am:string/effect_stretch_name" desc="@am:string/effect_stretch_desc" category="movetransform" tags="transform,raster" thumb="thumb/5/hardg.png">
+<effect category_ultra="Shake & Transform" id="com.alightcreative.effects.stretch2" name="@am:string/effect_stretch_name" desc="@am:string/effect_stretch_desc" category="transform" tags="transform,raster" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smokenoise" name="Smoke Noise" desc="Generates a static smoke-like plume from five-octave value noise, tinted with a chosen color and faded vertically. A luma threshold keys out darker regions; includes thickness, position, rotation, and normal/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/1/0smoke.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.smokenoise" name="Smoke Noise" desc="Generates a static smoke-like plume from five-octave value noise, tinted with a chosen color and faded vertically. A luma threshold keys out darker regions; includes thickness, position, rotation, and normal/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/1/0smoke.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colortune2" name="@am:string/effect_colortune_name" desc="@am:string/effect_colortune_desc" affinity="media" category="colorlight" tags="color,colorGrading,raster,membersOnly" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.colortune2" name="@am:string/effect_colortune_name" desc="@am:string/effect_colortune_desc" affinity="media" category="color" tags="color,colorGrading,raster,membersOnly" thumb="thumb/5/hardg.png">
 
     
         

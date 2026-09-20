@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.procedural_plasma_isolines" name="Procedural Plasma Isolines" desc="Generates glowing, morphing contour isolines from 6-octave 3D value-noise FBM over an evolving colored plasma background, masked by the layer's alpha. Single Alpha control." category="colorlight" tags="plasma,isolines,noise,fbm,procedural" thumb="thumb/1/0plasma.png">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.procedural_plasma_isolines" name="Procedural Plasma Isolines" desc="Generates glowing, morphing contour isolines from 6-octave 3D value-noise FBM over an evolving colored plasma background, masked by the layer's alpha. Single Alpha control." category="color" tags="plasma,isolines,noise,fbm,procedural" thumb="thumb/1/0plasma.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

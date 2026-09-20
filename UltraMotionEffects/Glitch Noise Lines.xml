@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glitch_noise_lines" name="Glitch Noise Lines" desc="Horizontal glitch displacement driven by simplex noise, with random line interference, a scanline-style darkening pattern, and noise-scaled RGB channel shift. Speed animates the noise; Displace, Interference, and Chroma Shift set the strengths." category="procedural" tags="distort, noise, glitch" thumb="thumb/1/0oldtv.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.glitch_noise_lines" name="Glitch Noise Lines" desc="Horizontal glitch displacement driven by simplex noise, with random line interference, a scanline-style darkening pattern, and noise-scaled RGB channel shift. Speed animates the noise; Displace, Interference, and Chroma Shift set the strengths." category="distort" tags="distort, noise, glitch" thumb="thumb/1/0oldtv.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warped_noise_field" name="Warped Noise Field" desc="Generates an animated field of 3D simplex noise warped by its own finite-difference derivatives, tinted with a base color; it replaces the layer content or optionally multiplies with the source. UV scale, time/speed, warp amount, and derivative epsilon shape the pattern." category="procedural" tags="extra" thumb="thumb/5/hardg.png" experimental="false">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.warped_noise_field" name="Warped Noise Field" desc="Generates an animated field of 3D simplex noise warped by its own finite-difference derivatives, tinted with a base color; it replaces the layer content or optionally multiplies with the source. UV scale, time/speed, warp amount, and derivative epsilon shape the pattern." category="3d" tags="extra" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" optional="true" />

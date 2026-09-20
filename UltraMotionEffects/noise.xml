@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.noise" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/noise.webp" deprecated="true" tags="auto">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.noise" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/noise.webp" deprecated="true" tags="auto">
 
     
 

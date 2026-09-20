@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newcolorgrid" name="ColorGrid V2" desc="Procedural grid of randomly flashing rectangles: each cell picks a random size and brightness that pulse over time, and the result is gradient-mapped between background and foreground colors." category="procedural" tags="other" thumb="thumb/1/0lineg.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.newcolorgrid" name="ColorGrid V2" desc="Procedural grid of randomly flashing rectangles: each cell picks a random size and brightness that pulse over time, and the result is gradient-mapped between background and foreground colors." category="color" tags="other" thumb="thumb/1/0lineg.png" experimental="false">
 
     <params>
         <color id="color1" default="#00000000" label="Color BG" alpha="true" />

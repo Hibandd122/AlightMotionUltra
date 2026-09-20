@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.block_glitch" name="Block Glitch" desc="Randomly offsets rectangular blocks of the layer or the composition behind it, with time-stepped random block sizes, a threshold controlling how many blocks glitch, a sine fade between glitch steps, and adjustable speed, strength and block scale." category="procedural" thumb="thumb/1/0oldtv.png" tags="glitch,blocks,distort,smooth" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.block_glitch" name="Block Glitch" desc="Randomly offsets rectangular blocks of the layer or the composition behind it, with time-stepped random block sizes, a threshold controlling how many blocks glitch, a sine fade between glitch steps, and adjustable speed, strength and block scale." category="distort" thumb="thumb/1/0oldtv.png" tags="glitch,blocks,distort,smooth" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

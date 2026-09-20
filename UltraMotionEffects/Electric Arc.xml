@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lightsaber" name="Electric Arc" desc="Draws a horizontal electric arc from randomly jittered line segments with nested branch arcs and inverse-power glow falloff, recolored through a two-color gradient map. Line Amount and Spread Amount set segment/branch counts; the Evo controls reseed the randomization." category="colorlight" tags="other" thumb="thumb/9/kirinv3.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.lightsaber" name="Electric Arc" desc="Draws a horizontal electric arc from randomly jittered line segments with nested branch arcs and inverse-power glow falloff, recolored through a two-color gradient map. Line Amount and Spread Amount set segment/branch counts; the Evo controls reseed the randomization." category="color" tags="other" thumb="thumb/9/kirinv3.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF000000" label="Color Shadow" alpha="true" />

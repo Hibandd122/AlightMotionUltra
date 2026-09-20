@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/4/frosted.png" id="com.alightcreative.effects.frosted" name="Frosted" desc="Frosted-glass diffusion: averages three randomly offset samples of the layer per pixel, with Strength controlling the maximum offset distance and Alpha blending against the original." category="blur" tags="blur,raster" experimental="true" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Water, Glass & Refraction" thumb="thumb/4/frosted.png" id="com.alightcreative.effects.frosted" name="Frosted" desc="Frosted-glass diffusion: averages three randomly offset samples of the layer per pixel, with Strength controlling the maximum offset distance and Alpha blending against the original." category="distort" tags="blur,raster" experimental="true" overdraw="true" max-overdraw="1.5">
 
     <params>
         <texture id="inputImg" srcType="content" />

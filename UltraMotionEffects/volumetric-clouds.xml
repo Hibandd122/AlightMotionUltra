@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.volumetricclouds" name="@am:string/effect_volumetricclouds_name" desc="@am:string/effect_volumetricclouds_desc" category="procedural" thumb="thumb/11/3.png" experimental="true" deprecated="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.volumetricclouds" name="@am:string/effect_volumetricclouds_name" desc="@am:string/effect_volumetricclouds_desc" category="procedural" thumb="thumb/11/3.png" experimental="true" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

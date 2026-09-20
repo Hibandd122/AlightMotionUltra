@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorbalance" compat="acScreenNorm-y" name="@am:string/effect_color_balance_name" desc="@am:string/effect_color_balance_desc" category="colorlight" tags="color" thumb="thumb/color_balance.webp" experimental="false">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.colorbalance" compat="acScreenNorm-y" name="@am:string/effect_color_balance_name" desc="@am:string/effect_color_balance_desc" category="color" tags="color" thumb="thumb/color_balance.webp" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

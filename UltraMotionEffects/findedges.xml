@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.findedges" name="@am:string/effect_findedges_name" desc="@am:string/effect_findedges_desc" category="drawingedge" tags="edge,drawing,neon,raster" thumb="thumb/find_edges.webp">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.findedges" name="@am:string/effect_findedges_name" desc="@am:string/effect_findedges_desc" category="color" tags="edge,drawing,neon,raster" thumb="thumb/find_edges.webp">
 
     
         

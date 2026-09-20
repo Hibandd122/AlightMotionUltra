@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.scaleassist" name="@am:string/effect_scaleassist_name" desc="@am:string/effect_scaleassist_desc" category="movetransform" tags="transform,propAdjust,parenting" thumb="thumb/5/hardg.png">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.scaleassist" name="@am:string/effect_scaleassist_name" desc="@am:string/effect_scaleassist_desc" category="3d" tags="transform,propAdjust,parenting" thumb="thumb/5/hardg.png">
 
     <params>
         <menu id="axis" default="3" style="radio" label="@am:string/effect_param_axis">

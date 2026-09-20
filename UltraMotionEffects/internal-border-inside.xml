@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.internal.border-inside" name="@string/name" desc="@string/desc" internal="true" thumb="thumb/0/efek.png" category="other">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.internal.border-inside" name="@string/name" desc="@string/desc" internal="true" thumb="thumb/0/efek.png" category="drawing">
 
     
 

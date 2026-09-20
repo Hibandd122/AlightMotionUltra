@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tile" name="@am:string/effect_tiles_name" desc="@am:string/effect_tiles_desc" category="warp" tags="distort,geometric,essentials,raster" thumb="thumb/tiles.webp" overdraw="true" max-overdraw="0.5">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.tile" name="@am:string/effect_tiles_name" desc="@am:string/effect_tiles_desc" category="distort" tags="distort,geometric,essentials,raster" thumb="thumb/tiles.webp" overdraw="true" max-overdraw="0.5">
 
     
         

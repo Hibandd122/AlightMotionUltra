@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ellipsoid" name="@am:string/effect_ellipsoid_name" desc="@am:string/effect_ellipsoid_desc" category="3d" tags="3d,shape,lighting,raster,membersOnly" thumb="thumb/ellipsoid.webp" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.ellipsoid" name="@am:string/effect_ellipsoid_name" desc="@am:string/effect_ellipsoid_desc" category="3d" tags="3d,shape,lighting,raster,membersOnly" thumb="thumb/ellipsoid.webp" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

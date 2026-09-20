@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.creative.mystery_book" name="3D Book" desc="Raymarched 3D book on a procedural wooden table, with the layer mapped onto the page faces. Book Opening animates the left cover/pages; camera zoom and rotation orbit the scene, which is lit with diffuse shading and soft raymarched shadows." category="3d" thumb="thumb/1/03d.png" tags="3d,book,raymarching,glsl">
+<effect category_ultra="Space & Cosmic" id="com.creative.mystery_book" name="3D Book" desc="Raymarched 3D book on a procedural wooden table, with the layer mapped onto the page faces. Book Opening animates the left cover/pages; camera zoom and rotation orbit the scene, which is lit with diffuse shading and soft raymarched shadows." category="procedural" thumb="thumb/1/03d.png" tags="3d,book,raymarching,glsl">
 
     <params>
         <texture id="iChannel0" srcType="content" label="Page Texture" />

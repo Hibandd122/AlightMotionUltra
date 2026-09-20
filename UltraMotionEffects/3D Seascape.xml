@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.seascape" name="3D Seascape" desc="Raymarched procedural ocean (based on 'Seascape' by Alexander Alekseev) with camera position/angle controls, wave height, choppiness and frequency, day/night mode, and adjustable raymarch and detail iteration counts." category="procedural" tags="procedural" thumb="thumb/3/sea.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.seascape" name="3D Seascape" desc="Raymarched procedural ocean (based on 'Seascape' by Alexander Alekseev) with camera position/angle controls, wave height, choppiness and frequency, day/night mode, and adjustable raymarch and detail iteration counts." category="color" tags="procedural" thumb="thumb/3/sea.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="nmode" default="false" label="Night Mode" />

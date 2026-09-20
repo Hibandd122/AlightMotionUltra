@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.3colorgrad" name="3 Color Gradient+" desc="Generates a 3-stop linear gradient (first, middle, end color) inside the layer alpha and composites it over the layer through 25 blend modes. Stop positions, horizontal offset, scale, rotation and gradient intensity are adjustable; Alpha Blend mixes between the raw gradient and the blended result, Alpha fades the whole effect." category="colorlight" tags="color" thumb="thumb/2/3color.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.3colorgrad" name="3 Color Gradient+" desc="Generates a 3-stop linear gradient (first, middle, end color) inside the layer alpha and composites it over the layer through 25 blend modes. Stop positions, horizontal offset, scale, rotation and gradient intensity are adjustable; Alpha Blend mixes between the raw gradient and the blended result, Alpha fades the whole effect." category="color" tags="color" thumb="thumb/2/3color.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

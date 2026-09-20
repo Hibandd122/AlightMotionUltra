@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dissolve" name="@am:string/effect_dissolve_name" desc="@am:string/effect_dissolve_desc" category="opacity" tags="opacity,visibility,random,noise,glitch,raster" thumb="thumb/dissolve.webp">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.dissolve" name="@am:string/effect_dissolve_name" desc="@am:string/effect_dissolve_desc" category="distort" tags="opacity,visibility,random,noise,glitch,raster" thumb="thumb/dissolve.webp">
 
     
         

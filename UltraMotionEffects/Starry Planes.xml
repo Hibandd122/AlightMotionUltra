@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.starry_planes" name="Starry Planes" desc="Flies the camera through a tunnel of star-shaped planes along a curved path (raymarched over 16 depth layers), with palette coloring and ACES-style tone mapping, composited over the layer. Speed, intensity, exposure, and opacity controls." category="procedural" tags="shadertoy,star,procedural,space" thumb="thumb/1/0galaxy.png">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.starry_planes" name="Starry Planes" desc="Flies the camera through a tunnel of star-shaped planes along a curved path (raymarched over 16 depth layers), with palette coloring and ACES-style tone mapping, composited over the layer. Speed, intensity, exposure, and opacity controls." category="procedural" tags="shadertoy,star,procedural,space" thumb="thumb/1/0galaxy.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

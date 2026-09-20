@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorgrade" name="Advanced Color Grading" desc="Three-way color grade that tints shadows, midtones, and highlights separately, plus exposure, contrast, saturation, vibrance, temperature/tint white balance, film grain, vignette, and fade." category="colorlight" tags="color,grade,cinematic,three-way,vignette,grain" thumb="thumb/5/hardg.png">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.colorgrade" name="Advanced Color Grading" desc="Three-way color grade that tints shadows, midtones, and highlights separately, plus exposure, contrast, saturation, vibrance, temperature/tint white balance, film grain, vignette, and fade." category="procedural" tags="color,grade,cinematic,three-way,vignette,grain" thumb="thumb/5/hardg.png">
 
     <params>
         

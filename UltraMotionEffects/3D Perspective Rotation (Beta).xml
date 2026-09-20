@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.3dperception" name="3D Plane Rotation (Beta)" desc="Projects the layer onto a flat plane viewed by a perspective camera, tilting it in 3D. Rotation X/Y tilt the plane, Z sets camera distance; optional X/Y toggles mirror the sampled image." category="warp" tags="transform" thumb="thumb/0/efek.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.3dperception" name="3D Plane Rotation (Beta)" desc="Projects the layer onto a flat plane viewed by a perspective camera, tilting it in 3D. Rotation X/Y tilt the plane, Z sets camera distance; optional X/Y toggles mirror the sampled image." category="3d" tags="transform" thumb="thumb/0/efek.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <point id="ROT" label="Rotation" default="0.0,0.0" />

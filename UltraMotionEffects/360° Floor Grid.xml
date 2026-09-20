@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.floorgrid" name="360° Floor Grid" desc="Renders a raycast perspective floor grid with adjustable position, rotation, perspective, line thickness and an optional second finer grid. Supports edge color, custom two-color gradient mapping, brightness, opacity and normal/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/1/0360.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.floorgrid" name="360° Floor Grid" desc="Renders a raycast perspective floor grid with adjustable position, rotation, perspective, line thickness and an optional second finer grid. Supports edge color, custom two-color gradient mapping, brightness, opacity and normal/multiply/screen blending." category="color" tags="procedural" thumb="thumb/1/0360.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

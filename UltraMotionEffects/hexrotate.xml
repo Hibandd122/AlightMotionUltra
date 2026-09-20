@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hexrotate" name="@am:string/effect_hexrotate_name" desc="@am:string/effect_hexrotate_desc" category="warp" tags="distort,geometric,raster" thumb="thumb/5/hardg.png">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.hexrotate" name="@am:string/effect_hexrotate_name" desc="@am:string/effect_hexrotate_desc" category="distort" tags="distort,geometric,raster" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

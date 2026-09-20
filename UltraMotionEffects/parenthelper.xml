@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.parenthelper" name="@am:string/effect_parenthelper_name" desc="@am:string/effect_parenthelper_desc" tags="transform,propAdjust,utility,parenting" thumb="thumb/5/hardg.png" category="other">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.parenthelper" name="@am:string/effect_parenthelper_name" desc="@am:string/effect_parenthelper_desc" tags="transform,propAdjust,utility,parenting" thumb="thumb/5/hardg.png" category="3d">
 
     <params>
         

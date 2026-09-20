@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glitchvhs" name="Glitch VHS" desc="Analog-style glitch that offsets the image horizontally in random bands and accumulates 5-50 spectrally weighted samples along the offset, producing chromatic smearing. Evolution animates the randomization; Strength sets the sample count." category="other" tags="distort" thumb="thumb/5/vhsg.png" experimental="false">
+<effect category_ultra="Retro TV, VHS & Film" id="com.alightcreative.effects.glitchvhs" name="Glitch VHS" desc="Analog-style glitch that offsets the image horizontally in random bands and accumulates 5-50 spectrally weighted samples along the offset, producing chromatic smearing. Evolution animates the randomization; Strength sets the sample count." category="distort" tags="distort" thumb="thumb/5/vhsg.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

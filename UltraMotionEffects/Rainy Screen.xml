@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rainyfalls" name="Rainy Screen" desc="Displaces the image with scrolling noise-texture lookups to imitate rain streaks running down a screen. X/Y Scale set streak size and X/Y Distort the displacement strength, with auto progress and speed controls." category="procedural" tags="other" thumb="thumb/10/9.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.rainyfalls" name="Rainy Screen" desc="Displaces the image with scrolling noise-texture lookups to imitate rain streaks running down a screen. X/Y Scale set streak size and X/Y Distort the displacement strength, with auto progress and speed controls." category="procedural" tags="other" thumb="thumb/10/9.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="noisexx" srcType="image" src="textures/iChannel7.png" />

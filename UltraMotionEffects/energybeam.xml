@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.energybeam" name="@am:string/effect_energy_beam_name" desc="@am:string/effect_energy_beam_desc" category="procedural" tags="procedural,neon,raster,membersOnly" thumb="thumb/lightning.webp" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.energybeam" name="@am:string/effect_energy_beam_name" desc="@am:string/effect_energy_beam_desc" category="color" tags="procedural,neon,raster,membersOnly" thumb="thumb/lightning.webp" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.film-grain" name="Film Grain" desc="Adds animated monochrome noise grain in screen-space cells, re-randomized every frame. Amount sets intensity and Grain Size sets the cell size in pixels." category="other" thumb="thumb/5/hardg.png" tags="stylize,grain,film,noise,raster,animated">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.extra2.film-grain" name="Film Grain" desc="Adds animated monochrome noise grain in screen-space cells, re-randomized every frame. Amount sets intensity and Grain Size sets the cell size in pixels." category="procedural" thumb="thumb/5/hardg.png" tags="stylize,grain,film,noise,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

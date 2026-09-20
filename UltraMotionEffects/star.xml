@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.star" name="@am:string/effect_star_name" desc="@am:string/effect_star_desc" category="procedural" tags="procedural,shape,raster" thumb="thumb/star.webp">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.star" name="@am:string/effect_star_name" desc="@am:string/effect_star_desc" category="procedural" tags="procedural,shape,raster" thumb="thumb/star.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

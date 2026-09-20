@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warpdist" name="Warp Distortion" desc="Smooth warping distortion that displaces the layer's sample coordinates using a scrolling noise texture. Warp X/Y scroll the noise per axis, Frequency sets scroll speed, Amplitude the noise scale, and Strength the displacement amount." category="warp" tags="distort" thumb="thumb/5/warpd.png" experimental="false">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.warpdist" name="Warp Distortion" desc="Smooth warping distortion that displaces the layer's sample coordinates using a scrolling noise texture. Warp X/Y scroll the noise per axis, Frequency sets scroll speed, Amplitude the noise scale, and Strength the displacement amount." category="distort" tags="distort" thumb="thumb/5/warpd.png" experimental="false">
 
     <params>
         <float id="scaleuv" value="1.0" />

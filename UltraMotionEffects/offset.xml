@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.offset" name="@am:string/effect_offset_name" desc="@am:string/effect_offset_desc" category="movetransform" tags="trasform,raster" thumb="thumb/offset.webp">
+<effect category_ultra="Shake & Transform" id="com.alightcreative.effects.offset" name="@am:string/effect_offset_name" desc="@am:string/effect_offset_desc" category="transform" tags="trasform,raster" thumb="thumb/offset.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

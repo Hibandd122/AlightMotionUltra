@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.blend.pinlight" name="Blend/Hard Light" internal="true" thumb="thumb/0/efek.png" category="other">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.blend.pinlight" name="Blend/Hard Light" internal="true" thumb="thumb/0/efek.png" category="procedural">
 
 <params>
     <texture id="inputImg" srcType="content" />

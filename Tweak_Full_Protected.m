@@ -1901,7 +1901,216 @@ static void hook_UIViewController_viewDidAppear(UIViewController *self, SEL _cmd
 }
 
 #pragma mark - =========================================================
-#pragma mark 8. Safe Unified Constructor (Native 60 FPS, Zero Third-Party Hooks)
+#pragma mark 8. Ultra High Framerate Engine (50..1920 FPS ProMotion & Ultra Export)
+#pragma mark - =========================================================
+
+static NSString *const s_ultraFpsTitles[] = {
+    @"12 fps",
+    @"15 fps",
+    @"18 fps",
+    @"20 fps",
+    @"24 fps",
+    @"25 fps",
+    @"30 fps",
+    @"50 fps",
+    @"60 fps",
+    @"120 fps",
+    @"240 fps",
+    @"480 fps",
+    @"960 fps",
+    @"1920 fps"
+};
+static const int s_ultraFpsValues[] = {
+    12, 15, 18, 20, 24, 25, 30, 50, 60, 120, 240, 480, 960, 1920
+};
+static const NSInteger s_ultraFpsCount = 14;
+
+static BOOL viewContainsFpsLabel(UIView *v) {
+    if (!v) return NO;
+    if ([v isKindOfClass:[UILabel class]]) {
+        NSString *text = [(UILabel *)v text];
+        if (text && ([text containsString:@"fps"] || [text containsString:@"FPS"])) {
+            return YES;
+        }
+    }
+    for (UIView *sub in v.subviews) {
+        if (viewContainsFpsLabel(sub)) return YES;
+    }
+    return NO;
+}
+
+static void updateViewFpsLabel(UIView *v, NSString *newFpsText) {
+    if (!v) return;
+    if ([v isKindOfClass:[UILabel class]]) {
+        NSString *text = [(UILabel *)v text];
+        if (text && ([text containsString:@"fps"] || [text containsString:@"FPS"])) {
+            [(UILabel *)v setText:newFpsText];
+            return;
+        }
+    }
+    for (UIView *sub in v.subviews) {
+        updateViewFpsLabel(sub, newFpsText);
+    }
+}
+
+static BOOL isFrameratePopupController(id self) {
+    if (!self) return NO;
+    id sourceView = nil;
+    @try { sourceView = [self valueForKey:@"sourceView"]; } @catch (NSException *e) {}
+    if (sourceView && [sourceView isKindOfClass:[UIView class]]) {
+        if (viewContainsFpsLabel((UIView *)sourceView)) {
+            return YES;
+        }
+    }
+    id items = nil;
+    @try {
+        items = [self valueForKey:@"items"];
+        if ([items isKindOfClass:[NSArray class]] && [(NSArray *)items count] > 0) {
+            id firstItem = [(NSArray *)items firstObject];
+            NSString *desc = [firstItem description];
+            if ([desc containsString:@"fps"] || [desc containsString:@"FPS"]) {
+                return YES;
+            }
+        }
+    } @catch (NSException *e) {}
+    return NO;
+}
+
+static NSInteger (*orig_PBC_numberOfRowsInSection)(id, SEL, UITableView *, NSInteger);
+static NSInteger hook_PBC_numberOfRowsInSection(id self, SEL _cmd, UITableView *tableView, NSInteger section) {
+    if (isFrameratePopupController(self)) {
+        return s_ultraFpsCount;
+    }
+    if (orig_PBC_numberOfRowsInSection) {
+        return orig_PBC_numberOfRowsInSection(self, _cmd, tableView, section);
+    }
+    return 0;
+}
+
+static UITableViewCell *(*orig_PBC_cellForRowAtIndexPath)(id, SEL, UITableView *, NSIndexPath *);
+static UITableViewCell *hook_PBC_cellForRowAtIndexPath(id self, SEL _cmd, UITableView *tableView, NSIndexPath *indexPath) {
+    if (isFrameratePopupController(self)) {
+        NSIndexPath *safePath = [NSIndexPath indexPathForRow:0 inSection:indexPath.section];
+        UITableViewCell *cell = nil;
+        if (orig_PBC_cellForRowAtIndexPath) {
+            cell = orig_PBC_cellForRowAtIndexPath(self, _cmd, tableView, safePath);
+        }
+        if (!cell) {
+            cell = [tableView dequeueReusableCellWithIdentifier:@"PopupButtonCell"] ?: [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"PopupButtonCell"];
+        }
+        if (indexPath.row >= 0 && indexPath.row < s_ultraFpsCount) {
+            NSString *fpsTitle = s_ultraFpsTitles[indexPath.row];
+            UILabel *lbl = nil;
+            @try { lbl = [cell valueForKey:@"titleLabel"]; } @catch (NSException *e) {}
+            if (!lbl) lbl = cell.textLabel;
+            if (lbl) {
+                lbl.text = fpsTitle;
+            }
+            NSInteger currentPresetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+            if (currentPresetFps <= 0) currentPresetFps = 30;
+            BOOL isSelected = (s_ultraFpsValues[indexPath.row] == currentPresetFps);
+            UIView *hl = nil;
+            @try { hl = [cell valueForKey:@"highlightView"]; } @catch (NSException *e) {}
+            if (hl) {
+                hl.hidden = !isSelected;
+            }
+        }
+        return cell;
+    }
+    if (orig_PBC_cellForRowAtIndexPath) {
+        return orig_PBC_cellForRowAtIndexPath(self, _cmd, tableView, indexPath);
+    }
+    return nil;
+}
+
+static void (*orig_PBC_didSelectRowAtIndexPath)(id, SEL, UITableView *, NSIndexPath *);
+static void hook_PBC_didSelectRowAtIndexPath(id self, SEL _cmd, UITableView *tableView, NSIndexPath *indexPath) {
+    if (isFrameratePopupController(self) && indexPath.row >= 0 && indexPath.row < s_ultraFpsCount) {
+        int chosenFps = s_ultraFpsValues[indexPath.row];
+        NSString *chosenTitle = s_ultraFpsTitles[indexPath.row];
+        
+        [[NSUserDefaults standardUserDefaults] setInteger:chosenFps forKey:@"new_scene_preset_fps"];
+        [[NSUserDefaults standardUserDefaults] setInteger:chosenFps forKey:@"video_export_frameRate"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
+        id sourceView = nil;
+        @try { sourceView = [self valueForKey:@"sourceView"]; } @catch (NSException *e) {}
+        if (sourceView && [sourceView isKindOfClass:[UIView class]]) {
+            updateViewFpsLabel((UIView *)sourceView, chosenTitle);
+            @try { [sourceView setValue:@(indexPath.row) forKey:@"index"]; } @catch (NSException *e) {}
+        }
+        @try { [self setValue:@(indexPath.row) forKey:@"selectedIndex"]; } @catch (NSException *e) {}
+        
+        UIView *popupView = nil;
+        @try { popupView = [self valueForKey:@"popupView"]; } @catch (NSException *e) {}
+        UIView *shadowView = nil;
+        @try { shadowView = [self valueForKey:@"shadowView"]; } @catch (NSException *e) {}
+        
+        [UIView animateWithDuration:0.2 animations:^{
+            if (popupView) popupView.alpha = 0.0;
+            if (shadowView) shadowView.alpha = 0.0;
+        } completion:^(BOOL finished) {
+            if (popupView) [popupView removeFromSuperview];
+            if (shadowView) [shadowView removeFromSuperview];
+        }];
+        return;
+    }
+    if (orig_PBC_didSelectRowAtIndexPath) {
+        orig_PBC_didSelectRowAtIndexPath(self, _cmd, tableView, indexPath);
+    }
+}
+
+// CreateVC & SceneSettingsVC viewWillAppear Hooks for Ultra FPS Preselection
+static void (*orig_CreateVC_viewWillAppear)(UIViewController *, SEL, BOOL);
+static void hook_CreateVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_CreateVC_viewWillAppear) {
+        orig_CreateVC_viewWillAppear(self, _cmd, animated);
+    }
+    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+    if (presetFps > 0) {
+        NSString *fpsTitle = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
+        id frBtn = nil;
+        @try { frBtn = [self valueForKey:@"valueFrameRateButton"]; } @catch (NSException *e) {}
+        if (frBtn && [frBtn isKindOfClass:[UIView class]]) {
+            updateViewFpsLabel((UIView *)frBtn, fpsTitle);
+        }
+    }
+}
+
+static void (*orig_SceneSettingsVC_viewWillAppear)(UIViewController *, SEL, BOOL);
+static void hook_SceneSettingsVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_SceneSettingsVC_viewWillAppear) {
+        orig_SceneSettingsVC_viewWillAppear(self, _cmd, animated);
+    }
+    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+    if (presetFps > 0) {
+        NSString *fpsTitle = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
+        id frBtn = nil;
+        @try { frBtn = [self valueForKey:@"rateButton"]; } @catch (NSException *e) {}
+        if (frBtn && [frBtn isKindOfClass:[UIView class]]) {
+            updateViewFpsLabel((UIView *)frBtn, fpsTitle);
+        }
+    }
+}
+
+static void (*orig_ShareVideoVC_viewWillAppear)(UIViewController *, SEL, BOOL);
+static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_ShareVideoVC_viewWillAppear) {
+        orig_ShareVideoVC_viewWillAppear(self, _cmd, animated);
+    }
+    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"video_export_frameRate"];
+    if (presetFps <= 0) presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+    if (presetFps > 0) {
+        UILabel *fpsLbl = nil;
+        @try { fpsLbl = [self valueForKey:@"fpsLabel"]; } @catch (NSException *e) {}
+        if (fpsLbl && [fpsLbl isKindOfClass:[UILabel class]]) {
+            fpsLbl.text = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
+        }
+    }
+}
+
+#pragma mark - =========================================================
+#pragma mark 9. Safe Unified Constructor (Native ProMotion, Zero Third-Party Hooks)
 #pragma mark - =========================================================
 
 __attribute__((constructor)) static void initAlightMotionUltra() {
@@ -2011,6 +2220,52 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak!");
+        // 10. Hook PopupButtonController for Ultra Framerates (50..1920 FPS)
+        Class pbcClass = objc_getClass("_TtC12AlightMotion21PopupButtonController");
+        if (pbcClass) {
+            Method mRows = class_getInstanceMethod(pbcClass, @selector(tableView:numberOfRowsInSection:));
+            if (mRows) {
+                orig_PBC_numberOfRowsInSection = (void *)method_getImplementation(mRows);
+                method_setImplementation(mRows, (IMP)hook_PBC_numberOfRowsInSection);
+            }
+            Method mCell = class_getInstanceMethod(pbcClass, @selector(tableView:cellForRowAtIndexPath:));
+            if (mCell) {
+                orig_PBC_cellForRowAtIndexPath = (void *)method_getImplementation(mCell);
+                method_setImplementation(mCell, (IMP)hook_PBC_cellForRowAtIndexPath);
+            }
+            Method mSelect = class_getInstanceMethod(pbcClass, @selector(tableView:didSelectRowAtIndexPath:));
+            if (mSelect) {
+                orig_PBC_didSelectRowAtIndexPath = (void *)method_getImplementation(mSelect);
+                method_setImplementation(mSelect, (IMP)hook_PBC_didSelectRowAtIndexPath);
+            }
+        }
+
+        // 11. Hook CreateVC & SceneSettingsVC viewWillAppear for Ultra FPS UI Preselection
+        Class createClass = objc_getClass("_TtC12AlightMotion8CreateVC");
+        if (createClass) {
+            Method mAppear = class_getInstanceMethod(createClass, @selector(viewWillAppear:));
+            if (mAppear) {
+                orig_CreateVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+                method_setImplementation(mAppear, (IMP)hook_CreateVC_viewWillAppear);
+            }
+        }
+        Class sceneSetClass = objc_getClass("_TtC12AlightMotion15SceneSettingsVC");
+        if (sceneSetClass) {
+            Method mAppear = class_getInstanceMethod(sceneSetClass, @selector(viewWillAppear:));
+            if (mAppear) {
+                orig_SceneSettingsVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+                method_setImplementation(mAppear, (IMP)hook_SceneSettingsVC_viewWillAppear);
+            }
+        }
+        Class shareVidClass = objc_getClass("_TtC12AlightMotion12ShareVideoVC");
+        if (shareVidClass) {
+            Method mAppear = class_getInstanceMethod(shareVidClass, @selector(viewWillAppear:));
+            if (mAppear) {
+                orig_ShareVideoVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+                method_setImplementation(mAppear, (IMP)hook_ShareVideoVC_viewWillAppear);
+            }
+        }
+
+        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with Ultra Framerate Engine (50..1920 FPS)!");
     });
 }

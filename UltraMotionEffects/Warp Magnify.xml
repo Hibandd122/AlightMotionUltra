@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_warp_magnify" name="Warp Magnify" desc="Magnifies a region through an elliptical lens in the style of Sapphire S_WarpMagnify: adjustable center, magnify amount, per-axis relative magnification, lens radius, rotatable ellipse shape, soft edge falloff with shape curve, and tile/reflect wrap modes." category="warp" tags="warp,magnify,lens,distortion,sapphire" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.effects.s_warp_magnify" name="Warp Magnify" desc="Magnifies a region through an elliptical lens in the style of Sapphire S_WarpMagnify: adjustable center, magnify amount, per-axis relative magnification, lens radius, rotatable ellipse shape, soft edge falloff with shape curve, and tile/reflect wrap modes." category="drawing" tags="warp,magnify,lens,distortion,sapphire" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

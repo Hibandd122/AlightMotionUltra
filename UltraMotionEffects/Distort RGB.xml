@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.noise_distortion_ca" name="Distort RGB" desc="Displaces the layer with 2D gradient noise, then accumulates 16 samples along the displacement vector for a directional warp blur with per-channel RGB offsets (chromatic aberration). Noise scale, animation speed, spread, and channel-tint controls." category="warp" tags="noise,distortion,chromatic,aberration,blur,warp" thumb="thumb/5/hardg.png">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.noise_distortion_ca" name="Distort RGB" desc="Displaces the layer with 2D gradient noise, then accumulates 16 samples along the displacement vector for a directional warp blur with per-channel RGB offsets (chromatic aberration). Noise scale, animation speed, spread, and channel-tint controls." category="color" tags="noise,distortion,chromatic,aberration,blur,warp" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

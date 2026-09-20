@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fireworks" name="Firework Particle" desc="Procedural fireworks: rockets launch on staggered timelines and explode into circular or random spark bursts under gravity, each fading out. Controls include Progress, Amount, Sparks, orientation, scale and an optional two-color gradient mode." category="procedural" tags="other" thumb="thumb/4/work.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.fireworks" name="Firework Particle" desc="Procedural fireworks: rockets launch on staggered timelines and explode into circular or random spark bursts under gravity, each fading out. Controls include Progress, Amount, Sparks, orientation, scale and an optional two-color gradient mode." category="procedural" tags="other" thumb="thumb/4/work.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.normal-light" name="3D Normal Light" desc="Adds 3D directional lighting and a glossy specular highlight derived from the image as a height map, keeping the original colors." category="colorlight" thumb="thumb/5/hardg.png" tags="3d,light,specular,normal,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.extra3d.normal-light" name="3D Normal Light" desc="Adds 3D directional lighting and a glossy specular highlight derived from the image as a height map, keeping the original colors." category="3d" thumb="thumb/5/hardg.png" tags="3d,light,specular,normal,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fractal_zoom_trails" name="Zoom Blur Trails" desc="Radial zoom blur that accumulates up to 32 samples along a geometric progression toward a center point, each weighted by a decay factor so the echoes trail off. Center, zoom amount, rotation, step count, decay, per-step chromatic shift and radial offset are adjustable, plus a manual Time/Pulse pair that modulates the zoom." category="blur" tags="zoom,trails,radial,blur" thumb="thumb/1/0fractal.png" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.fractal_zoom_trails" name="Zoom Blur Trails" desc="Radial zoom blur that accumulates up to 32 samples along a geometric progression toward a center point, each weighted by a decay factor so the echoes trail off. Center, zoom amount, rotation, step count, decay, per-step chromatic shift and radial offset are adjustable, plus a manual Time/Pulse pair that modulates the zoom." category="blur" tags="zoom,trails,radial,blur" thumb="thumb/1/0fractal.png" overdraw="true" max-overdraw="1.5">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.meteor" name="Meteor" desc="Draws columns of falling light streaks (meteor/rain trails) with per-column randomized speed, offset, and trail length, plus sine-wave distortion of the field. Controls include wave X/Y, trail length, mirror X/Y, base and background colors, transform, and blend modes." category="procedural" tags="other" thumb="thumb/5/meteor.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.meteor" name="Meteor" desc="Draws columns of falling light streaks (meteor/rain trails) with per-column randomized speed, offset, and trail length, plus sine-wave distortion of the field. Controls include wave X/Y, trail length, mirror X/Y, base and background colors, transform, and blend modes." category="procedural" tags="other" thumb="thumb/5/meteor.png" experimental="false">
 
     <params>
     

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hexagonblur" name="Hexagon Blur" desc="Hexagonal-bokeh style blur built from two diagonal directional blurs combined in linear light with a min operation. Samples sets quality, Strength sets blur length, and Iterations repeats the effect for a stronger result." category="blur" tags="blur" thumb="thumb/5/hexblur.png" experimental="false" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.hexagonblur" name="Hexagon Blur" desc="Hexagonal-bokeh style blur built from two diagonal directional blurs combined in linear light with a min operation. Samples sets quality, Strength sets blur length, and Iterations repeats the effect for a stronger result." category="blur" tags="blur" thumb="thumb/5/hexblur.png" experimental="false" overdraw="true" max-overdraw="1.5">
 
     <params>
         <slider id="NUM_SAMPLES" label="Samples" default="15" min="5" max="30" step="1.0" type="integer" snap="10,15,20,25" />

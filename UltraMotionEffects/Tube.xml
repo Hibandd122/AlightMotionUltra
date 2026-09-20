@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-tube" name="Tube" desc="A ray-marched hollow 3D tube (open cylinder) with adjustable wall thickness, textured with the layer. Includes orientation, position and size controls, six shading modes (flat, point light, directional light, depth, normal, normal-with-depth), and texture repeat/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra3d.s3d-tube" name="Tube" desc="A ray-marched hollow 3D tube (open cylinder) with adjustable wall thickness, textured with the layer. Includes orientation, position and size controls, six shading modes (flat, point light, directional light, depth, normal, normal-with-depth), and texture repeat/offset mapping." category="color" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

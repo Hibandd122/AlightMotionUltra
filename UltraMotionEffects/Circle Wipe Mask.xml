@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.wipecircle" name="Circle Wipe Mask" desc="Masks the layer with an elliptical region: Width and Height set the two radii, Circle Size scales both, and Feather softens the edge with a smoothstep falloff. Invert Mask flips inside and outside; color and alpha are both multiplied by the mask, so it works as a reveal matte." category="warp" tags="wipe,circle,reveal,transition,mask" thumb="thumb/5/hardg.png" experimental="false">
+<effect category_ultra="Color Looks & Tone Maps" id="com.alightcreative.effects.wipecircle" name="Circle Wipe Mask" desc="Masks the layer with an elliptical region: Width and Height set the two radii, Circle Size scales both, and Feather softens the edge with a smoothstep falloff. Invert Mask flips inside and outside; color and alpha are both multiplied by the mask, so it works as a reveal matte." category="color" tags="wipe,circle,reveal,transition,mask" thumb="thumb/5/hardg.png" experimental="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

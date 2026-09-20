@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.glitch-slice" name="Glitch Slice" desc="Splits the image into vertical strips and shifts a random subset of them vertically, re-randomizing over time. Intensity sets how many strips jump, Slice Width sets strip size, and Speed sets the re-randomization rate." category="procedural" thumb="thumb/1/0oldtv.png" tags="distort,glitch,slice,raster,animated">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.extra2.glitch-slice" name="Glitch Slice" desc="Splits the image into vertical strips and shifts a random subset of them vertically, re-randomizing over time. Intensity sets how many strips jump, Slice Width sets strip size, and Speed sets the re-randomization rate." category="distort" thumb="thumb/1/0oldtv.png" tags="distort,glitch,slice,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.grid-lines" name="Neon Grid" desc="Overlays a colored line grid on the layer, with controls for cell count, line width, color and opacity." category="procedural" thumb="thumb/5/hardg.png" tags="procedural,grid,neon,hud,raster">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.extra2.grid-lines" name="Neon Grid" desc="Overlays a colored line grid on the layer, with controls for cell count, line width, color and opacity." category="color" thumb="thumb/5/hardg.png" tags="procedural,grid,neon,hud,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

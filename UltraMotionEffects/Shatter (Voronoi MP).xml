@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.shatter_voronoi_mp" name="Shatter (Voronoi MP)" desc="Procedural Voronoi-cell shatter: each cell scatters, rotates, and falls with gravity as Progress increases, with a blurred edge glow generated in downsampled multipass buffers. Cell scale, randomness, edge width/feather/color, and quality controls." category="warp" tags="shatter,transition,voronoi,disintegrate,multipass" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.shatter_voronoi_mp" name="Shatter (Voronoi MP)" desc="Procedural Voronoi-cell shatter: each cell scatters, rotates, and falls with gravity as Progress increases, with a blurred edge glow generated in downsampled multipass buffers. Cell scale, randomness, edge width/feather/color, and quality controls." category="color" tags="shatter,transition,voronoi,disintegrate,multipass" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
 
   
 

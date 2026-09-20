@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.gaussianblur" name="@am:string/effect_gaussianblur_name" desc="@am:string/effect_gaussianblur_desc" category="blur" tags="blur,essentials,raster" thumb="thumb/gaussian_blur.webp" overdraw="true" max-overdraw="0.1">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.gaussianblur" name="@am:string/effect_gaussianblur_name" desc="@am:string/effect_gaussianblur_desc" category="blur" tags="blur,essentials,raster" thumb="thumb/gaussian_blur.webp" overdraw="true" max-overdraw="0.1">
     <params>
         <slider id="strength" default="0.15" min="0.0" max="2.0" label="@am:string/effect_param_strength" step="0.005" />
         <texture id="inputImg" srcType="content" />

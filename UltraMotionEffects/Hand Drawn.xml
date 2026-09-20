@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hand_drawn" name="Hand Drawn" desc="Hand-drawn animation look: warps UVs with value noise quantized to a low effect framerate to simulate line boil, and multiplies in dark outlines from a luminance gradient edge detect. Controls: warp intensity, outline strength, effect FPS." category="drawingedge" tags="stylize,sketch,handdrawn,warp,outline" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.hand_drawn" name="Hand Drawn" desc="Hand-drawn animation look: warps UVs with value noise quantized to a low effect framerate to simulate line boil, and multiplies in dark outlines from a luminance gradient edge detect. Controls: warp intensity, outline strength, effect FPS." category="color" tags="stylize,sketch,handdrawn,warp,outline" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

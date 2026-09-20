@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.raysphere" name="3D Ball" desc="Maps the layer onto an analytic sphere with equirectangular UVs, shaded with diffuse lighting, a Blinn-Phong specular highlight, and rim light. Spin rotates the mapping; Gloss and Size adjust the highlight and radius." category="procedural" thumb="thumb/1/0360.png" tags="3d,sphere,ball,shade,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra3d.raysphere" name="3D Ball" desc="Maps the layer onto an analytic sphere with equirectangular UVs, shaded with diffuse lighting, a Blinn-Phong specular highlight, and rim light. Spin rotates the mapping; Gloss and Size adjust the highlight and radius." category="color" thumb="thumb/1/0360.png" tags="3d,sphere,ball,shade,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

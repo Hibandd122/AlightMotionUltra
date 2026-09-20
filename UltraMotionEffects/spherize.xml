@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.spherize" name="@am:string/effect_spherize_name" desc="@am:string/effect_spherize_desc" category="3d" tags="3d,lighting,raster" experimental="false" thumb="thumb/spherize.webp" deprecated="true">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.spherize" name="@am:string/effect_spherize_name" desc="@am:string/effect_spherize_desc" category="3d" tags="3d,lighting,raster" experimental="false" thumb="thumb/spherize.webp" deprecated="true">
     <params>
         <texture id="inputImg" srcType="content" />
         <slider id="orient" label="@am:string/effect_param_orientation" />

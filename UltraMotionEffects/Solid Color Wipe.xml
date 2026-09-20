@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.solid_color_wipe" name="Solid Color Wipe" desc="Fills the layer (respecting its alpha) with a solid color, revealed by a directional wipe with independent start/end positions, angle, and feather. Supports Normal, Multiply, and Screen blending with opacity control." category="colorlight" tags="extra" thumb="thumb/5/hardg.png" experimental="false">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.solid_color_wipe" name="Solid Color Wipe" desc="Fills the layer (respecting its alpha) with a solid color, revealed by a directional wipe with independent start/end positions, angle, and feather. Supports Normal, Multiply, and Screen blending with opacity control." category="3d" tags="extra" thumb="thumb/5/hardg.png" experimental="false">
 
     <params>
         

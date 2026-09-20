@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.night-vision" name="Night Vision" desc="Green-phosphor night-vision goggles look with glow, animated noise and a soft vignette." category="colorlight" thumb="thumb/5/hardg.png" tags="color,green,scifi,noise,raster,animated">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.extra2.night-vision" name="Night Vision" desc="Green-phosphor night-vision goggles look with glow, animated noise and a soft vignette." category="color" thumb="thumb/5/hardg.png" tags="color,green,scifi,noise,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.partx" name="Light Particle" desc="Generates radial streaks of light particles flying outward from a center point (warp/starburst style) using polar-angle sectors with per-sector randomization. Controls include density, streak length, sector amount, particle and background colors, transform, and blend modes." category="colorlight" tags="other" thumb="thumb/5/lightp.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.partx" name="Light Particle" desc="Generates radial streaks of light particles flying outward from a center point (warp/starburst style) using polar-angle sectors with per-sector randomization. Controls include density, streak length, sector amount, particle and background colors, transform, and blend modes." category="color" tags="other" thumb="thumb/5/lightp.png" experimental="false">
 
     <params>
         <color id="colorfg" default="#FF00FFFF" label="Color Particle" alpha="true" />

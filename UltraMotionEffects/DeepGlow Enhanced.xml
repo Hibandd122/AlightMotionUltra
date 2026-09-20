@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.deepglow2" name="DeepGlow Enhanced" desc="Gaussian-blur based glow with luminance thresholding (low/high with feather), screen/color-dodge/linear-add/layer blending, and up to 3 iterations. Extras include chromatic RGB-split of the glow, hue/saturation/vibrance adjustment, gamma correction, glow color blending and offset/stretch." category="colorlight" tags="lighting,raster" thumb="thumb/12/14.png" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.deepglow2" name="DeepGlow Enhanced" desc="Gaussian-blur based glow with luminance thresholding (low/high with feather), screen/color-dodge/linear-add/layer blending, and up to 3 iterations. Extras include chromatic RGB-split of the glow, hue/saturation/vibrance adjustment, gamma correction, glow color blending and offset/stretch." category="color" tags="lighting,raster" thumb="thumb/12/14.png" overdraw="true" max-overdraw="1.5">
 
     <params>
         <texture id="inputImg" srcType="content" />

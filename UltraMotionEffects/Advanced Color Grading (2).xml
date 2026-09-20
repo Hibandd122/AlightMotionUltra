@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorista4" name="Advanced Color Grading" desc="Single-pass color grading suite: exposure/contrast/temperature basics, hue-disc lift/gamma/gain/offset wheels applied in YUV zones, 7-point luminance curves, 3-zone split toning, printer lights, highlight/shadow rolloff, film density/fade/bleach/cross-process looks, HSL secondary correction, and a skin-tone protection mask." category="colorlight" tags="color,grade,wheels,lift,gamma,gain,curves,hdr,film" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.colorista4" name="Advanced Color Grading" desc="Single-pass color grading suite: exposure/contrast/temperature basics, hue-disc lift/gamma/gain/offset wheels applied in YUV zones, 7-point luminance curves, 3-zone split toning, printer lights, highlight/shadow rolloff, film density/fade/bleach/cross-process looks, HSL secondary correction, and a skin-tone protection mask." category="color" tags="color,grade,wheels,lift,gamma,gain,curves,hdr,film" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

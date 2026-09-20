@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bleach_bypass_v1" name="Bleach Bypass" desc="Bleach-bypass film look: blends the image with a high-contrast black-and-white version via Overlay, Soft Light, or Hard Light. Includes per-range contrast and desaturation, tone curve, film grain, threshold-based halation, and shadow/highlight tinting." category="colorlight" tags="bleach,bypass,film,tactical,contrast,desaturate,overlay,softlight,cinematic,hollywood" thumb="thumb/5/hardg.png" overdraw="false" dither="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.bleach_bypass_v1" name="Bleach Bypass" desc="Bleach-bypass film look: blends the image with a high-contrast black-and-white version via Overlay, Soft Light, or Hard Light. Includes per-range contrast and desaturation, tone curve, film grain, threshold-based halation, and shadow/highlight tinting." category="procedural" tags="bleach,bypass,film,tactical,contrast,desaturate,overlay,softlight,cinematic,hollywood" thumb="thumb/5/hardg.png" overdraw="false" dither="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

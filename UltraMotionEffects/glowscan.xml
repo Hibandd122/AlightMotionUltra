@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glowscan" name="@am:string/effect_glowscan_name" desc="@am:string/effect_glowscan_desc" category="drawingedge" tags="edge,drawing,neon,raster,membersOnly" thumb="thumb/glow_scan.webp">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.glowscan" name="@am:string/effect_glowscan_name" desc="@am:string/effect_glowscan_desc" category="color" tags="edge,drawing,neon,raster,membersOnly" thumb="thumb/glow_scan.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colortunnel2" name="Colorful Lines Tunnel" desc="Flies a camera through up to 16 stacked planes of glowing polar ring segments, alpha-blended front to back to form an animated colored tunnel. Controls for plane count (Furthest), oversampling, glow factor, line warping, cutoff, plane distance and RGB color mix." category="procedural" tags="other" thumb="thumb/11/8.png" experimental="false">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.colortunnel2" name="Colorful Lines Tunnel" desc="Flies a camera through up to 16 stacked planes of glowing polar ring segments, alpha-blended front to back to form an animated colored tunnel. Controls for plane count (Furthest), oversampling, glow factor, line warping, cutoff, plane distance and RGB color mix." category="repeat" tags="other" thumb="thumb/11/8.png" experimental="false">
 
     <params>
         

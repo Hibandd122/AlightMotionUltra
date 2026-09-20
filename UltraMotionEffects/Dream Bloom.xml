@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dream_bloom" name="Dream Bloom" desc="Threshold-based bloom: bright areas are extracted, blurred with a downsampled separable Gaussian, then screen-composited with per-channel chromatic dispersion offsets, RGB multipliers, tint, halo, and intensity controls." category="colorlight" tags="glow,bloom,dreamy,dispersion,color" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0" maxOverdraw="0.15" experimental="false">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.dream_bloom" name="Dream Bloom" desc="Threshold-based bloom: bright areas are extracted, blurred with a downsampled separable Gaussian, then screen-composited with per-channel chromatic dispersion offsets, RGB multipliers, tint, halo, and intensity controls." category="distort" tags="glow,bloom,dreamy,dispersion,color" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0" maxOverdraw="0.15" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

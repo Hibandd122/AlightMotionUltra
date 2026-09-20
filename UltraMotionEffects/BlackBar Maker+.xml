@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bbmaker" name="BlackBar Maker+" category="warp" desc="Masks the layer with a symmetric letterbox: an Amount control crops equal bars from both sides at any angle, and an optional colored band (with its own start, end, angle, and feather) fills the background." tags="matte" thumb="thumb/1/0bb.png">
+<effect category_ultra="Wipes, Keys & Shatter" id="com.alightcreative.effects.bbmaker" name="BlackBar Maker+" category="matte" desc="Masks the layer with a symmetric letterbox: an Amount control crops equal bars from both sides at any angle, and an optional colored band (with its own start, end, angle, and feather) fills the background." tags="matte" thumb="thumb/1/0bb.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

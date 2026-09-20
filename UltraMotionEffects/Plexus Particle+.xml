@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.plexusparticle" name="Plexus Particle+" desc="Plexus-style network of drifting points connected by fading line segments with blinking sparkles, colored by a luminance gradient between two colors. Auto progress, blink, rotation and zoom switches animate the field; blend modes included." category="procedural" tags="other" thumb="thumb/1/0plexus.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.plexusparticle" name="Plexus Particle+" desc="Plexus-style network of drifting points connected by fading line segments with blinking sparkles, colored by a luminance gradient between two colors. Auto progress, blink, rotation and zoom switches animate the field; blend modes included." category="color" tags="other" thumb="thumb/1/0plexus.png" experimental="false">
 
     <params>
         <slider id="ITER" label="Iteration" default="8" min="0" max="20" step="1.0" type="integer" snap="2,4,6,8,10,12,14,16,18" />

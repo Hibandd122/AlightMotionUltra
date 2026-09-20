@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.satvib" name="@am:string/effect_vibranceSaturation_name" desc="@am:string/effect_vibranceSaturation_desc" category="colorlight" tags="color,raster" thumb="thumb/saturation_vibrance.webp">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.satvib" name="@am:string/effect_vibranceSaturation_name" desc="@am:string/effect_vibranceSaturation_desc" category="color" tags="color,raster" thumb="thumb/saturation_vibrance.webp">
 
     
         

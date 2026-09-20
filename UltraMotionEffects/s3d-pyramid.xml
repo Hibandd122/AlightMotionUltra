@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.pyramid" name="@am:string/effect_pyramid_name" desc="@am:string/effect_pyramid_desc" category="3d" tags="3d,lighting,shape,raster,membersOnly" thumb="thumb/pyramid.webp" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.pyramid" name="@am:string/effect_pyramid_name" desc="@am:string/effect_pyramid_desc" category="3d" tags="3d,lighting,shape,raster,membersOnly" thumb="thumb/pyramid.webp" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

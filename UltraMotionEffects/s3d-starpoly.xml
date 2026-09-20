@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.starpoly" name="@am:string/effect_star_polyhedron_name" desc="@am:string/effect_star_polyhedron_desc" category="3d" tags="3d,shape,geometric,lighting,raster,membersOnly" thumb="thumb/octahedron.webp" overdraw="true" maxOverdraw="0.2" deprecated="false">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.starpoly" name="@am:string/effect_star_polyhedron_name" desc="@am:string/effect_star_polyhedron_desc" category="3d" tags="3d,shape,geometric,lighting,raster,membersOnly" thumb="thumb/octahedron.webp" overdraw="true" maxOverdraw="0.2" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

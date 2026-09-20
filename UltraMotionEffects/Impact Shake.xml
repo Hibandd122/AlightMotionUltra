@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.motion_impact_shake" name="Impact Shake" desc="UV transform driven by a damped sine envelope that starts at a trigger time and decays over a set duration, punching position, rotation and scale together. Frequency, Damping and Strength shape the envelope; Pivot, Mirror Edges, Auto Expand and an optional fixed repeat period control framing and retriggering." category="warp" tags="shake,impact,beat,punch,transform" thumb="thumb/auto_shake.webp">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.effects.motion_impact_shake" name="Impact Shake" desc="UV transform driven by a damped sine envelope that starts at a trigger time and decays over a set duration, punching position, rotation and scale together. Frequency, Damping and Strength shape the envelope; Pivot, Mirror Edges, Auto Expand and an optional fixed repeat period control framing and retriggering." category="drawing" tags="shake,impact,beat,punch,transform" thumb="thumb/auto_shake.webp">
 
   <params>
     <texture id="inputImg" srcType="content" />

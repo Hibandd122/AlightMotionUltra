@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.holomatrix2" name="Holomatrix II" desc="Single-pass hologram/glitch stylization with toggleable modules: shadow/midtone/highlight colorization, scan lines, scrolling bright lines, 4-tap glow, static noise, RGB color separation, block glitch displacement, flicker, low-resolution pixelation and TV wave distortion." category="procedural" tags="hologram,glitch,scifi,hud,scanline,distort" thumb="thumb/1/0matrix.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Retro TV, VHS & Film" id="com.alightcreative.effects.holomatrix2" name="Holomatrix II" desc="Single-pass hologram/glitch stylization with toggleable modules: shadow/midtone/highlight colorization, scan lines, scrolling bright lines, 4-tap glow, static noise, RGB color separation, block glitch displacement, flicker, low-resolution pixelation and TV wave distortion." category="distort" tags="hologram,glitch,scifi,hud,scanline,distort" thumb="thumb/1/0matrix.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

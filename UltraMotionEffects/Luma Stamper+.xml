@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lumastampernew" name="Luma Stamper+" desc="Stamps the layer with a single color weighted by its luminance: luma is clipped (Clip Low/High), gamma-corrected and optionally inverted, then used as the color's alpha and composited through 25 selectable blend modes." category="warp" tags="raster,compositing,mask,matte,key" thumb="thumb/4/stamper.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.lumastampernew" name="Luma Stamper+" desc="Stamps the layer with a single color weighted by its luminance: luma is clipped (Clip Low/High), gamma-corrected and optionally inverted, then used as the color's alpha and composited through 25 selectable blend modes." category="color" tags="raster,compositing,mask,matte,key" thumb="thumb/4/stamper.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

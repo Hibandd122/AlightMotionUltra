@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.truchet" name="Truchet Checkerboard" desc="Generates a scrolling Truchet tile pattern on a checkerboard grid, where each cell randomly connects line segments and quarter-circle arcs into a maze-like design. Controls include line width, connection threshold, pattern/seed values, two-color mapping, transform, and blend modes." category="procedural" tags="other" thumb="thumb/11/11.png" experimental="false">
+<effect category_ultra="Color Looks & Tone Maps" id="com.alightcreative.effects.truchet" name="Truchet Checkerboard" desc="Generates a scrolling Truchet tile pattern on a checkerboard grid, where each cell randomly connects line segments and quarter-circle arcs into a maze-like design. Controls include line width, connection threshold, pattern/seed values, two-color mapping, transform, and blend modes." category="color" tags="other" thumb="thumb/11/11.png" experimental="false">
 
     <params>
         

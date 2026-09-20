@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.gradientflow" name="Gradient Flow" desc="Animated four-color gradient that slowly rotates by noise and warps with sine waves for a fluid-gradient look. Frequency and Amplitude control the warp; auto progress, scale, rotate, offset and blend modes included." category="procedural" tags="procedural" thumb="thumb/12/23.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.gradientflow" name="Gradient Flow" desc="Animated four-color gradient that slowly rotates by noise and warps with sine waves for a fluid-gradient look. Frequency and Amplitude control the warp; auto progress, scale, rotate, offset and blend modes included." category="color" tags="procedural" thumb="thumb/12/23.png" experimental="false">
 
     <params>
                         

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.clouds" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/clouds.webp" deprecated="true">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.clouds" name="@string/name" desc="@string/desc" category="procedural" thumb="thumb/clouds.webp" deprecated="true">
 
     
 

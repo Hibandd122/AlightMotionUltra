@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rockfield" name="Rocks Terrain" desc="Raymarched rocky terrain (up to 128 steps per pixel) with tri-planar texture mapping, texture-based bump mapping, two lights, ambient occlusion, curvature shading and blackbody-tinted subsurface glow. Six selectable surface textures plus camera, lighting and hue-shift controls. Very GPU-intensive." category="procedural" tags="other" thumb="thumb/6/terrain.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.rockfield" name="Rocks Terrain" desc="Raymarched rocky terrain (up to 128 steps per pixel) with tri-planar texture mapping, texture-based bump mapping, two lights, ambient occlusion, curvature shading and blackbody-tinted subsurface glow. Six selectable surface textures plus camera, lighting and hue-shift controls. Very GPU-intensive." category="procedural" tags="other" thumb="thumb/6/terrain.png" experimental="false">
 
     <params>
         <texture id="noisex1" srcType="image" src="textures/iChannelX1.png" />

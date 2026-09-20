@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.sharpenv3" name="Sharpen V3" desc="Sharpens the image by adding a directional Laplacian of the luminance to the luma channel in YCbCr space, leaving chroma untouched. Type selects the derivative direction (horizontal, vertical, or either diagonal); Radius sets the sample distance and Strength the amount." category="blur" tags="other" thumb="thumb/10/10.png" experimental="false" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.sharpenv3" name="Sharpen V3" desc="Sharpens the image by adding a directional Laplacian of the luminance to the luma channel in YCbCr space, leaving chroma untouched. Type selects the derivative direction (horizontal, vertical, or either diagonal); Radius sets the sample distance and Strength the amount." category="procedural" tags="other" thumb="thumb/10/10.png" experimental="false" overdraw="true" max-overdraw="1.5">
 
     <params>
         <menu id="TYPE" style="radio" default="0">

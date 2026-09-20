@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.custom.effects.square_break_3d" name="Square Break 3D" desc="Breaks the layer into a grid of square tiles that zoom toward the camera with perspective scaling and outward parallax as Progress increases, then fade out. Break order can be random, center-out, directional, or corner-out, with per-tile speed variation, delay spread, and gap size. Cost rises steeply with row/column count." category="warp" tags="break,shatter,squares,3d,z,depth,zoom,forward,fly,tiles,perspective" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/turbulent_displace.webp" deprecated="false">
+<effect category_ultra="3D Layer & Depth" id="com.custom.effects.square_break_3d" name="Square Break 3D" desc="Breaks the layer into a grid of square tiles that zoom toward the camera with perspective scaling and outward parallax as Progress increases, then fade out. Break order can be random, center-out, directional, or corner-out, with per-tile speed variation, delay spread, and gap size. Cost rises steeply with row/column count." category="3d" tags="break,shatter,squares,3d,z,depth,zoom,forward,fly,tiles,perspective" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/turbulent_displace.webp" deprecated="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

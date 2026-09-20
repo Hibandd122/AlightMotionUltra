@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ghost" name="Ghost" desc="Overlays a zoomed copy of the layer that fades out over time, with Normal, Inverted B/W, Inverted Color, and Sobel Outline render types. Speed controls how fast the ghost zooms and fades." category="other" tags="ghost,zoom,fade,invert,outline" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/5/hardg.png" deprecated="false">
+<effect category_ultra="Color Looks & Tone Maps" id="com.alightcreative.effects.ghost" name="Ghost" desc="Overlays a zoomed copy of the layer that fades out over time, with Normal, Inverted B/W, Inverted Color, and Sobel Outline render types. Speed controls how fast the ghost zooms and fades." category="color" tags="ghost,zoom,fade,invert,outline" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/5/hardg.png" deprecated="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

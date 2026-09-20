@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/5/hardg.png" id="com.alightcreative.effects.rays_generate" name="Rays Generate" desc="Generates radial light-ray streaks by accumulating up to 256 pre-blurred samples along each of up to 16 evenly spaced directions, with exponential decay, spread, jitter, and softness controls. Very expensive at high count and length." category="blur" tags="rays,streaks" internal="true">
+<effect category_ultra="Space & Cosmic" thumb="thumb/5/hardg.png" id="com.alightcreative.effects.rays_generate" name="Rays Generate" desc="Generates radial light-ray streaks by accumulating up to 256 pre-blurred samples along each of up to 16 evenly spaced directions, with exponential decay, spread, jitter, and softness controls. Very expensive at high count and length." category="procedural" tags="rays,streaks" internal="true">
   <params>
     <texture id="inputImg" srcType="comp" />
     <slider id="angle" default="35.0" min="-3600" max="3600" step="0.5" type="angle" label="Angle" />

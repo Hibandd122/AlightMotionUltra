@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dots" name="@am:string/effect_dots_name" desc="@am:string/effect_dots_desc" category="procedural" tags="particle,procedural,random,raster" thumb="thumb/5/hardg.png" deprecated="true">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.dots" name="@am:string/effect_dots_name" desc="@am:string/effect_dots_desc" category="procedural" tags="particle,procedural,random,raster" thumb="thumb/5/hardg.png" deprecated="true">
 
 
     <params>

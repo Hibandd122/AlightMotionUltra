@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-square-tube" name="Square Tube" desc="Raymarches a hollow 3D square tube (outer box with inner box subtracted) and texture-maps the layer onto it; Size sets width, Height the length, Smoothing the wall thickness. Includes rotation/position/scale, five shading modes (flat, point light, directional light, depth map, normal map), and texture repeat/angle/twirl/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra3d.s3d-square-tube" name="Square Tube" desc="Raymarches a hollow 3D square tube (outer box with inner box subtracted) and texture-maps the layer onto it; Size sets width, Height the length, Smoothing the wall thickness. Includes rotation/position/scale, five shading modes (flat, point light, directional light, depth map, normal map), and texture repeat/angle/twirl/offset mapping." category="color" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

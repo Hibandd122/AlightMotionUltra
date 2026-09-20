@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.halftone_lightdots" name="Halftone Dots" desc="Classic print-style halftone: converts the image to a rotated dot grid where dot size is driven by source luminance (darker areas produce larger dots). Controls include frequency, angle, dot width and sharpness, black/white dot mode, custom dot and background colors, and an optional source smoothing to reduce flicker." category="drawingedge" tags="halftone,dots,screen,print,stylize" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Ink, Paint & Halftone" id="com.alightcreative.effects.halftone_lightdots" name="Halftone Dots" desc="Classic print-style halftone: converts the image to a rotated dot grid where dot size is driven by source luminance (darker areas produce larger dots). Controls include frequency, angle, dot width and sharpness, black/white dot mode, custom dot and background colors, and an optional source smoothing to reduce flicker." category="drawing" tags="halftone,dots,screen,print,stylize" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

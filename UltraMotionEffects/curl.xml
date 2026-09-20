@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.curl" name="@am:string/effect_curl_name" desc="@am:string/effect_curl_desc" category="warp" tags="warp,bend,raster,membersOnly" thumb="thumb/curl.webp">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.curl" name="@am:string/effect_curl_name" desc="@am:string/effect_curl_desc" category="distort" tags="warp,bend,raster,membersOnly" thumb="thumb/curl.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

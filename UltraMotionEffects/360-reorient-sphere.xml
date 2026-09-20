@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.360-reorient-sphere" name="@am:string/effect_360reorientsphere_name" desc="@am:string/effect_360reorientsphere_desc" category="warp" tags="vr, 3d, warp, 360, membersOnly, raster, distortion" thumb="thumb/360_reorient_sphere.webp" overdraw="false" experimental="false" deprecated="false">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.360-reorient-sphere" name="@am:string/effect_360reorientsphere_name" desc="@am:string/effect_360reorientsphere_desc" category="3d" tags="vr, 3d, warp, 360, membersOnly, raster, distortion" thumb="thumb/360_reorient_sphere.webp" overdraw="false" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

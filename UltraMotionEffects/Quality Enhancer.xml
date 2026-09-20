@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.toji.effects.quality_enhancer" name="Quality Enhancer" desc="Seven independently switchable image-enhancement modules applied in a fixed order: bilateral denoise, deband (Bayer-dithered), chromatic aberration fix, HDR local tone expansion, Clarity (midtone local contrast), Detail Recovery (single-scale Retinex), and Texture Boost (edge-suppressed micro-contrast), followed by output gamma and opacity." category="colorlight" tags="quality,clarity,deband,denoise,hdr,texture,ca,chromatic,aberration,enhance,detail,bilateral" thumb="thumb/2/3color.png" overdraw="false">
+<effect category_ultra="Color Grading" id="com.toji.effects.quality_enhancer" name="Quality Enhancer" desc="Seven independently switchable image-enhancement modules applied in a fixed order: bilateral denoise, deband (Bayer-dithered), chromatic aberration fix, HDR local tone expansion, Clarity (midtone local contrast), Detail Recovery (single-scale Retinex), and Texture Boost (edge-suppressed micro-contrast), followed by output gamma and opacity." category="color" tags="quality,clarity,deband,denoise,hdr,texture,ca,chromatic,aberration,enhance,detail,bilateral" thumb="thumb/2/3color.png" overdraw="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

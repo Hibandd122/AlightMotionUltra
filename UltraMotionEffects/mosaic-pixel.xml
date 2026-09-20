@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.mosaic-pixel" name="Mosaic" desc="Blocky pixel mosaic with adjustable tile size and optional rounded tiles." category="drawingedge" thumb="thumb/mosaic.webp" tags="stylize,pixel,mosaic,blocky,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.effects.extra2.mosaic-pixel" name="Mosaic" desc="Blocky pixel mosaic with adjustable tile size and optional rounded tiles." category="drawing" thumb="thumb/mosaic.webp" tags="stylize,pixel,mosaic,blocky,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

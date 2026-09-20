@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newtrails" name="New Startrails" desc="Procedural rotating star-trail sky: a hash-based starfield is re-sampled along an arc (Length sets the number of accumulation steps) to draw circular trails, with two star colors plus background color, star amount and softness, transform controls, and blend modes." category="procedural" tags="procedural" thumb="thumb/6/nstars.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.newtrails" name="New Startrails" desc="Procedural rotating star-trail sky: a hash-based starfield is re-sampled along an arc (Length sets the number of accumulation steps) to draw circular trails, with two star colors plus background color, star amount and softness, transform controls, and blend modes." category="procedural" tags="procedural" thumb="thumb/6/nstars.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF000000" label="BG Color" alpha="true" />

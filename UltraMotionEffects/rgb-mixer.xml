@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgb-mixer" name="@am:string/effect_rgb_mixer_name" desc="@am:string/effect_rgb_mixer_desc" category="colorlight" tags="raster,blur" thumb="thumb/2/rgb.png" experimental="true">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.rgb-mixer" name="@am:string/effect_rgb_mixer_name" desc="@am:string/effect_rgb_mixer_desc" category="blur" tags="raster,blur" thumb="thumb/2/rgb.png" experimental="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

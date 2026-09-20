@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.halftone_displace_edges" name="Halftone Plus" desc="Two-color rotatable halftone dot screen with dot size/spacing/scale, elliptical dots, and tone controls. Extras: color-match-driven UV displacement of the background, an edges-only mode that masks the halftone by a blurred Sobel edge detect, and sampled-color dot mode." category="drawingedge" thumb="thumb/5/hardg.png" tags="halftone,displace,edges,screen,dot" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.halftone_displace_edges" name="Halftone Plus" desc="Two-color rotatable halftone dot screen with dot size/spacing/scale, elliptical dots, and tone controls. Extras: color-match-driven UV displacement of the background, an edges-only mode that masks the halftone by a blurred Sobel edge detect, and sampled-color dot mode." category="blur" thumb="thumb/5/hardg.png" tags="halftone,displace,edges,screen,dot" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

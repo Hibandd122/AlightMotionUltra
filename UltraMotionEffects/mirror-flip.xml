@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.mirror-flip" name="Mirror" desc="Mirrors one half of the layer onto the other across a movable axis, with horizontal, vertical or quad modes." category="warp" thumb="thumb/mirror.webp" tags="mirror,symmetry,reflect,distort,raster">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.extra.mirror-flip" name="Mirror" desc="Mirrors one half of the layer onto the other across a movable axis, with horizontal, vertical or quad modes." category="distort" thumb="thumb/mirror.webp" tags="mirror,symmetry,reflect,distort,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

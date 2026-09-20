@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.shatter" name="Shatter" desc="Divides the screen into a square grid and offsets each cell's sampling position by a static random amount, resembling shattered glass. Tile Count sets grid density and Displacement the offset strength." category="warp" thumb="thumb/5/hardg.png" tags="distort,glitch,shatter,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.extra2.shatter" name="Shatter" desc="Divides the screen into a square grid and offsets each cell's sampling position by a static random amount, resembling shattered glass. Tile Count sets grid density and Displacement the offset strength." category="distort" thumb="thumb/5/hardg.png" tags="distort,glitch,shatter,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

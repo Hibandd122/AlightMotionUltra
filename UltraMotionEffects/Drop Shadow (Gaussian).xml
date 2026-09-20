@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.drop_shadow" name="Drop Shadow (Gaussian)" desc="Generates a soft drop shadow by offsetting the layer matte (alpha or luma, optionally inverted), blurring it with a separable Gaussian on half-resolution buffers, and compositing the foreground over the colored shadow." category="drawingedge" tags="shadow,drop,soft,blur,composite,lighting" thumb="thumb/5/hardg.png">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.drop_shadow" name="Drop Shadow (Gaussian)" desc="Generates a soft drop shadow by offsetting the layer matte (alpha or luma, optionally inverted), blurring it with a separable Gaussian on half-resolution buffers, and compositing the foreground over the colored shadow." category="blur" tags="shadow,drop,soft,blur,composite,lighting" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

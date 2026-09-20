@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.warp+" name="Warp+" desc="Multi-mode UV warp with 12 modes (fisheye, anti-fisheye, barrel, pincushion, bulge, bullseye, upper/lower shell, spherize, twirl, wave, ripple), plus polynomial K1-K3 lens distortion, bend, per-channel chromatic warp, edge handling (black/tile/reflect/clamp), and mix." category="warp" tags="warp,distort,fisheye,barrel,bulge,twirl,wave,ripple,spherize,bend" thumb="thumb/5/hardg.png">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.warp+" name="Warp+" desc="Multi-mode UV warp with 12 modes (fisheye, anti-fisheye, barrel, pincushion, bulge, bullseye, upper/lower shell, spherize, twirl, wave, ripple), plus polynomial K1-K3 lens distortion, bend, per-channel chromatic warp, edge handling (black/tile/reflect/clamp), and mix." category="3d" tags="warp,distort,fisheye,barrel,bulge,twirl,wave,ripple,spherize,bend" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

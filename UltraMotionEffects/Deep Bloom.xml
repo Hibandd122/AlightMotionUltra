@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.deep_glow_urp" name="Deep Bloom" desc="Single-pass bloom: a soft-knee threshold prefilter isolates bright areas, then a golden-angle spiral of 24-64 weighted taps spreads them into a smooth circular glow. Scatter controls falloff width; includes intensity, tint, Add/Screen/Lighten blending, quality, and glow-only view." category="colorlight" tags="glow,bloom,deep glow,scatter,threshold,light,soft,halation" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.deep_glow_urp" name="Deep Bloom" desc="Single-pass bloom: a soft-knee threshold prefilter isolates bright areas, then a golden-angle spiral of 24-64 weighted taps spreads them into a smooth circular glow. Scatter controls falloff width; includes intensity, tint, Add/Screen/Lighten blending, quality, and glow-only view." category="color" tags="glow,bloom,deep glow,scatter,threshold,light,soft,halation" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
   <params>
     <texture id="inputImg" srcType="content" />
 

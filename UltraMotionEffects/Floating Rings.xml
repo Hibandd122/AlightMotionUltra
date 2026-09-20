@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.floatingrings" name="Floating Rings" desc="Generates up to three layers of drifting hue-colored bubbles/rings on a hash-randomized grid, animated by auto or manual progress. Includes transform controls, a three-way shadow/midtone/highlight color balance, and normal/layer/multiply/screen blending." category="procedural" tags="procedural" thumb="thumb/12/10.png" experimental="false">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.floatingrings" name="Floating Rings" desc="Generates up to three layers of drifting hue-colored bubbles/rings on a hash-randomized grid, animated by auto or manual progress. Includes transform controls, a three-way shadow/midtone/highlight color balance, and normal/layer/multiply/screen blending." category="color" tags="procedural" thumb="thumb/12/10.png" experimental="false">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

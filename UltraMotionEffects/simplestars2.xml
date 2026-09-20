@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.simplestars2" name="@am:string/effect_simplestars_name" desc="@am:string/effect_simplestars_desc" category="procedural" tags="procedural,random,raster" thumb="thumb/1/0galaxy.png">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.simplestars2" name="@am:string/effect_simplestars_name" desc="@am:string/effect_simplestars_desc" category="procedural" tags="procedural,random,raster" thumb="thumb/1/0galaxy.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

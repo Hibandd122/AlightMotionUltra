@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fuji" name="Retro Grid and Sun" desc="Draws a synthwave scene: a banded retro sun above a scrolling perspective grid, each with independent position, scale, angle, alpha and colors over a background color. Sun Progress and Grid Progress animate the bands and scroll." category="procedural" tags="other" thumb="thumb/3/sun.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.fuji" name="Retro Grid and Sun" desc="Draws a synthwave scene: a banded retro sun above a scrolling perspective grid, each with independent position, scale, angle, alpha and colors over a background color. Sun Progress and Grid Progress animate the bands and scroll." category="procedural" tags="other" thumb="thumb/3/sun.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="scalex" default="false" label="Scale Normalize" />

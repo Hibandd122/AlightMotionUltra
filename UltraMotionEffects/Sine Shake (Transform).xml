@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.custom.effects.New_shake" name="Sine Shake (Transform)" desc="Script-driven layer shake: offsets the layer's actual position and rotation with phase-shifted sine waves. X/Y magnitude and rotation set the amplitudes; Gamma and Beta multiply together to set the oscillation frequency." auto-transform="true" category="warp" thumb="thumb/auto_shake.webp" tags="transform,auto,shake,sin,smooth">
+<effect category_ultra="Color Grading" id="com.custom.effects.New_shake" name="Sine Shake (Transform)" desc="Script-driven layer shake: offsets the layer's actual position and rotation with phase-shifted sine waves. X/Y magnitude and rotation set the amplitudes; Gamma and Beta multiply together to set the oscillation frequency." auto-transform="true" category="color" thumb="thumb/auto_shake.webp" tags="transform,auto,shake,sin,smooth">
 
     <params>
         <slider id="Xmag" min="0" max="500" step="0.5" default="25" label="X Magnitude" />

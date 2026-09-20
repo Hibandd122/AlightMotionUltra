@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rotating_particles_3d" name="3D Particles" desc="Renders up to 200 procedural particles positioned in 3D, projected with perspective and rotatable on X/Y/Z. Shapes include glow, circle, square, star, streak, or a custom texture; color blends near/far colors by depth with optional hue cycling." category="3d" thumb="thumb/11/3.png" tags="3d,particles,rotation,glow" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.rotating_particles_3d" name="3D Particles" desc="Renders up to 200 procedural particles positioned in 3D, projected with perspective and rotatable on X/Y/Z. Shapes include glow, circle, square, star, streak, or a custom texture; color blends near/far colors by depth with optional hue cycling." category="color" thumb="thumb/11/3.png" tags="3d,particles,rotation,glow" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputTexture" srcType="content" label="Custom Texture" />

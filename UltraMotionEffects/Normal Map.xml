@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.custom.effects.normal_map" name="Normal Map" desc="Builds a tangent-space normal map from the layer by running a 3x3 Sobel gradient over a height field taken from luminance, a single RGBA channel or saturation, with optional Gaussian pre-smoothing. Output modes show the encoded normals, the height map, or a Blinn-Phong lighting preview (light direction, color, ambient, specular) over the original." category="drawingedge" tags="normal,map,bump,lighting,3d,surface,technical" overdraw="false" experimental="false" thumb="thumb/0/stroke.png" deprecated="false">
+<effect category_ultra="Space & Cosmic" id="com.custom.effects.normal_map" name="Normal Map" desc="Builds a tangent-space normal map from the layer by running a 3x3 Sobel gradient over a height field taken from luminance, a single RGBA channel or saturation, with optional Gaussian pre-smoothing. Output modes show the encoded normals, the height map, or a Blinn-Phong lighting preview (light direction, color, ambient, specular) over the original." category="procedural" tags="normal,map,bump,lighting,3d,surface,technical" overdraw="false" experimental="false" thumb="thumb/0/stroke.png" deprecated="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

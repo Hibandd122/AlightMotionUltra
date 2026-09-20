@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.particlev2" name="StarGlow Particle V2" desc="Drifting glowing particles with motion-stretched bright cores, using a noise texture to drive per-particle positions and tangents. Controls for particle amount, trail length, spacing, amplitude, and a two-color gradient map with blend modes. Cost rises with particle amount." category="procedural" tags="other" thumb="thumb/10/3.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.particlev2" name="StarGlow Particle V2" desc="Drifting glowing particles with motion-stretched bright cores, using a noise texture to drive per-particle positions and tangents. Controls for particle amount, trail length, spacing, amplitude, and a two-color gradient map with blend modes. Cost rises with particle amount." category="color" tags="other" thumb="thumb/10/3.png" experimental="false">
 
     <params>
         <texture id="noisexx" srcType="image" src="textures/iChannel7.png" />

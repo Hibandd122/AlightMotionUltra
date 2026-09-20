@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.palettemap" name="@am:string/effect_palettemap_name" desc="@am:string/effect_palettemap_desc" category="colorlight" tags="color,retro,raster" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.palettemap" name="@am:string/effect_palettemap_name" desc="@am:string/effect_palettemap_desc" category="color" tags="color,retro,raster" thumb="thumb/5/hardg.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

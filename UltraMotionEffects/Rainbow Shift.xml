@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.rainbow-shift" name="Rainbow Shift" desc="Continuously cycles the hue of the layer through the full rainbow over time for a psychedelic animated color flow." category="colorlight" thumb="thumb/5/hardg.png" tags="color,rainbow,hue,animated,raster">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.extra.rainbow-shift" name="Rainbow Shift" desc="Continuously cycles the hue of the layer through the full rainbow over time for a psychedelic animated color flow." category="procedural" thumb="thumb/5/hardg.png" tags="color,rainbow,hue,animated,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

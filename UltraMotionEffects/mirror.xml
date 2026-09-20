@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.mirror" name="@am:string/effect_mirror_name" desc="@am:string/effect_mirror_desc" category="warp" tags="distort,raster" thumb="thumb/mirror.webp" overdraw="true" max-overdraw="0.1">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.mirror" name="@am:string/effect_mirror_name" desc="@am:string/effect_mirror_desc" category="distort" tags="distort,raster" thumb="thumb/mirror.webp" overdraw="true" max-overdraw="0.1">
 
     <params>
         <texture id="inputImg" srcType="content" />

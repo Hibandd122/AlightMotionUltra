@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.cross-hatch" name="Cross Hatch" desc="Sketch-style cross hatching that adds more line layers as the image gets darker." category="drawingedge" thumb="thumb/5/hardg.png" tags="stylize,hatch,sketch,ink,raster">
+<effect category_ultra="Ink, Paint & Halftone" id="com.alightcreative.effects.extra2.cross-hatch" name="Cross Hatch" desc="Sketch-style cross hatching that adds more line layers as the image gets darker." category="drawing" thumb="thumb/5/hardg.png" tags="stylize,hatch,sketch,ink,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

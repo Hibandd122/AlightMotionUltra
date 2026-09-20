@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glitchrand" name="Glitch Random Pattern" desc="Generates a black-and-white glitch mosaic of random rectangular blocks that reshuffle over time, with an optional cross-shaped blur. Complexity, Density and Switch Speed control the pattern; blend modes composite it over the layer." category="procedural" tags="other" thumb="thumb/12/18.png" experimental="false">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.glitchrand" name="Glitch Random Pattern" desc="Generates a black-and-white glitch mosaic of random rectangular blocks that reshuffle over time, with an optional cross-shaped blur. Complexity, Density and Switch Speed control the pattern; blend modes composite it over the layer." category="distort" tags="other" thumb="thumb/12/18.png" experimental="false">
 
     <params>
         

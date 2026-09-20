@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.edgeglow" name="@am:string/effect_edge_glow_name" desc="@am:string/effect_edge_glow_desc" tags="drawing,edge,neon" thumb="thumb/5/hardg.png" category="drawingedge" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.edgeglow" name="@am:string/effect_edge_glow_name" desc="@am:string/effect_edge_glow_desc" tags="drawing,edge,neon" thumb="thumb/5/hardg.png" category="color" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

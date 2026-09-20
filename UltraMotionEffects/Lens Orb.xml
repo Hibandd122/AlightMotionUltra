@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.example.learning.cclens" name="Lens Orb" desc="Spherical orb distortion: remaps pixels inside a circular radius using a spherical projection shaped by the Convergence control; everything outside the orb becomes transparent." category="warp" thumb="thumb/turbulent_displace.webp" tags="learning,distort,lens,orb" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Warp & Lens" id="com.example.learning.cclens" name="Lens Orb" desc="Spherical orb distortion: remaps pixels inside a circular radius using a spherical projection shaped by the Convergence control; everything outside the orb becomes transparent." category="distort" thumb="thumb/turbulent_displace.webp" tags="learning,distort,lens,orb" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

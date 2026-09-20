@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.motion_wiggle" name="2D Camera Shake (Wiggle)" desc="Procedural camera-shake transform driven by fractal (fBm) noise: wiggles position, rotation, and scale with adjustable amplitude, frequency, octaves, roughness, and seed. Optional mirrored edges and auto-expand hide the borders revealed by the shake." category="warp" tags="shake,wiggle,handheld,transform" thumb="thumb/auto_shake.webp">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.effects.motion_wiggle" name="2D Camera Shake (Wiggle)" desc="Procedural camera-shake transform driven by fractal (fBm) noise: wiggles position, rotation, and scale with adjustable amplitude, frequency, octaves, roughness, and seed. Optional mirrored edges and auto-expand hide the borders revealed by the shake." category="drawing" tags="shake,wiggle,handheld,transform" thumb="thumb/auto_shake.webp">
 
   <params>
     <texture id="inputImg" srcType="content" />

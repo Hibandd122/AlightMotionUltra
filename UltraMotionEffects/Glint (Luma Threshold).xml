@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glintx" name="Glint (Luma Threshold)" desc="Extracts image regions above a luminance threshold with adjustable feathering and tints them with a solid color or a positionable radial two-color gradient, replacing the layer content. Useful as a glint/shine or glow source." category="colorlight" tags="other" thumb="thumb/0/efek.png" experimental="true">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.glintx" name="Glint (Luma Threshold)" desc="Extracts image regions above a luminance threshold with adjustable feathering and tints them with a solid color or a positionable radial two-color gradient, replacing the layer content. Useful as a glint/shine or glow source." category="color" tags="other" thumb="thumb/0/efek.png" experimental="true">
 
     <params>
         <switch id="gradColor" default="false" label="Gradient Color" />

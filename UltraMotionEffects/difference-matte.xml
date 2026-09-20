@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.differencematte" name="@am:string/effect_diffmatte_name" desc="@am:string/effect_diffmatte_desc" category="mask" thumb="thumb/5/hardg.png" experimental="true" deprecated="true">
+<effect category_ultra="Wipes, Keys & Shatter" id="com.alightcreative.effects.differencematte" name="@am:string/effect_diffmatte_name" desc="@am:string/effect_diffmatte_desc" category="matte" thumb="thumb/5/hardg.png" experimental="true" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

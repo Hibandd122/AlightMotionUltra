@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.water_droplets" name="Water Droplets" desc="Procedural expanding water-droplet ripples: a hashed height field of up to 64 rings drives derived surface normals that refract an environment texture, with droplet count/speed/frequency, normal strength, droplets-only or additive compositing, and an optional shockwave distortion of the source." category="procedural" tags="water,droplets,ripples,normal,shader" thumb="thumb/3/sea.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.water_droplets" name="Water Droplets" desc="Procedural expanding water-droplet ripples: a hashed height field of up to 64 rings drives derived surface normals that refract an environment texture, with droplet count/speed/frequency, normal strength, droplets-only or additive compositing, and an optional shockwave distortion of the source." category="procedural" tags="water,droplets,ripples,normal,shader" thumb="thumb/3/sea.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     

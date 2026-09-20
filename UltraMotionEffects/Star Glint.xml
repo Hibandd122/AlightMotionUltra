@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glinty" name="Star Glint" desc="Adds star-shaped glint streaks to bright areas by streak-blurring a highlight pre-pass in four directions, combined as cross, plus or 8-point star. Spreading sets the highlight cutoff and Strength the streak length; optional two-color gradient tint." category="colorlight" tags="drawing" thumb="thumb/5/starg.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.glinty" name="Star Glint" desc="Adds star-shaped glint streaks to bright areas by streak-blurring a highlight pre-pass in four directions, combined as cross, plus or 8-point star. Spreading sets the highlight cutoff and Strength the streak length; optional two-color gradient tint." category="color" tags="drawing" thumb="thumb/5/starg.png" experimental="false">
 
     <params>
         <menu id="type" style="radio" default="0" label="Type">

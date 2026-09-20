@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hexprism" name="@am:string/effect_hexprism_name" desc="@am:string/effect_hexprism_desc" category="3d" tags="3d,shape,lighting" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.hexprism" name="@am:string/effect_hexprism_name" desc="@am:string/effect_hexprism_desc" category="distort" tags="3d,shape,lighting" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="0.2" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smallringswater" name="Water Ripple Rings" desc="Simulates rain ripples: tiled cells spawn expanding concentric ring waves at random positions and times, layered over several iterations. Controls include Amount, Rain Speed, Sharpness, Expand Speed, Num Rings and Strength." category="procedural" tags="other" thumb="thumb/8/rings.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.smallringswater" name="Water Ripple Rings" desc="Simulates rain ripples: tiled cells spawn expanding concentric ring waves at random positions and times, layered over several iterations. Controls include Amount, Rain Speed, Sharpness, Expand Speed, Num Rings and Strength." category="procedural" tags="other" thumb="thumb/8/rings.png" experimental="false">
 
     <params>
         <slider id="numIterations" label="Amount" default="4" min="0" max="5" step="1.0" type="integer" />

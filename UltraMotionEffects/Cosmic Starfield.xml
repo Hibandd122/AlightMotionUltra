@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cosmicycles" name="Cosmic Starfield" desc="Layered procedural starfield: multiple zooming star layers with per-star sparkle and twinkle (Stars Shine/Blink) and optional auto rotate/scale. An optional Burst mode warps the field radially and adds animated rays in a separate burst color." category="procedural" tags="other" thumb="thumb/7/cstar.png" experimental="false">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.cosmicycles" name="Cosmic Starfield" desc="Layered procedural starfield: multiple zooming star layers with per-star sparkle and twinkle (Stars Shine/Blink) and optional auto rotate/scale. An optional Burst mode warps the field radially and adds animated rays in a separate burst color." category="procedural" tags="other" thumb="thumb/7/cstar.png" experimental="false">
 
     <params>
         <color id="COL" default="#FF9B6699" label="Color Stars" alpha="true" />

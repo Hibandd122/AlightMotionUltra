@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.s3d-rounded-pyramid" name="Rounded Pyramid" desc="A ray-marched 3D square pyramid with adjustable edge rounding, textured with the layer. Includes orientation, position and size controls, six shading modes (flat, point light, directional light, depth, normal, normal-with-depth), and texture repeat/offset mapping." category="procedural" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra3d.s3d-rounded-pyramid" name="Rounded Pyramid" desc="A ray-marched 3D square pyramid with adjustable edge rounding, textured with the layer. Includes orientation, position and size controls, six shading modes (flat, point light, directional light, depth, normal, normal-with-depth), and texture repeat/offset mapping." category="color" tags="3d,shape,geometric,lighting,raster" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

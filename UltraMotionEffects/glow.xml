@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.glow" name="@am:string/effect_glow_name" desc="@am:string/effect_glow_desc" category="drawingedge" tags="drawing,edge,neon,classic,raster" thumb="thumb/5/hardg.png">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.glow" name="@am:string/effect_glow_name" desc="@am:string/effect_glow_desc" category="color" tags="drawing,edge,neon,classic,raster" thumb="thumb/5/hardg.png">
 
     
         

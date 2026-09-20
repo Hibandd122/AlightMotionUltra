@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fillbehind" name="@am:string/effect_fill_behind_name" desc="@am:string/effect_fill_behind_desc" category="other" tags="compositing,raster,blur" thumb="thumb/glow_scan.webp" experimental="false">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.fillbehind" name="@am:string/effect_fill_behind_name" desc="@am:string/effect_fill_behind_desc" category="blur" tags="compositing,raster,blur" thumb="thumb/glow_scan.webp" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

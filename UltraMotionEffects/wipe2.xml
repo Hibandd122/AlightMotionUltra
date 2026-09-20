@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.wipe2" name="@am:string/effect_wipe_name" desc="@am:string/effect_wipe_desc" category="mask" tags="mask,matte,raster" thumb="thumb/5/hardg.png">
+<effect category_ultra="Wipes, Keys & Shatter" id="com.alightcreative.effects.wipe2" name="@am:string/effect_wipe_name" desc="@am:string/effect_wipe_desc" category="matte" tags="mask,matte,raster" thumb="thumb/5/hardg.png">
 
     
         

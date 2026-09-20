@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.orbit_gradient_screen" name="Orbiting Gradient Lights" desc="Renders two colored point lights orbiting the screen center on opposite sides, with exponential falloff and optional grain, then blends the result over the layer using a selectable blend mode. Speed, Progress, Angle, and Radius control the orbit." category="colorlight" thumb="thumb/5/hardg.png" tags="gradient,screen,stylize">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.orbit_gradient_screen" name="Orbiting Gradient Lights" desc="Renders two colored point lights orbiting the screen center on opposite sides, with exponential falloff and optional grain, then blends the result over the layer using a selectable blend mode. Speed, Progress, Angle, and Radius control the orbit." category="procedural" thumb="thumb/5/hardg.png" tags="gradient,screen,stylize">
 
   <params>
     <texture id="inputImg" srcType="content" />

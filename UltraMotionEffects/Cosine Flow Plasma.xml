@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cos_uv_flow" name="Cosine Flow Plasma" desc="Generates an animated plasma-like light pattern by iteratively warping coordinates with cosine flow (Shadertoy port) and composites it over the layer. Frequency X/Y, Amount, Speed, and Base Brightness shape the pattern; Opacity blends it with the source." category="colorlight" tags="shadertoy,flow,warp,procedural" thumb="thumb/1/0plasma.png">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.cos_uv_flow" name="Cosine Flow Plasma" desc="Generates an animated plasma-like light pattern by iteratively warping coordinates with cosine flow (Shadertoy port) and composites it over the layer. Frequency X/Y, Amount, Speed, and Base Brightness shape the pattern; Opacity blends it with the source." category="color" tags="shadertoy,flow,warp,procedural" thumb="thumb/1/0plasma.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

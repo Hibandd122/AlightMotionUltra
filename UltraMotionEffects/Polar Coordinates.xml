@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.polar-coords" name="Polar Coordinates" desc="Wraps the image into polar space (or back), great for tiny-planet and tunnel looks." category="warp" thumb="thumb/5/hardg.png" tags="distort,polar,warp,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.extra2.polar-coords" name="Polar Coordinates" desc="Wraps the image into polar space (or back), great for tiny-planet and tunnel looks." category="procedural" thumb="thumb/5/hardg.png" tags="distort,polar,warp,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

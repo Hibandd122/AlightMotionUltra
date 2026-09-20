@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bccedgeglow" name="Edge Glow" desc="Detects image edges (luminance, Sobel, color, or Laplacian) and renders them as a colored glow with separate inner and outer glow controls, gradient color mapping, pulse and hue-rotation animation, and Add/Screen/Soft Light/Replace compositing." category="colorlight" tags="edge,glow,outline,neon,sobel,laplacian,cinematic" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.bccedgeglow" name="Edge Glow" desc="Detects image edges (luminance, Sobel, color, or Laplacian) and renders them as a colored glow with separate inner and outer glow controls, gradient color mapping, pulse and hue-rotation animation, and Add/Screen/Soft Light/Replace compositing." category="color" tags="edge,glow,outline,neon,sobel,laplacian,cinematic" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
     <params>
         <texture id="inputImg" srcType="content" />
         <texture id="edgeBuf" srcType="buffer" downsample="2" />

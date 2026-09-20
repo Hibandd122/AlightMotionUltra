@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cube_skybox" name="Cube Skybox" desc="Raymarches a textured 3D box mapped with the layer, surrounded by an equirectangular skybox sampled from the composition behind. Includes orientation, size, position, and point/directional light shading with depth and normal debug modes." category="3d" thumb="thumb/1/03d.png" overdraw="true" tags="3d,shape,lighting,raster" max-overdraw="1.5" experimental="false" deprecated="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.cube_skybox" name="Cube Skybox" desc="Raymarches a textured 3D box mapped with the layer, surrounded by an equirectangular skybox sampled from the composition behind. Includes orientation, size, position, and point/directional light shading with depth and normal debug modes." category="procedural" thumb="thumb/1/03d.png" overdraw="true" tags="3d,shape,lighting,raster" max-overdraw="1.5" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

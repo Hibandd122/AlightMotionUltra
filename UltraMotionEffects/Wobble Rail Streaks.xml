@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.wobble_rail_streaks" name="Wobble Rail Streaks" desc="Renders a procedural tunnel of colored, wobbling rail streaks flying past the camera (Shadertoy port), replacing the layer content. Layered depth stepping with per-rail random angle, color, dot pattern, wobble, and shadow accumulation; Z Speed animates the motion." category="procedural" tags="streaks, rails, motion" thumb="thumb/5/hardg.png">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.wobble_rail_streaks" name="Wobble Rail Streaks" desc="Renders a procedural tunnel of colored, wobbling rail streaks flying past the camera (Shadertoy port), replacing the layer content. Layered depth stepping with per-rail random angle, color, dot pattern, wobble, and shadow accumulation; Z Speed animates the motion." category="repeat" tags="streaks, rails, motion" thumb="thumb/5/hardg.png">
 
     <params>
         

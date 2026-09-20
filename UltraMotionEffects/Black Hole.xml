@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.activeblackhole" name="Black Hole" desc="Circular black-hole mask: pixels inside the radius become transparent while surrounding content is pulled toward the center with a gravity-style UV warp. Size, warp strength, feather, center, and invert controls." category="warp" tags="distort,blackhole,warp,circle,mask" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0"> 
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.activeblackhole" name="Black Hole" desc="Circular black-hole mask: pixels inside the radius become transparent while surrounding content is pulled toward the center with a gravity-style UV warp. Size, warp strength, feather, center, and invert controls." category="procedural" tags="distort,blackhole,warp,circle,mask" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0"> 
     <params>
         <texture id="inputImg" srcType="content" />
         <slider id="size" default="0.25" min="0.0" max="10.5" step="0.01" label="Size" />

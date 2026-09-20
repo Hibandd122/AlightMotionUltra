@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dropshadow" name="Drop Shadow+" desc="Renders a drop shadow by Gaussian-blurring the layer, offsetting the result and tinting its alpha with a chosen color, then compositing the original layer on top. Controls for blur radius, shadow position, shadow color/opacity and overall layer opacity." category="drawingedge" tags="drawing" thumb="thumb/0/sedow.png" experimental="false">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.dropshadow" name="Drop Shadow+" desc="Renders a drop shadow by Gaussian-blurring the layer, offsetting the result and tinting its alpha with a chosen color, then compositing the original layer on top. Controls for blur radius, shadow position, shadow color/opacity and overall layer opacity." category="blur" tags="drawing" thumb="thumb/0/sedow.png" experimental="false">
 
     <params>
         <color id="colorshadow" default="#BA000000" label="Shadow Color" alpha="true" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.chrome-matcap" name="3D Chrome" desc="Turns the layer into a shiny chrome metal surface using image brightness as a 3D surface." category="drawingedge" thumb="thumb/1/0metal.png" tags="3d,chrome,metal,matcap,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.extra3d.chrome-matcap" name="3D Chrome" desc="Turns the layer into a shiny chrome metal surface using image brightness as a 3D surface." category="3d" thumb="thumb/1/0metal.png" tags="3d,chrome,metal,matcap,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

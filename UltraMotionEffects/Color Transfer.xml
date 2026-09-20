@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.color_transfer_adjustment" name="Color Transfer" desc="Statistical color match: samples the composition below and a reference image on a grid, computes per-channel YUV mean/std statistics, and remaps the comp toward the reference (Reinhard-style transfer). Includes contrast matching (min/max or robust mean±2σ), chroma-only mode, and strength controls. Place on a full-screen layer on top." category="colorlight" tags="color,match,transfer,grading,adjustment" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.color_transfer_adjustment" name="Color Transfer" desc="Statistical color match: samples the composition below and a reference image on a grid, computes per-channel YUV mean/std statistics, and remaps the comp toward the reference (Reinhard-style transfer). Includes contrast matching (min/max or robust mean±2σ), chroma-only mode, and strength controls. Place on a full-screen layer on top." category="color" tags="color,match,transfer,grading,adjustment" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="compSrc" srcType="comp" />

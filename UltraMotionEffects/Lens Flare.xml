@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.lens-flare" name="Lens Flare" desc="Procedural anamorphic lens flare with a glowing halo and a chain of lens ghosts." category="colorlight" thumb="thumb/5/hardg.png" tags="drawing,light,flare,lens,raster">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra2.lens-flare" name="Lens Flare" desc="Procedural anamorphic lens flare with a glowing halo and a chain of lens ghosts." category="color" thumb="thumb/5/hardg.png" tags="drawing,light,flare,lens,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

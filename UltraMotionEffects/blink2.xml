@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.blink2" name="@am:string/effect_blink_name" desc="@am:string/effect_blink_desc" category="opacity" thumb="thumb/blink.webp" tags="opacity, visibility, auto, propadjust">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.blink2" name="@am:string/effect_blink_name" desc="@am:string/effect_blink_desc" category="3d" thumb="thumb/blink.webp" tags="opacity, visibility, auto, propadjust">
 
     
         

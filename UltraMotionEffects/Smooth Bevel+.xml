@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.internal.smoothbevelnew" name="Smooth Bevel+" desc="Adds a rounded bevel to the layer's alpha edges using a two-pass distance transform, then lights it with separately angled diffuse and specular components (per-component color, intensity, and elevation, plus specular coefficient and a quality iteration control). Large radii sample many pixels and are costly." thumb="thumb/4/bevel.png" category="drawingedge" tags="edge,drawing,raster,membersOnly" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.internal.smoothbevelnew" name="Smooth Bevel+" desc="Adds a rounded bevel to the layer's alpha edges using a two-pass distance transform, then lights it with separately angled diffuse and specular components (per-component color, intensity, and elevation, plus specular coefficient and a quality iteration control). Large radii sample many pixels and are costly." thumb="thumb/4/bevel.png" category="drawing" tags="edge,drawing,raster,membersOnly" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

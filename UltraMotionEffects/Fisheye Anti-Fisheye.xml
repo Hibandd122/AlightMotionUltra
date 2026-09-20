@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fisheye_antifisheye" name="Fisheye / Anti-Fisheye" desc="Barrel (fisheye) and pincushion (anti-fisheye) lens distortion driven by a single signed Power control, with adjustable center and optional aspect correction to keep the effect circular." category="warp" tags="fisheye,barrel,pincushion,distort,lens" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.fisheye_antifisheye" name="Fisheye / Anti-Fisheye" desc="Barrel (fisheye) and pincushion (anti-fisheye) lens distortion driven by a single signed Power control, with adjustable center and optional aspect correction to keep the effect circular." category="3d" tags="fisheye,barrel,pincushion,distort,lens" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhs_scanline" name="VHS Scanline" desc="VHS-style overlay: angled scrolling scanlines, procedural grain, a probability-gated glitch offset, and a horizontal noise band with static, warp, and RGB chroma split. Blend controls how strongly the overlay mixes with the source." category="other" tags="vhs,scanline,glitch,grain" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.vhs_scanline" name="VHS Scanline" desc="VHS-style overlay: angled scrolling scanlines, procedural grain, a probability-gated glitch offset, and a horizontal noise band with static, warp, and RGB chroma split. Blend controls how strongly the overlay mixes with the source." category="procedural" tags="vhs,scanline,glitch,grain" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

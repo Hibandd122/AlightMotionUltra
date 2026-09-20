@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rays_edge" name="Edge Rays" desc="Two-pass radial light rays: an edge-detect pass isolates layer edges, then rays are accumulated by marching up to Quality samples from each pixel toward a center point, with length, intensity, threshold, color fill/blend, and feather controls. High Quality values are very expensive." category="colorlight" thumb="thumb/5/hardg.png" tags="rays,edges,stylize">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.rays_edge" name="Edge Rays" desc="Two-pass radial light rays: an edge-detect pass isolates layer edges, then rays are accumulated by marching up to Quality samples from each pixel toward a center point, with length, intensity, threshold, color fill/blend, and feather controls. High Quality values are very expensive." category="color" thumb="thumb/5/hardg.png" tags="rays,edges,stylize">
 
   <params>
     <texture id="inputImg" srcType="content" />

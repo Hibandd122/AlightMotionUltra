@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smoothchromatic" name="Smooth Chromatic" desc="Applies a smooth radial chromatic-aberration blur: red, green, and blue channels are accumulated along outward vectors from the center at increasing offsets, growing stronger toward the edges. Quality sets the sample count, with Blur Strength, Falloff, and an anti-overdraw switch." category="blur" tags="blur" thumb="thumb/12/12.png" experimental="false">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.smoothchromatic" name="Smooth Chromatic" desc="Applies a smooth radial chromatic-aberration blur: red, green, and blue channels are accumulated along outward vectors from the center at increasing offsets, growing stronger toward the edges. Quality sets the sample count, with Blur Strength, Falloff, and an anti-overdraw switch." category="blur" tags="blur" thumb="thumb/12/12.png" experimental="false">
 
     <params>
         

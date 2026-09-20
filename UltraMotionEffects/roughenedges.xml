@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.roughenedges" name="@am:string/effect_roughenedges_name" desc="@am:string/effect_roughenedges_desc" category="drawingedge" tags="edge,drawing,glitch,raster" thumb="thumb/5/hardg.png" deprecated="false">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.roughenedges" name="@am:string/effect_roughenedges_name" desc="@am:string/effect_roughenedges_desc" category="distort" tags="edge,drawing,glitch,raster" thumb="thumb/5/hardg.png" deprecated="false">
 
     
         

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.starfield2" name="@am:string/effect_starfield_name" desc="@am:string/effect_starfield_desc" category="procedural" tags="procedural,random,raster" thumb="thumb/starfield.webp" deprecated="true">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.starfield2" name="@am:string/effect_starfield_name" desc="@am:string/effect_starfield_desc" category="procedural" tags="procedural,random,raster" thumb="thumb/starfield.webp" deprecated="true">
 
     
 

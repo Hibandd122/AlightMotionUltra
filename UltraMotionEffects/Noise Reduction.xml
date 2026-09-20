@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.denoise" name="Noise Reduction" desc="Smoothing denoiser that averages samples along a golden-angle spiral, weighting each by hue and saturation similarity to preserve edges and color detail. Iterations sets quality versus speed; Radius sets the sampling area." category="blur" tags="other" thumb="thumb/2/denoise.png" experimental="false">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.denoise" name="Noise Reduction" desc="Smoothing denoiser that averages samples along a golden-angle spiral, weighting each by hue and saturation similarity to preserve edges and color detail. Iterations sets quality versus speed; Radius sets the sampling area." category="color" tags="other" thumb="thumb/2/denoise.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.coloradj" name="Color Adjust" desc="Color Adjust" category="colorlight" thumb="thumb/saturation_vibrance.webp" deprecated="true">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.coloradj" name="Color Adjust" desc="Color Adjust" category="color" thumb="thumb/saturation_vibrance.webp" deprecated="true">
 
     
         

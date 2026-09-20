@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.mbl_colorista" name="Colorista" desc="Three-way color correction in the style of Magic Bullet Colorista: Shadows/Midtones/Highlights hue wheels applied through luminance masks, plus temperature/tint white balance, linear-light exposure and contrast, a 3-point tone curve with per-channel lift, hue shift, saturation, and strength/blend." category="colorlight" tags="colorista,color,grade,shadows,midtones,highlights,wheels,temperature,exposure,magic bullet,ae" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.mbl_colorista" name="Colorista" desc="Three-way color correction in the style of Magic Bullet Colorista: Shadows/Midtones/Highlights hue wheels applied through luminance masks, plus temperature/tint white balance, linear-light exposure and contrast, a 3-point tone curve with per-channel lift, hue shift, saturation, and strength/blend." category="color" tags="colorista,color,grade,shadows,midtones,highlights,wheels,temperature,exposure,magic bullet,ae" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

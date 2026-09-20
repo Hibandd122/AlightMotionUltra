@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.jitter" name="@am:string/effect_jitter_name" desc="@am:string/effect_jitter_desc" auto-transform="true" category="movetransform" tags="transform,shake,propAdjust,parenting,camera" thumb="thumb/5/hardg.png">
+<effect category_ultra="3D Props & Objects" id="com.alightcreative.effects.jitter" name="@am:string/effect_jitter_name" desc="@am:string/effect_jitter_desc" auto-transform="true" category="3d" tags="transform,shake,propAdjust,parenting,camera" thumb="thumb/5/hardg.png">
 
     <params>
         <slider id="angle" default="45" min="0.0" max="180.0" label="@am:string/effect_param_angle" type="angle" />

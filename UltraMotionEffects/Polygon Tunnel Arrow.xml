@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.polygon_tunnel_arrow" name="Polygon Tunnel Arrow" desc="Procedurally generated tunnel: maps the screen into a twisting square/round tunnel and tiles it with rectangle and triangle shapes drawn as a repeating grid. Controls cover animation speed, twist, grid scale and warp, shape sizes, and gamma." category="procedural" tags="tunnel, polygon, grid" thumb="thumb/3/tunnel.png">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.polygon_tunnel_arrow" name="Polygon Tunnel Arrow" desc="Procedurally generated tunnel: maps the screen into a twisting square/round tunnel and tiles it with rectangle and triangle shapes drawn as a repeating grid. Controls cover animation speed, twist, grid scale and warp, shape sizes, and gamma." category="repeat" tags="tunnel, polygon, grid" thumb="thumb/3/tunnel.png">
 
     <params>
         

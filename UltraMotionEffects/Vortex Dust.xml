@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vortextdust" name="Vortex Dust" desc="Swirling vortex of colored dust wisps built from layered angular sine masks that rotate and pan upward. Amount sets the wisp layers; Seed, Pan and Speed vary the motion, with a luminance FG/BG gradient recolor and blend modes." category="procedural" tags="other" thumb="thumb/7/vort.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.vortextdust" name="Vortex Dust" desc="Swirling vortex of colored dust wisps built from layered angular sine masks that rotate and pan upward. Amount sets the wisp layers; Seed, Pan and Speed vary the motion, with a luminance FG/BG gradient recolor and blend modes." category="color" tags="other" thumb="thumb/7/vort.png" experimental="false">
 
     <params>
         <slider id="ITERATIONS" label="Amount" default="5" min="0" max="30" step="1.0" type="integer" snap="5,10,15,20,25" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/5/hardg.png" id="com.alightcreative.effects.time_slice_mask" name="Time Slice Mask" desc="Internal mask pass for Time Slice Wipe: generates a directional banded wipe matte from angle, band count, smoothness, feather and speed, animated over time." category="warp" tags="extra" internal="true">
+<effect category_ultra="Water, Glass & Refraction" thumb="thumb/5/hardg.png" id="com.alightcreative.effects.time_slice_mask" name="Time Slice Mask" desc="Internal mask pass for Time Slice Wipe: generates a directional banded wipe matte from angle, band count, smoothness, feather and speed, animated over time." category="distort" tags="extra" internal="true">
 
   <params>
     <texture id="inputImg" srcType="content" />

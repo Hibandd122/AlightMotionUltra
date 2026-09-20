@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.brushsketch" name="Brush Sketch" desc="Painterly smoothing using a Kuwahara filter: computes mean and variance over four square quadrants around each pixel and outputs the mean of the least-variant quadrant, producing a brush-stroke look. Strength sets the kernel radius." category="drawingedge" tags="other" thumb="thumb/9/brush.png" experimental="false">
+<effect category_ultra="Ink, Paint & Halftone" id="com.alightcreative.effects.brushsketch" name="Brush Sketch" desc="Painterly smoothing using a Kuwahara filter: computes mean and variance over four square quadrants around each pixel and outputs the mean of the least-variant quadrant, producing a brush-stroke look. Strength sets the kernel radius." category="drawing" tags="other" thumb="thumb/9/brush.png" experimental="false">
 
     <params>
         <slider id="RADIUSS" label="Strength" default="10" min="0" max="15" step="1.0" type="integer" />

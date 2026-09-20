@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.procedural_perlin_hsv_noise" name="Perlin Noise (HSV)" desc="Animated 3D Perlin fractal (fBm) noise generator with optional HSV colorization: noise value drives hue with adjustable hue scale, saturation, and value. Octaves, scale, lacunarity, gain, speed, seed, and blend-with-source controls." category="procedural" tags="noise,perlin,fractal,procedural,hsv,shader" thumb="thumb/5/hardg.png">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.procedural_perlin_hsv_noise" name="Perlin Noise (HSV)" desc="Animated 3D Perlin fractal (fBm) noise generator with optional HSV colorization: noise value drives hue with adjustable hue scale, saturation, and value. Octaves, scale, lacunarity, gain, speed, seed, and blend-with-source controls." category="3d" tags="noise,perlin,fractal,procedural,hsv,shader" thumb="thumb/5/hardg.png">
 
   <params>
     <texture id="inputImg" srcType="content" />

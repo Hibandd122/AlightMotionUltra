@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rays" name="@am:string/effect_rays_name" desc="@am:string/effect_rays_desc" category="colorlight" tags="color,raster" thumb="thumb/rays.webp">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.rays" name="@am:string/effect_rays_name" desc="@am:string/effect_rays_desc" category="color" tags="color,raster" thumb="thumb/rays.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

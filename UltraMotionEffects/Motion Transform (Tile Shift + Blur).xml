@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smooth_transform_tileshift" name="Motion Transform (Tile Shift + Blur)" desc="Script-driven transform that adds X/Y shift, rotation and Z-distance scaling (each invertible) to the layer, plus two shader passes: optional random tile displacement of the image grid and a 5-tap horizontal motion blur." category="warp" tags="transform,tile,blur" thumb="thumb/5/hardg.png">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.smooth_transform_tileshift" name="Motion Transform (Tile Shift + Blur)" desc="Script-driven transform that adds X/Y shift, rotation and Z-distance scaling (each invertible) to the layer, plus two shader passes: optional random tile displacement of the image grid and a 5-tap horizontal motion blur." category="blur" tags="transform,tile,blur" thumb="thumb/5/hardg.png">
 
     <params>
         

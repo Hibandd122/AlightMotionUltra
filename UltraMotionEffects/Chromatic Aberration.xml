@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.chromabbr" name="Chromatic Aberration" desc="Applies radial (fisheye/barrel) lens distortion and samples the red, green, and blue channels with offset distortion coefficients to produce chromatic fringing. Amplitude sets the lens curvature, RGB Split sets the channel separation, and Alpha mixes with the original." category="warp" tags="distort" deprecated="false" thumb="thumb/1/0chroo.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.chromabbr" name="Chromatic Aberration" desc="Applies radial (fisheye/barrel) lens distortion and samples the red, green, and blue channels with offset distortion coefficients to produce chromatic fringing. Amplitude sets the lens curvature, RGB Split sets the channel separation, and Alpha mixes with the original." category="distort" tags="distort" deprecated="false" thumb="thumb/1/0chroo.png" overdraw="true" max-overdraw="1.0">
     <params>
         <texture id="inputImg" srcType="content" />
         <slider id="amp" default="-0.15" min="-10.0" max="10.0" label="Amplitude" step="0.0025" />

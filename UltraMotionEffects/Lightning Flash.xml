@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lightningflash" name="Lightning Flash" desc="Draws a randomized branching lightning bolt from chains of tapered capsule SDF segments (main bolt plus two branches) with a subtle sky glow, recolored through a two-color gradient map. Controls for segment length, randomization progress/speed and standard transform/blend options." category="colorlight" tags="other" thumb="thumb/9/kirinv2.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.lightningflash" name="Lightning Flash" desc="Draws a randomized branching lightning bolt from chains of tapered capsule SDF segments (main bolt plus two branches) with a subtle sky glow, recolored through a two-color gradient map. Controls for segment length, randomization progress/speed and standard transform/blend options." category="procedural" tags="other" thumb="thumb/9/kirinv2.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF000000" label="Color BG" alpha="true" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.repeat.scatter" name="@am:string/effect_repeatscatter_name" desc="@am:string/effect_repeatscatter_desc" category="repeat" tags="repeat,membersOnly,random" thumb="thumb/5/hardg.png">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.repeat.scatter" name="@am:string/effect_repeatscatter_name" desc="@am:string/effect_repeatscatter_desc" category="repeat" tags="repeat,membersOnly,random" thumb="thumb/5/hardg.png">
 
     
         

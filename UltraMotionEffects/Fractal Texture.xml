@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.fractaltexture" name="Fractal Texture" desc="Generates a kaleidoscopic fractal texture by iterating a fixed 128-step sphere-inversion map. Offset steers the fractal parameters; scale, rotate, alpha and Normal/Multiply/Screen blending are provided." category="procedural" tags="other" thumb="thumb/1/0fractal.png" experimental="false">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.effects.fractaltexture" name="Fractal Texture" desc="Generates a kaleidoscopic fractal texture by iterating a fixed 128-step sphere-inversion map. Offset steers the fractal parameters; scale, rotate, alpha and Normal/Multiply/Screen blending are provided." category="3d" tags="other" thumb="thumb/1/0fractal.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

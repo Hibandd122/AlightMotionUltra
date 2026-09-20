@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.zoomblur" name="@string/name" desc="@string/desc" category="blur" thumb="thumb/zoom_blur.webp" deprecated="true">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.zoomblur" name="@string/name" desc="@string/desc" category="blur" thumb="thumb/zoom_blur.webp" deprecated="true">
 
     
 

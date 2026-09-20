@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.isolinev2" name="Noise Isolines" desc="Draws animated contour-line (isoline) stripes by taking the sine of the difference of two simplex noise fields. Supports manual or time-driven progress, transform controls, a two-color gradient map, and blend modes over the layer." category="procedural" tags="other" thumb="thumb/11/6.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.isolinev2" name="Noise Isolines" desc="Draws animated contour-line (isoline) stripes by taking the sine of the difference of two simplex noise fields. Supports manual or time-driven progress, transform controls, a two-color gradient map, and blend modes over the layer." category="color" tags="other" thumb="thumb/11/6.png" experimental="false">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

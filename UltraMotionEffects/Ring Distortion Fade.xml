@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ring_distortion_fade" name="Ring Distortion Fade" desc="Animated radial band that distorts pixels toward the center; fades strength over time." category="procedural" tags="distort,transition,radial,fade,ripple" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.ring_distortion_fade" name="Ring Distortion Fade" desc="Animated radial band that distorts pixels toward the center; fades strength over time." category="distort" tags="distort,transition,radial,fade,ripple" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" label="Layer" />

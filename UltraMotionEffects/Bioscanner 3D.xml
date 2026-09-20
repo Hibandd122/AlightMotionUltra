@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bioscanner" name="Bioscanner 3D" desc="Procedural sci-fi scanner overlay: weaving sine-wave strands with pseudo-3D depth, noise distortion, glitch tearing with optional invert, crosshair target, border and tick-mark UI, grain, and glow. Can screen over the source footage or replace it." category="procedural" tags="scifi,ui,scanner,noise,glitch,sine,hud,3d,strands" thumb="thumb/5/hardg.png">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.bioscanner" name="Bioscanner 3D" desc="Procedural sci-fi scanner overlay: weaving sine-wave strands with pseudo-3D depth, noise distortion, glitch tearing with optional invert, crosshair target, border and tick-mark UI, grain, and glow. Can screen over the source footage or replace it." category="procedural" tags="scifi,ui,scanner,noise,glitch,sine,hud,3d,strands" thumb="thumb/5/hardg.png">
   <params>
     <texture id="inputImg" srcType="content" />
 

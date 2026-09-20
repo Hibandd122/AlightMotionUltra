@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.snowreal" name="Snow Falling" desc="Layered procedural falling snow with per-layer parallax, drift and depth-of-field softness. Amount sets the layer count and Progress (or auto progress) drives the fall; tint color, brightness and blend modes included." category="procedural" tags="procedural" thumb="thumb/5/snow.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.snowreal" name="Snow Falling" desc="Layered procedural falling snow with per-layer parallax, drift and depth-of-field softness. Amount sets the layer count and Progress (or auto progress) drives the fall; tint color, brightness and blend modes included." category="procedural" tags="procedural" thumb="thumb/5/snow.png" experimental="false">
 
     <params>
         <switch id="autop" default="true" label="Auto Progress" />

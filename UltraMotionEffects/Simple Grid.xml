@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.simplegrid" name="Simple Grid" desc="Renders a scrolling one-point-perspective grid with luminance-mapped FG/BG colors and a feathered directional wipe. Thickness, Sharp and Space shape the lines; auto progress scrolls the grid, with blend modes." category="procedural" tags="other" thumb="thumb/7/simpleg.png" experimental="false">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.simplegrid" name="Simple Grid" desc="Renders a scrolling one-point-perspective grid with luminance-mapped FG/BG colors and a feathered directional wipe. Thickness, Sharp and Space shape the lines; auto progress scrolls the grid, with blend modes." category="procedural" tags="other" thumb="thumb/7/simpleg.png" experimental="false">
 
     <params>
         <point id="position" label="@am:string/effect_param_offset" />

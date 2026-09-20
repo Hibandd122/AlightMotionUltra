@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rainydew" name="Rainy Dew+" desc="Simulates rain drops running down glass: animated drop layers with trails and static droplets refract the layer beneath, with optional heart-shaped rain mode, lightning/color-shift lighting, and specularity. Controls cover drop spacing, per-layer scale and alpha, progress, and transform." category="procedural" tags="procedural" thumb="thumb/4/rainy.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.rainydew" name="Rainy Dew+" desc="Simulates rain drops running down glass: animated drop layers with trails and static droplets refract the layer beneath, with optional heart-shaped rain mode, lightning/color-shift lighting, and specularity. Controls cover drop spacing, per-layer scale and alpha, progress, and transform." category="procedural" tags="procedural" thumb="thumb/4/rainy.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <switch id="xnxx" default="false" label="Heart Mode" />

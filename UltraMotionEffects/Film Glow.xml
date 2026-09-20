@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bccfilmglow" name="Film Glow" desc="Multi-pass film glow: soft-knee luminance threshold extraction followed by inner and outer separable Gaussian blurs, combined with weights and blended via Add, Screen, Soft Light, or Lighten. Includes highlight glow, tint, warmth, halation, diffusion, grain, fade, and soft clip controls." category="colorlight" tags="film,glow,bloom,soft,highlight,diffusion,analog" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.bccfilmglow" name="Film Glow" desc="Multi-pass film glow: soft-knee luminance threshold extraction followed by inner and outer separable Gaussian blurs, combined with weights and blended via Add, Screen, Soft Light, or Lighten. Includes highlight glow, tint, warmth, halation, diffusion, grain, fade, and soft clip controls." category="procedural" tags="film,glow,bloom,soft,highlight,diffusion,analog" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.5">
     <params>
         <texture id="inputImg" srcType="content" />
         <texture id="glowA" srcType="buffer" downsample="2" />

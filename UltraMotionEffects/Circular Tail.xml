@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.circulartail" name="Circular Tail" desc="Draws a glowing comet-like tail of quadratic Bezier segments chasing along a lemniscate (figure-eight) path, gradient-mapped between two colors. Controls include segment Amount, Length, Radius, Fading, Glow, progress/speed and blending." category="procedural" tags="other" thumb="thumb/9/ctail.png" experimental="false">
+<effect category_ultra="Space & Cosmic" id="com.alightcreative.effects.circulartail" name="Circular Tail" desc="Draws a glowing comet-like tail of quadratic Bezier segments chasing along a lemniscate (figure-eight) path, gradient-mapped between two colors. Controls include segment Amount, Length, Radius, Fading, Glow, progress/speed and blending." category="procedural" tags="other" thumb="thumb/9/ctail.png" experimental="false">
 
     <params>
         <color id="color1" default="#FF000000" label="Color BG" alpha="true" />

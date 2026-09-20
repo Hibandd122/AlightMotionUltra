@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.split_cubes_raymarch" name="Split Cubes Raymarch" desc="Raymarched spinning split cubes with BPM-driven ticks (Shadertoy port)" category="procedural" tags="raymarch, cubes, bpm" thumb="thumb/1/03d.png">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.split_cubes_raymarch" name="Split Cubes Raymarch" desc="Raymarched spinning split cubes with BPM-driven ticks (Shadertoy port)" category="color" tags="raymarch, cubes, bpm" thumb="thumb/1/03d.png">
 
     <params>
         

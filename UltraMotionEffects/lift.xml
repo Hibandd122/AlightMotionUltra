@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lift" name="@am:string/effect_copybg_name" desc="@am:string/effect_copybg_desc" thumb="thumb/5/hardg.png" tags="compositing,utility,raster" category="other">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.lift" name="@am:string/effect_copybg_name" desc="@am:string/effect_copybg_desc" thumb="thumb/5/hardg.png" tags="compositing,utility,raster" category="color">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.gradientmap" name="@am:string/effect_gradientmap_name" desc="@am:string/effect_gradientmap_desc" category="colorlight" thumb="thumb/gradient_map.webp" tags="color,gradient,lumaMap,raster,membersOnly" deprecated="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.gradientmap" name="@am:string/effect_gradientmap_name" desc="@am:string/effect_gradientmap_desc" category="color" thumb="thumb/gradient_map.webp" tags="color,gradient,lumaMap,raster,membersOnly" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

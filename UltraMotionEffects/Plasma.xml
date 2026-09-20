@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.plasma" name="Plasma" desc="Classic animated sine-based plasma field of flowing colors. Can replace the layer or blend with it using normal, multiply or screen modes." category="colorlight" thumb="thumb/1/0plasma.png" tags="procedural,plasma,color,animated,raster">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra.plasma" name="Plasma" desc="Classic animated sine-based plasma field of flowing colors. Can replace the layer or blend with it using normal, multiply or screen modes." category="color" thumb="thumb/1/0plasma.png" tags="procedural,plasma,color,animated,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

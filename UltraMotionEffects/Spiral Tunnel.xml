@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.spiral-tunnel" name="Spiral Tunnel" desc="Remaps the layer into an endless tunnel using polar coordinates (angle and inverse radius) with a twist term and time-based motion toward the camera. Speed, Twist, and Depth Fade control motion, spiraling, and center darkening." category="procedural" thumb="thumb/3/tunnel.png" tags="3d,spiral,tunnel,twist,raster,animated" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.extra3d.spiral-tunnel" name="Spiral Tunnel" desc="Remaps the layer into an endless tunnel using polar coordinates (angle and inverse radius) with a twist term and time-based motion toward the camera. Speed, Twist, and Depth Fade control motion, spiraling, and center darkening." category="repeat" thumb="thumb/3/tunnel.png" tags="3d,spiral,tunnel,twist,raster,animated" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

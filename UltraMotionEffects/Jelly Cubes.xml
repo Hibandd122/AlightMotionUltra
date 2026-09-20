@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.jellycubes" name="Jelly Cubes" desc="Raymarches an undulating field of glossy cubes with normal-based shading, a subsurface-scatter approximation, an ambient-occlusion march and five adjustable shading colors. RayMarching sets the step budget (up to 250); camera position, cubeness, bevel and shadow are adjustable. Very GPU-intensive." category="procedural" tags="other" thumb="thumb/7/jelly.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.jellycubes" name="Jelly Cubes" desc="Raymarches an undulating field of glossy cubes with normal-based shading, a subsurface-scatter approximation, an ambient-occlusion march and five adjustable shading colors. RayMarching sets the step budget (up to 250); camera position, cubeness, bevel and shadow are adjustable. Very GPU-intensive." category="color" tags="other" thumb="thumb/7/jelly.png" experimental="false">
 
     <params>
     <slider id="AMOUNT" label="RayMarching" default="200" min="1" max="250" step="1.0" type="integer" />

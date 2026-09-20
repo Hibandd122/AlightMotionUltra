@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.smartMotionBlurShake" name="Twitch" desc="Random directional twitch: the image jumps to a new random offset at each shake interval and is motion-blurred by averaging up to 32 samples along the shake vector. Controls set amplitude, interval, angle, and blur sample count." category="blur" tags="motion,blur,shake" thumb="thumb/auto_shake.webp" experimental="false">
+<effect category_ultra="Blur, Focus & Sharpen" id="com.alightcreative.effects.smartMotionBlurShake" name="Twitch" desc="Random directional twitch: the image jumps to a new random offset at each shake interval and is motion-blurred by averaging up to 32 samples along the shake vector. Controls set amplitude, interval, angle, and blur sample count." category="blur" tags="motion,blur,shake" thumb="thumb/auto_shake.webp" experimental="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

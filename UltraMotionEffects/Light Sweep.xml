@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lightsweep" name="Light Sweep" desc="Sweeps a soft diagonal band of light across the layer using a moving sine wave; Amount sets the band slope, Sharpness its intensity, and the band is gradient-mapped between two colors (screen blend by default)." category="colorlight" tags="procedural" thumb="thumb/13/3.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.lightsweep" name="Light Sweep" desc="Sweeps a soft diagonal band of light across the layer using a moving sine wave; Amount sets the band slope, Sharpness its intensity, and the band is gradient-mapped between two colors (screen blend by default)." category="color" tags="procedural" thumb="thumb/13/3.png" experimental="false">
 
     <params>
         

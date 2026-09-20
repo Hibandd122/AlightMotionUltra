@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bumpmap2" name="@am:string/effect_bumpmap_name" desc="@am:string/effect_bumpmap_desc" category="colorlight" thumb="thumb/bump_map.webp" tags="lighting,texture, raster, membersOnly" overdraw="true" max-overdraw="0.1" experimental="false" deprecated="false">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.bumpmap2" name="@am:string/effect_bumpmap_name" desc="@am:string/effect_bumpmap_desc" category="procedural" thumb="thumb/bump_map.webp" tags="lighting,texture, raster, membersOnly" overdraw="true" max-overdraw="0.1" experimental="false" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

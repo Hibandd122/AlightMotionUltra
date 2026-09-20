@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.cc_toner_v1" name="CC Toner" desc="Three-way color toning that maps shadows, midtones and highlights to separate colors using luminance masks, with per-zone strength/range, Luminance/Color/Overlay blend modes, optional luminance preservation, contrast/saturation/gamma grade, and a zone-preview mode." category="colorlight" tags="toner,color,grade,highlights,midtones,shadows,duotone,tritone,cinematic" thumb="thumb/5/hardg.png" overdraw="false" dither="false">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.cc_toner_v1" name="CC Toner" desc="Three-way color toning that maps shadows, midtones and highlights to separate colors using luminance masks, with per-zone strength/range, Luminance/Color/Overlay blend modes, optional luminance preservation, contrast/saturation/gamma grade, and a zone-preview mode." category="color" tags="toner,color,grade,highlights,midtones,shadows,duotone,tritone,cinematic" thumb="thumb/5/hardg.png" overdraw="false" dither="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.shatter-3d" name="3D Shatter" desc="Explodes the layer into 3D tiles that fly toward the camera with depth scaling and shading." category="warp" thumb="thumb/5/hardg.png" tags="3d,shatter,explode,tiles,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="3D Layer & Depth" id="com.alightcreative.effects.extra3d.shatter-3d" name="3D Shatter" desc="Explodes the layer into 3D tiles that fly toward the camera with depth scaling and shading." category="3d" thumb="thumb/5/hardg.png" tags="3d,shatter,explode,tiles,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

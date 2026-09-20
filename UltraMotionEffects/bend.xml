@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bendwarp" name="@am:string/effect_bend_name" desc="@am:string/effect_bend_desc" category="warp" tags="distort, raster, fun, membersOnly, parenting" thumb="thumb/bend.webp">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.bendwarp" name="@am:string/effect_bend_name" desc="@am:string/effect_bend_desc" category="distort" tags="distort, raster, fun, membersOnly, parenting" thumb="thumb/bend.webp">
 
     <params>
         <texture id="inputImg" srcType="content" />

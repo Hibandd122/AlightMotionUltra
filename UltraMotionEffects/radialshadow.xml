@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.radialshadow" name="@am:string/effect_radialshadow_name" desc="@am:string/effect_radialshadow_desc" category="colorlight" thumb="thumb/radial_shadow.webp" deprecated="true" overdraw="true" max-overdraw="0.1">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.radialshadow" name="@am:string/effect_radialshadow_name" desc="@am:string/effect_radialshadow_desc" category="color" thumb="thumb/radial_shadow.webp" deprecated="true" overdraw="true" max-overdraw="0.1">
 
     <params>
         <texture id="inputImg" srcType="content" />

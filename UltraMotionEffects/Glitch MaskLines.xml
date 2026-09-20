@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glitchlines" name="Glitch MaskLines" desc="Digital glitch: hashes the image into blocks and scanline groups, then randomly drops blocks to luma-only, tints line groups green, and interleaves RGB mask lines over time. Size Block, progress and speed control the pattern." category="procedural" tags="other" thumb="thumb/12/19.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.glitchlines" name="Glitch MaskLines" desc="Digital glitch: hashes the image into blocks and scanline groups, then randomly drops blocks to luma-only, tints line groups green, and interleaves RGB mask lines over time. Size Block, progress and speed control the pattern." category="procedural" tags="other" thumb="thumb/12/19.png" experimental="false">
 
     <params>
         

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect thumb="thumb/5/hardg.png" id="com.alightcreative.effects.bcc_blur_h" name="Horizontal Blur (Box/Gaussian)" desc="Single-pass horizontal-only blur with selectable kernel: box, Gaussian, or triangle (triangle currently resolves to a box blur; its iteration count has no cumulative effect). Radius is X Width scaled by Glow Radius percent; optional mirrored edge sampling. Large radii are very expensive." category="blur" tags="blur,triangle,gaussian" internal="true" overdraw="true" max-overdraw="1.5">
+<effect category_ultra="Glow & Gradients" thumb="thumb/5/hardg.png" id="com.alightcreative.effects.bcc_blur_h" name="Horizontal Blur (Box/Gaussian)" desc="Single-pass horizontal-only blur with selectable kernel: box, Gaussian, or triangle (triangle currently resolves to a box blur; its iteration count has no cumulative effect). Radius is X Width scaled by Glow Radius percent; optional mirrored edge sampling. Large radii are very expensive." category="color" tags="blur,triangle,gaussian" internal="true" overdraw="true" max-overdraw="1.5">
   <params>
     <texture id="inputImg" srcType="content" />
     <slider id="xWidth" default="100.0" min="0.0" max="400.0" step="1.0" label="X Width" />

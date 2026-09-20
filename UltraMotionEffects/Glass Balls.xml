@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glass_balls" name="Glass Balls" desc="Raytraces a set of animated glass spheres over the layer; each sphere refracts and reflects the underlying image with a Fresnel-weighted mix, color absorption tint, and specular highlight. Count, size, spread, seed, optics, and light-direction controls." category="drawingedge" thumb="thumb/1/0360.png" tags="shadertoy,glass,refraction,reflection">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.glass_balls" name="Glass Balls" desc="Raytraces a set of animated glass spheres over the layer; each sphere refracts and reflects the underlying image with a Fresnel-weighted mix, color absorption tint, and specular highlight. Count, size, spread, seed, optics, and light-direction controls." category="distort" thumb="thumb/1/0360.png" tags="shadertoy,glass,refraction,reflection">
 
   <params>
     <texture id="inputImg" srcType="content" />

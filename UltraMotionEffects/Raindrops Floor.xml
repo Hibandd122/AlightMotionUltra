@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.raindropsfloor" name="Raindrops Floor" desc="Rain ripples on a flat surface: a hashed grid of expanding rings builds a normal map that refracts the layer and adds a specular glint. Controls include ripple radius, rain speed, cell size, progress (auto or manual), offset/stretch, and ripple strength." category="procedural" tags="distort" thumb="thumb/8/floor.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.raindropsfloor" name="Raindrops Floor" desc="Rain ripples on a flat surface: a hashed grid of expanding rings builds a normal map that refracts the layer and adds a specular glint. Controls include ripple radius, rain speed, cell size, progress (auto or manual), offset/stretch, and ripple strength." category="procedural" tags="distort" thumb="thumb/8/floor.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
     <switch id="autop" default="true" label="Auto Progress" />

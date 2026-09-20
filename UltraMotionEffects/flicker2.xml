@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.flicker2" name="@am:string/effect_flicker_name" desc="@am:string/effect_flicker_desc" category="opacity" tags="opacity,visibility,auto,glitch,propAdjust" thumb="thumb/flicker.webp">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.flicker2" name="@am:string/effect_flicker_name" desc="@am:string/effect_flicker_desc" category="distort" tags="opacity,visibility,auto,glitch,propAdjust" thumb="thumb/flicker.webp">
 
     
         

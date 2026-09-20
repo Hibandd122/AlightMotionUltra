@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.waterwaves" name="Water Waves" desc="Generates procedural water caustics and warps the layer content to look underwater." category="procedural" tags="water,waves,caustics,warp,distort,shadertoy" thumb="thumb/3/sea.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.waterwaves" name="Water Waves" desc="Generates procedural water caustics and warps the layer content to look underwater." category="distort" tags="water,waves,caustics,warp,distort,shadertoy" thumb="thumb/3/sea.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

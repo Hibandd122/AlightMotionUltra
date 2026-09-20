@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.lightning_procedural" name="Lightning (Procedural)" desc="Generates an animated lightning bolt: fractal (fBm) noise warps a vertical centerline whose distance drives a glow falloff. Controls include RGB color, intensity, width, animation speed, octave count, warp strength, and octave rotation." category="colorlight" tags="lightning,procedural,shadertoy" thumb="thumb/5/hardg.png" experimental="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.lightning_procedural" name="Lightning (Procedural)" desc="Generates an animated lightning bolt: fractal (fBm) noise warps a vertical centerline whose distance drives a glow falloff. Controls include RGB color, intensity, width, animation speed, octave count, warp strength, and octave rotation." category="procedural" tags="lightning,procedural,shadertoy" thumb="thumb/5/hardg.png" experimental="false">
 
   <params>
     

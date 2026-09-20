@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.drowned" name="Drowned" desc="Renders a raymarched water plane beneath the layer that reflects it like a flooded scene, using noise-texture fbm to ripple the surface normal and a fresnel mix between reflection and the original image. Controls include flow speed, orientation, reflection offset, and separate water/background/composite opacities." category="procedural" tags="distort" thumb="thumb/8/drowned.png" experimental="true" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.drowned" name="Drowned" desc="Renders a raymarched water plane beneath the layer that reflects it like a flooded scene, using noise-texture fbm to ripple the surface normal and a fresnel mix between reflection and the original image. Controls include flow speed, orientation, reflection offset, and separate water/background/composite opacities." category="distort" tags="distort" thumb="thumb/8/drowned.png" experimental="true" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="noisexx" srcType="image" src="textures/iChannel3.png" />

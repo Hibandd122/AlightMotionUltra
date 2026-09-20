@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.constellation" name="Constellation" desc="Generates an animated constellation plexus: points on a jittered grid connected by distance-fading lines, in two selectable pattern styles (with or without glowing star dots). Progress and rotation can animate automatically; color, transform and blend mode are adjustable." category="procedural" tags="procedural" thumb="thumb/5/const.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.constellation" name="Constellation" desc="Generates an animated constellation plexus: points on a jittered grid connected by distance-fading lines, in two selectable pattern styles (with or without glowing star dots). Progress and rotation can animate automatically; color, transform and blend mode are adjustable." category="color" tags="procedural" thumb="thumb/5/const.png" experimental="false">
 
     <params>
         <color id="color1" default="#FFFFFFFF" label="Color" alpha="true" />

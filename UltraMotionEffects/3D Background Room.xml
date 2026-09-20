@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.shadertoy_bg3d" name="3D Background Room" desc="Raytraces a 3D scene from the composition behind the layer: an equirectangular skybox, an optional textured box room and floor plane, and the layer itself placed as a 3D plane, with dual-camera position/rotation/FOV controls and edge feathering." category="3d" tags="3d,background,shadertoy,skybox,camera" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/1/03d.png" deprecated="false">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.shadertoy_bg3d" name="3D Background Room" desc="Raytraces a 3D scene from the composition behind the layer: an equirectangular skybox, an optional textured box room and floor plane, and the layer itself placed as a 3D plane, with dual-camera position/rotation/FOV controls and edge feathering." category="procedural" tags="3d,background,shadertoy,skybox,camera" overdraw="true" max-overdraw="1.5" experimental="false" thumb="thumb/1/03d.png" deprecated="false">
 
   <params>
     

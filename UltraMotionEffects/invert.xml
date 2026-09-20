@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.invert" name="@am:string/effect_invert_name" desc="@am:string/effect_invert_desc" category="colorlight" tags="color,glitch,raster" thumb="thumb/5/hardg.png">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.invert" name="@am:string/effect_invert_name" desc="@am:string/effect_invert_desc" category="distort" tags="color,glitch,raster" thumb="thumb/5/hardg.png">
 
     
         

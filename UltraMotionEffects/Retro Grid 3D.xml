@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.synthwave-floor" name="Retro Grid 3D" desc="Projects an infinite scrolling neon grid floor into 3D perspective for a retrowave vibe." category="procedural" thumb="thumb/5/hardg.png" tags="3d,grid,retro,synthwave,floor,raster,animated">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.extra3d.synthwave-floor" name="Retro Grid 3D" desc="Projects an infinite scrolling neon grid floor into 3D perspective for a retrowave vibe." category="color" thumb="thumb/5/hardg.png" tags="3d,grid,retro,synthwave,floor,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

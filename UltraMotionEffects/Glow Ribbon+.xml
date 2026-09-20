@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.glowribbon" name="Glow Ribbon+" desc="Draws a bundle of glowing sine-wave ribbons whose count, wave progress and evolution are adjustable. Key color, hue shift, luminance, scale, stretch, rotation and normal/multiply/screen blending shape the final look." category="colorlight" tags="procedural" thumb="thumb/1/0glowr.png" experimental="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.glowribbon" name="Glow Ribbon+" desc="Draws a bundle of glowing sine-wave ribbons whose count, wave progress and evolution are adjustable. Key color, hue shift, luminance, scale, stretch, rotation and normal/multiply/screen blending shape the final look." category="color" tags="procedural" thumb="thumb/1/0glowr.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

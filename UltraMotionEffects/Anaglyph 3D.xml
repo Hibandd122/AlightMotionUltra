@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.anaglyph-3d" name="Anaglyph 3D" desc="Classic red/cyan 3D glasses effect, offsetting channels by depth from the image brightness." category="procedural" thumb="thumb/5/hardg.png" tags="3d,anaglyph,stereo,depth,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.extra3d.anaglyph-3d" name="Anaglyph 3D" desc="Classic red/cyan 3D glasses effect, offsetting channels by depth from the image brightness." category="distort" thumb="thumb/5/hardg.png" tags="3d,anaglyph,stereo,depth,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

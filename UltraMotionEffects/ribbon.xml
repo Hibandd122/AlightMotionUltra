@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ribbon" name="@am:string/effect_ribbon_name" desc="@am:string/effect_ribbon_desc" category="procedural" tags="procedural,random,raster,membersOnly" thumb="thumb/ribbon.webp">
+<effect category_ultra="Backgrounds & Textures" id="com.alightcreative.effects.ribbon" name="@am:string/effect_ribbon_name" desc="@am:string/effect_ribbon_desc" category="procedural" tags="procedural,random,raster,membersOnly" thumb="thumb/ribbon.webp">
 
     
         

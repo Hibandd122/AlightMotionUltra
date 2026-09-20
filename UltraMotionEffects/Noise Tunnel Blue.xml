@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.noise_tunnel_blue" name="Noise Tunnel Blue" desc="Blue simplex FBM tunnel with rotation and optional whiteout (Shadertoy port)" category="procedural" tags="tunnel, noise, simplex" thumb="thumb/3/tunnel.png">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.noise_tunnel_blue" name="Noise Tunnel Blue" desc="Blue simplex FBM tunnel with rotation and optional whiteout (Shadertoy port)" category="repeat" tags="tunnel, noise, simplex" thumb="thumb/3/tunnel.png">
 
     <params>
         

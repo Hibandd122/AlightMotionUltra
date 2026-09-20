@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.clouds3" name="@am:string/effect_clouds_name" desc="@am:string/effect_clouds_desc" tags="random,fractal,procedural,raster,membersOnly" category="procedural" thumb="thumb/clouds.webp">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.clouds3" name="@am:string/effect_clouds_name" desc="@am:string/effect_clouds_desc" tags="random,fractal,procedural,raster,membersOnly" category="procedural" thumb="thumb/clouds.webp">
 
     
         

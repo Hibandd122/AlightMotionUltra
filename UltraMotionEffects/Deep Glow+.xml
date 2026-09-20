@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.deepglow" name="Deep Glow+" desc="Multi-pass glow: blurs the layer (Gaussian plus box blur passes, repeatable via Hardness iterations) and screens the result back over the source. Includes glow radius and intensity, luma threshold with feather, hue/saturation/vibrance adjustment of the glow, optional key-color blend, and an optional drop shadow." category="colorlight" tags="lighting,raster" thumb="thumb/2/deep.png" overdraw="true" max-overdraw="1.5" deprecated="false">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.deepglow" name="Deep Glow+" desc="Multi-pass glow: blurs the layer (Gaussian plus box blur passes, repeatable via Hardness iterations) and screens the result back over the source. Includes glow radius and intensity, luma threshold with feather, hue/saturation/vibrance adjustment of the glow, optional key-color blend, and an optional drop shadow." category="color" tags="lighting,raster" thumb="thumb/2/deep.png" overdraw="true" max-overdraw="1.5" deprecated="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

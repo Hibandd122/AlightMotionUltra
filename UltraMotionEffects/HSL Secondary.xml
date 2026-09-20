@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hslsecondary" name="HSL Secondary" desc="Secondary color correction: keys a color range by hue, saturation, and luminance (with softness, denoise, expand, and invert refinements), then grades the keyed region — hue shift/rotate, saturation, vibrance, luminance, contrast, gamma, tint, temperature — with separate controls for the unkeyed area and key-view modes." category="colorlight" tags="hsl,secondary,color,isolate,key,grade,selective,manga,cinematic" thumb="thumb/5/hardg.png">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.hslsecondary" name="HSL Secondary" desc="Secondary color correction: keys a color range by hue, saturation, and luminance (with softness, denoise, expand, and invert refinements), then grades the keyed region — hue shift/rotate, saturation, vibrance, luminance, contrast, gamma, tint, temperature — with separate controls for the unkeyed area and key-view modes." category="color" tags="hsl,secondary,color,isolate,key,grade,selective,manga,cinematic" thumb="thumb/5/hardg.png">
     <params>
         <texture id="inputImg" srcType="content" />
 

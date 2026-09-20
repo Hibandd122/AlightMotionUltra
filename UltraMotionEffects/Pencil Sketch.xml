@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra2.pencil-sketch" name="Pencil Sketch" desc="Turns the layer into a soft pencil drawing using a classic dodge-blend technique." category="drawingedge" thumb="thumb/5/hardg.png" tags="stylize,sketch,pencil,artistic,raster" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Ink, Paint & Halftone" id="com.alightcreative.effects.extra2.pencil-sketch" name="Pencil Sketch" desc="Turns the layer into a soft pencil drawing using a classic dodge-blend technique." category="drawing" thumb="thumb/5/hardg.png" tags="stylize,sketch,pencil,artistic,raster" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

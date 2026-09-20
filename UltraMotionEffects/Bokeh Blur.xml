@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.creative.cinematic_bokeh" name="Bokeh Blur" desc="Bokeh blur using a golden-angle spiral sample pattern with luminance-weighted highlight blooming. Controls include aperture shape (circle, triangle, square, hexagon), anamorphic width/height, radius, highlight threshold/intensity and quality (8-128 samples)." category="blur" tags="blur,bokeh,cinematic,camera" thumb="thumb/1/0bokeh.png">
+<effect category_ultra="Glow & Gradients" id="com.creative.cinematic_bokeh" name="Bokeh Blur" desc="Bokeh blur using a golden-angle spiral sample pattern with luminance-weighted highlight blooming. Controls include aperture shape (circle, triangle, square, hexagon), anamorphic width/height, radius, highlight threshold/intensity and quality (8-128 samples)." category="color" tags="blur,bokeh,cinematic,camera" thumb="thumb/1/0bokeh.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

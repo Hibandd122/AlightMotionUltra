@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tileshift" name="@am:string/effect_tileshift_name" desc="@am:string/effect_tileshift_desc" category="warp" tags="distort,geometric,raster" thumb="thumb/tile_shift.webp" deprecated="true">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.tileshift" name="@am:string/effect_tileshift_name" desc="@am:string/effect_tileshift_desc" category="distort" tags="distort,geometric,raster" thumb="thumb/tile_shift.webp" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

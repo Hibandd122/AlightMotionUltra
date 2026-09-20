@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vshakenew" name="Manual Shake 2" desc="Script-driven layer shake that offsets position, rotation and scale with simplex noise plus optional sine waves. Separate random/wave amplitude and frequency per axis (X, Y, zoom Z, tilt T) under master Amplitude and Frequency controls." category="warp" tags="other" thumb="thumb/0/efek.png">
+<effect category_ultra="Shake & Transform" id="com.alightcreative.effects.vshakenew" name="Manual Shake 2" desc="Script-driven layer shake that offsets position, rotation and scale with simplex noise plus optional sine waves. Separate random/wave amplitude and frequency per axis (X, Y, zoom Z, tilt T) under master Amplitude and Frequency controls." category="transform" tags="other" thumb="thumb/0/efek.png">
 
     <params>
         <slider id="amp" default="1" min="0" max="5" label="Amplitude" step="0.01" snap="0,0.3,0.5,1,1.5,2,3,4,5" ticks="0,0.3,0.5,1,1.5,2,3,4,5" originValue="0" />

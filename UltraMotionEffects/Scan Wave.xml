@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra.scan-wave" name="Scan Wave" desc="A bright horizontal scan band that sweeps up the layer over time, energizing whatever it passes with a glow." category="colorlight" thumb="thumb/5/hardg.png" tags="scan,glow,neon,scifi,raster,animated">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.extra.scan-wave" name="Scan Wave" desc="A bright horizontal scan band that sweeps up the layer over time, energizing whatever it passes with a glow." category="color" thumb="thumb/5/hardg.png" tags="scan,glow,neon,scifi,raster,animated">
 
     <params>
         <texture id="inputImg" srcType="content" />

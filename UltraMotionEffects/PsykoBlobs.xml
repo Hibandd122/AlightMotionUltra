@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_psykoblobs" name="PsykoBlobs" desc="Iridescent contour patterns with smooth blob noise" category="drawingedge" thumb="thumb/5/hardg.png" tags="psychedelic,blobs,contour,iridescent,rainbow">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.s_psykoblobs" name="PsykoBlobs" desc="Iridescent contour patterns with smooth blob noise" category="procedural" thumb="thumb/5/hardg.png" tags="psychedelic,blobs,contour,iridescent,rainbow">
 
   <params>
     <texture id="inputImg" srcType="content" />

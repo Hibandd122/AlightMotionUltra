@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect afxver="2" id="com.alightcreative.effects.fractalwarp4" name="@am:string/effect_fractwarp_name" desc="@am:string/effect_fractwarp_desc" category="warp" tags="distort,fractal,glitch,raster" thumb="thumb/1/0fractal.png">
+<effect category_ultra="Glitch & Digital Damage" afxver="2" id="com.alightcreative.effects.fractalwarp4" name="@am:string/effect_fractwarp_name" desc="@am:string/effect_fractwarp_desc" category="distort" tags="distort,fractal,glitch,raster" thumb="thumb/1/0fractal.png">
 
     <params>
         <texture id="inputImg" srcType="content" />

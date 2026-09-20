@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.neural_activity" name="Neural Activity Fade" desc="Overlays an animated web-like light field (iterated rotated distance functions with radial ripple) that cyclically fades the layer toward a second texture or a flat color. Controls include time, rotation speed, ripple frequency/amount and fade speed/range." category="procedural" thumb="thumb/5/hardg.png" tags="neural,fade,animated,shadertoy">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.neural_activity" name="Neural Activity Fade" desc="Overlays an animated web-like light field (iterated rotated distance functions with radial ripple) that cyclically fades the layer toward a second texture or a flat color. Controls include time, rotation speed, ripple frequency/amount and fade speed/range." category="distort" thumb="thumb/5/hardg.png" tags="neural,fade,animated,shadertoy">
 
   <params>
     <texture id="inputA" srcType="content" />

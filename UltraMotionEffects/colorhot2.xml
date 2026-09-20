@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.colorhot2" name="Hot Color 2" desc="@am:string/effect_hotcolor_desc" category="colorlight" tags="color,energy" thumb="thumb/2/coloradjustment.png" deprecated="true">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.colorhot2" name="Hot Color 2" desc="@am:string/effect_hotcolor_desc" category="color" tags="color,energy" thumb="thumb/2/coloradjustment.png" deprecated="true">
 
     
         

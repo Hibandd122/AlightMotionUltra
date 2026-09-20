@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.newswirl" name="Swirl+" desc="@am:string/effect_swirl_desc" category="warp" tags="distort,fun,raster" thumb="thumb/6/nswirl.png">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.newswirl" name="Swirl+" desc="@am:string/effect_swirl_desc" category="distort" tags="distort,fun,raster" thumb="thumb/6/nswirl.png">
 
 
     <params>

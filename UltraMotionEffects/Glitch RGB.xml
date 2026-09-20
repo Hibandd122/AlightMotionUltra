@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.rgbglitch" name="Glitch RGB" desc="Randomly offsets horizontal slices of the image and shifts one color channel to create an RGB slice-glitch. Strength sets slice count and offset amount, Size sets slice height, Frequency reseeds the randomness, and Offset controls the channel shift." category="procedural" tags="other" thumb="thumb/5/rgbg.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Water, Glass & Refraction" id="com.alightcreative.effects.rgbglitch" name="Glitch RGB" desc="Randomly offsets horizontal slices of the image and shifts one color channel to create an RGB slice-glitch. Strength sets slice count and offset amount, Size sets slice height, Frequency reseeds the randomness, and Offset controls the channel shift." category="distort" tags="other" thumb="thumb/5/rgbg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

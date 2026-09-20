@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect afxver="2" id="com.alightcreative.effects.brightcont2" name="@am:string/effect_brightnessContrast_name" desc="@am:string/effect_brightnessContrast_desc" category="colorlight" tags="color,colorGrading,raster" thumb="thumb/brightness_contrast.webp" affinity="media">
+<effect category_ultra="Color Grading" afxver="2" id="com.alightcreative.effects.brightcont2" name="@am:string/effect_brightnessContrast_name" desc="@am:string/effect_brightnessContrast_desc" category="color" tags="color,colorGrading,raster" thumb="thumb/brightness_contrast.webp" affinity="media">
 
     <params>
         <texture id="inputImg" srcType="content" />

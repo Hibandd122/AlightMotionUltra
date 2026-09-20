@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.chrolens" name="Chromatic Lens Flare" desc="Procedural lens flare with a chromatic star-burst core and optional halo and small/big ghost elements. Angle and Distance move the light source; separate strengths for flare, halo and inner glare, plus a tint color and blend modes." category="colorlight" tags="other" thumb="thumb/8/chrolens.png" experimental="false">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.chrolens" name="Chromatic Lens Flare" desc="Procedural lens flare with a chromatic star-burst core and optional halo and small/big ghost elements. Angle and Distance move the light source; separate strengths for flare, halo and inner glare, plus a tint color and blend modes." category="color" tags="other" thumb="thumb/8/chrolens.png" experimental="false">
 
     <params>
         <switch id="WITHHALO" default="false" label="Halo" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hextile" name="@am:string/effect_hextile_name" desc="@am:string/effect_hextile_desc" category="warp" tags="distort,geometric,raster" thumb="thumb/5/hardg.png" overdraw="true">
+<effect category_ultra="Warp & Lens" id="com.alightcreative.effects.hextile" name="@am:string/effect_hextile_name" desc="@am:string/effect_hextile_desc" category="distort" tags="distort,geometric,raster" thumb="thumb/5/hardg.png" overdraw="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.vhs_suite" name="VHS Suite" desc="Five-preset analog video simulation (Glitch, Camera View, VHS Play, Ghosting TV, CRT Blur) built from three passes: chromatic aberration, sharpen/blur kernels, screen bend, YIQ tape smear, ghost frames, static bands, on-screen text/timecode rendering from a font texture, scanline/grille shading, and a VHS texture overlay with global intensity, speed, and tint." category="other" tags="vhs,glitch,camera,shadertoy" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Retro TV, VHS & Film" id="com.alightcreative.effects.vhs_suite" name="VHS Suite" desc="Five-preset analog video simulation (Glitch, Camera View, VHS Play, Ghosting TV, CRT Blur) built from three passes: chromatic aberration, sharpen/blur kernels, screen bend, YIQ tape smear, ghost frames, static bands, on-screen text/timecode rendering from a font texture, scanline/grille shading, and a VHS texture overlay with global intensity, speed, and tint." category="distort" tags="vhs,glitch,camera,shadertoy" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

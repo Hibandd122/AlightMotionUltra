@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.dissolveshake" name="Dissolve Shake" desc="Camera shake with fade-out: random (layered noise) and sine-wave shake on X, Y, zoom, and tilt axes, optional per-channel RGB separation with its own randomness, and a dissolve fade with speed and curve controls. Edge handling offers black, tile, or reflect." category="warp" tags="shake,dissolve,transition,camera,motion,rgb,split,cinematic" thumb="thumb/auto_shake.webp">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.effects.dissolveshake" name="Dissolve Shake" desc="Camera shake with fade-out: random (layered noise) and sine-wave shake on X, Y, zoom, and tilt axes, optional per-channel RGB separation with its own randomness, and a dissolve fade with speed and curve controls. Edge handling offers black, tile, or reflect." category="drawing" tags="shake,dissolve,transition,camera,motion,rgb,split,cinematic" thumb="thumb/auto_shake.webp">
     <params>
         <texture id="inputImg" srcType="content" />
         

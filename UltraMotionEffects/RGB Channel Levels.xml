@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.solidcolorx" name="RGB Channel Levels" desc="Builds a color from separate red, green and blue level values and either fills the layer with it or multiplies/screens it onto the image per channel. Alpha mixes from white toward the full effect." category="colorlight" tags="color,raster" thumb="thumb/0/efek.png" deprecated="true">
+<effect category_ultra="3D Shapes & Solids" id="com.alightcreative.solidcolorx" name="RGB Channel Levels" desc="Builds a color from separate red, green and blue level values and either fills the layer with it or multiplies/screens it onto the image per channel. Alpha mixes from white toward the full effect." category="3d" tags="color,raster" thumb="thumb/0/efek.png" deprecated="true">
 
     <params>
         <texture id="inputImg" srcType="content" />

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.extra3d.perspective-tilt" name="3D Tilt" desc="Tilts the layer as a flat plane around the X and Y axes using per-pixel ray-plane intersection with fixed-distance perspective. Zoom scales the mapped image on the plane." category="3d" thumb="thumb/5/hardg.png" tags="3d,perspective,tilt,transform,raster">
+<effect category_ultra="Flares, Rays & Energy" id="com.alightcreative.effects.extra3d.perspective-tilt" name="3D Tilt" desc="Tilts the layer as a flat plane around the X and Y axes using per-pixel ray-plane intersection with fixed-distance perspective. Zoom scales the mapped image on the plane." category="color" thumb="thumb/5/hardg.png" tags="3d,perspective,tilt,transform,raster">
 
     <params>
         <texture id="inputImg" srcType="content" />

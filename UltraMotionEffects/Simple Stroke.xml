@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.simpmestroke" name="Simple Stroke" tags="drawing" desc="Draws an outline around the layer's alpha silhouette using a two-pass X/Y distance transform (fixed 35 px search radius). Size and Color set the stroke; Fill Object fades the original content." category="drawingedge" thumb="thumb/0/stroke.png" deprecated="true" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Strokes, Bevels & Shadows" id="com.alightcreative.effects.simpmestroke" name="Simple Stroke" tags="drawing" desc="Draws an outline around the layer's alpha silhouette using a two-pass X/Y distance transform (fixed 35 px search radius). Size and Color set the stroke; Fill Object fades the original content." category="drawing" thumb="thumb/0/stroke.png" deprecated="true" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

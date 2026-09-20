@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bcc_led" name="LED Grid" desc="Samples the layer on a configurable grid and renders each cell as a circular or square LED dot. Includes tint, per-cell random flicker, glow ring, antialias, and brightness controls; preserves source alpha." category="drawingedge" thumb="thumb/5/hardg.png" tags="led,grid,stylize" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glow & Gradients" id="com.alightcreative.effects.bcc_led" name="LED Grid" desc="Samples the layer on a configurable grid and renders each cell as a circular or square LED dot. Includes tint, per-cell random flicker, glow ring, antialias, and brightness controls; preserves source alpha." category="color" thumb="thumb/5/hardg.png" tags="led,grid,stylize" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

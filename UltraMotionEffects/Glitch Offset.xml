@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.hardglitch" name="Glitch Offset" desc="Horizontal glitch displacement driven by blocky fbm noise, with per-channel red/green/blue offset direction switches. Amplitude, narrowness, blockiness, minimizer, and seed shape the distortion; output modes are black background, luma-keyed normal, or additive." category="procedural" tags="distort" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Glitch & Digital Damage" id="com.alightcreative.effects.hardglitch" name="Glitch Offset" desc="Horizontal glitch displacement driven by blocky fbm noise, with per-channel red/green/blue offset direction switches. Amplitude, narrowness, blockiness, minimizer, and seed shape the distortion; output modes are black background, luma-keyed normal, or additive." category="distort" tags="distort" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

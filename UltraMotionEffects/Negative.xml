@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.negative" name="Negative" desc="Invert and convert to high-contrast black and white manga-style negative" category="colorlight" tags="invert,negative,manga,blackwhite,monochrome" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.negative" name="Negative" desc="Invert and convert to high-contrast black and white manga-style negative" category="color" tags="invert,negative,manga,blackwhite,monochrome" thumb="thumb/5/hardg.png" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />

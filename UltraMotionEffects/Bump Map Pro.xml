@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.bumpmap_universal" name="Bump Map Pro" desc="Bump-maps the layer using its own luminance or a separate height map, deriving normals with a 4-tap or Sobel 8-tap filter. Includes directional or point lighting, ambient, roughness-driven specular with tint, and exposure controls." category="drawingedge" tags="bump,lighting,normal,depth,shading,realtime" thumb="thumb/5/hardg.png" overdraw="false" experimental="false" deprecated="false">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.bumpmap_universal" name="Bump Map Pro" desc="Bump-maps the layer using its own luminance or a separate height map, deriving normals with a 4-tap or Sobel 8-tap filter. Includes directional or point lighting, ambient, roughness-driven specular with tint, and exposure controls." category="color" tags="bump,lighting,normal,depth,shading,realtime" thumb="thumb/5/hardg.png" overdraw="false" experimental="false" deprecated="false">
 
   <params>
     <texture id="inputImg" srcType="content" />

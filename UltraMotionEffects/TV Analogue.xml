@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.tvanalogue" name="TV Analogue" desc="Generates analogue TV interference: band-limited noise scanlines with rolling offset bars, glitch jumps and brightness waver, screen-blended over the layer. Progress drives the animation; scale, offset, brightness and alpha controls." category="other" tags="other" thumb="thumb/1/0tvanal.png" experimental="false">
+<effect category_ultra="Retro TV, VHS & Film" id="com.alightcreative.effects.tvanalogue" name="TV Analogue" desc="Generates analogue TV interference: band-limited noise scanlines with rolling offset bars, glitch jumps and brightness waver, screen-blended over the layer. Progress drives the animation; scale, offset, brightness and alpha controls." category="distort" tags="other" thumb="thumb/1/0tvanal.png" experimental="false">
 
     <params>
         <texture id="inputImg" srcType="content" />

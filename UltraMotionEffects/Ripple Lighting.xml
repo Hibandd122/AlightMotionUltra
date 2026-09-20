@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.ripplelighting" name="Ripple Lighting" desc="Renders animated concentric ripple waves lit by two opposing specular highlights on a black background, replacing the layer content. Controls cover ripple frequency, amplitude, speed, light angle/intensity/spread, auto-rotating light, and tint." category="colorlight" thumb="thumb/5/hardg.png" tags="ripple,light,wave,lighting" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Color Grading" id="com.alightcreative.effects.ripplelighting" name="Ripple Lighting" desc="Renders animated concentric ripple waves lit by two opposing specular highlights on a black background, replacing the layer content. Controls cover ripple frequency, amplitude, speed, light angle/intensity/spread, auto-rotating light, and tint." category="color" thumb="thumb/5/hardg.png" tags="ripple,light,wave,lighting" overdraw="true" max-overdraw="1.0">
 
   <params>
     <texture id="inputImg" srcType="content" />

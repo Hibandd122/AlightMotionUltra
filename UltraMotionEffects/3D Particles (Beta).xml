@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.particle3d" name="3D Particles (Beta)" desc="Procedurally renders an animated 3D particle tunnel (starfield) by placing particles on radial segments along the view ray, with rotation, scale, seed, spacing, length and depth-fade controls. The result is tinted between two colors by luminance and composited over the layer with Normal, Layer, Multiply or Screen blending." category="procedural" tags="other" thumb="thumb/11/3.png" experimental="false">
+<effect category_ultra="Grids & Tunnels" id="com.alightcreative.effects.particle3d" name="3D Particles (Beta)" desc="Procedurally renders an animated 3D particle tunnel (starfield) by placing particles on radial segments along the view ray, with rotation, scale, seed, spacing, length and depth-fade controls. The result is tinted between two colors by luminance and composited over the layer with Normal, Layer, Multiply or Screen blending." category="repeat" tags="other" thumb="thumb/11/3.png" experimental="false">
 
     <params>
         

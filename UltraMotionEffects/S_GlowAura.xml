@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<effect id="com.alightcreative.effects.s_glow_aura" name="S_GlowAura" desc="Draws cycling rainbow aura bands around bright areas: a 16-tap radial luminance spread above a threshold drives a twisting, animated cosine palette that is screen-blended over the source. Controls include brightness, threshold, glow width, band frequency, twist, and phase speed." category="colorlight" tags="glow,aura,radial,spiral,lighting,sapphire,text" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
+<effect category_ultra="Nature & Weather" id="com.alightcreative.effects.s_glow_aura" name="S_GlowAura" desc="Draws cycling rainbow aura bands around bright areas: a 16-tap radial luminance spread above a threshold drives a twisting, animated cosine palette that is screen-blended over the source. Controls include brightness, threshold, glow width, band frequency, twist, and phase speed." category="procedural" tags="glow,aura,radial,spiral,lighting,sapphire,text" thumb="thumb/5/hardg.png" experimental="false" overdraw="true" max-overdraw="1.0">
 
     <params>
         <texture id="inputImg" srcType="content" />
