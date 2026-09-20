@@ -2069,7 +2069,7 @@ static void handleEditTextPanelAppearance(UIViewController *panel) {
             if (isColorNeutralGray(curColor)) {
                 @try { [colorView setValue:[UIColor whiteColor] forKey:@"currentColor"]; } @catch (NSException *e) {}
                 if ([colorView respondsToSelector:@selector(setCurrentColor:)]) {
-                    [colorView setCurrentColor:[UIColor whiteColor]];
+                    ((void (*)(id, SEL, id))objc_msgSend)(colorView, @selector(setCurrentColor:), [UIColor whiteColor]);
                 }
                 if ([colorView respondsToSelector:@selector(setNeedsDisplay)]) {
                     [(UIView *)colorView setNeedsDisplay];
@@ -2161,9 +2161,9 @@ static void handleEditTextPanelAppearance(UIViewController *panel) {
                 NSIndexPath *targetIP = [NSIndexPath indexPathForItem:targetIdx inSection:0];
                 NSLog(@"[AlightMotionUltra] Auto-applying remembered font '%@' at index %ld!", savedFont, (long)targetIdx);
                 if ([cv.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
-                    [cv.delegate collectionView:cv didSelectItemAtIndexPath:targetIP];
+                    ((void (*)(id, SEL, id, id))objc_msgSend)(cv.delegate, @selector(collectionView:didSelectItemAtIndexPath:), cv, targetIP);
                 } else if ([panel respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
-                    [(id<UICollectionViewDelegate>)panel collectionView:cv didSelectItemAtIndexPath:targetIP];
+                    ((void (*)(id, SEL, id, id))objc_msgSend)(panel, @selector(collectionView:didSelectItemAtIndexPath:), cv, targetIP);
                 }
                 [cv selectItemAtIndexPath:targetIP animated:YES scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
                 if (fontLbl) fontLbl.text = savedFont;
