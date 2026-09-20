@@ -133,12 +133,6 @@ static void AMApplyProSettings(void) {
     [ud setBool:NO forKey:@"firebase_analytics_collection_enabled"];
     [ud setBool:NO forKey:@"firebase_analytics_collection_deactivated"];
     [ud setBool:NO forKey:@"FIREBASE_ANALYTICS_COLLECTION_ENABLED"];
-    [ud setBool:NO forKey:@"isLightThemeEnabled"];
-    [ud setBool:NO forKey:@"isLightModeEnabled"];
-    [ud setObject:@"dark" forKey:@"defaultTheme"];
-    [ud setObject:@"dark" forKey:@"theme"];
-    [ud setBool:YES forKey:@"darkMode"];
-    [ud setBool:YES forKey:@"isDark"];
     [ud synchronize];
 }
 
@@ -275,378 +269,167 @@ static void AMUnlockProjectPackageLimit(void) {
 }
 
 #pragma mark - =========================================================
-#pragma mark - =========================================================
 #pragma mark 2.7. Group D: Ultra Motion Official Charcoal Dark Theme
 #pragma mark - =========================================================
-
-static BOOL s_umThemeEnabled = YES;
 
 #define UM_BG_COLOR     [UIColor colorWithRed:0.071 green:0.075 blue:0.086 alpha:1.0] // #121316 Deep Charcoal
 #define UM_CARD_COLOR   [UIColor colorWithRed:0.110 green:0.114 blue:0.133 alpha:1.0] // #1C1D22 Card & Cell
 #define UM_PILL_COLOR   [UIColor colorWithRed:0.157 green:0.165 blue:0.196 alpha:1.0] // #282A32 Pills / Search Bar
 #define UM_ACCENT_GREEN [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0]     // #00E676 FAB & Active Tab
 
-// 1. Hook UITraitCollection userInterfaceStyle to permanently report UIUserInterfaceStyleDark
-static UIUserInterfaceStyle hook_UITraitCollection_userInterfaceStyle(id self, SEL _cmd) {
-    return UIUserInterfaceStyleDark;
-}
-
-// 2. Comprehensive view themer
-static void applyUMThemeToView(UIView *view) {
-    if (!view || !s_umThemeEnabled) return;
-
-    if (@available(iOS 13.0, *)) {
-        view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+// 1. Hook MainVC (Root Container): TopBar, TabBar, SelectionHeader, Status Bar
+static void (*orig_MainVC_viewWillAppear)(id, SEL, BOOL);
+static void hook_MainVC_viewWillAppear(id self, SEL _cmd, BOOL animated) {
+    if (orig_MainVC_viewWillAppear) {
+        orig_MainVC_viewWillAppear(self, _cmd, animated);
     }
-
-    NSString *clsName = NSStringFromClass([view class]);
-
-    // Skip canvas, Metal, OpenGL, video renderers
-    if ([clsName containsString:@"Metal"] || [clsName containsString:@"MTK"] ||
-        [clsName containsString:@"GLK"] || [clsName containsString:@"Player"] ||
-        [clsName containsString:@"Canvas"] || [clsName containsString:@"Preview"]) {
-        return;
-    }
-
-    // Target UICollectionViewCell & UITableViewCell
-    if ([view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
-        view.backgroundColor = UM_CARD_COLOR;
-        view.layer.cornerRadius = 14.0;
-        view.clipsToBounds = YES;
+    @try {
+        UIViewController *vc = (UIViewController *)self;
+        if (@available(iOS 13.0, *)) {
+            vc.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        }
+        if (vc.view) {
+            vc.view.backgroundColor = UM_BG_COLOR;
+        }
+        UIView *topBar = [self valueForKey:@"topBar"];
+        if (topBar) topBar.backgroundColor = UM_BG_COLOR;
         
-        static Class s_projCellClass = nil;
-        static dispatch_once_t onceProj;
-        dispatch_once(&onceProj, ^{
-            s_projCellClass = objc_getClass("_TtC12AlightMotion12ProjectsCell");
-        });
-        if (s_projCellClass && [view isKindOfClass:s_projCellClass]) {
-            @try {
-                UILabel *nameLbl = [view valueForKey:@"projectNameLabel"];
-                if (nameLbl) nameLbl.textColor = [UIColor whiteColor];
-                
-                UILabel *infoLbl = [view valueForKey:@"projectInfoLabel"];
-                if (infoLbl) infoLbl.textColor = [UIColor colorWithWhite:0.75 alpha:1.0];
-                
-                UIView *bottomLine = [view valueForKey:@"bottomLineView"];
-                if (bottomLine) bottomLine.hidden = YES;
-                
-                UIImageView *thumb = [view valueForKey:@"thumbnailImageView"];
-                if (thumb) {
-                    thumb.layer.cornerRadius = 8.0;
-                    thumb.clipsToBounds = YES;
-                }
-            } @catch (NSException *e) {}
-        }
-        for (UIView *sub in view.subviews) {
-            applyUMThemeToView(sub);
-        }
-        return;
-    }
-
-    // Target Text fields & search bars
-    if ([view isKindOfClass:[UITextField class]] || [view isKindOfClass:[UISearchBar class]]) {
-        view.backgroundColor = UM_PILL_COLOR;
-        view.layer.cornerRadius = 12.0;
-        view.clipsToBounds = YES;
-        return;
-    }
-
-    // Target Labels
-    if ([view isKindOfClass:[UILabel class]]) {
-        UILabel *lbl = (UILabel *)view;
-        UIColor *tc = lbl.textColor;
-        if (tc) {
-            CGFloat r = 0, g = 0, b = 0, a = 0;
-            if ([tc getRed:&r green:&g blue:&b alpha:&a]) {
-                if (r < 0.35 && g < 0.35 && b < 0.35 && a > 0.5) {
-                    lbl.textColor = [UIColor whiteColor];
+        UIView *topBarContent = [self valueForKey:@"topBarContent"];
+        if (topBarContent) topBarContent.backgroundColor = UM_BG_COLOR;
+        
+        UIView *topUnderLine = [self valueForKey:@"topUnderLineView"];
+        if (topUnderLine) topUnderLine.hidden = YES;
+        
+        UIButton *settingBtn = [self valueForKey:@"settingButton"];
+        if (settingBtn) settingBtn.tintColor = [UIColor whiteColor];
+        
+        UIButton *accBtn = [self valueForKey:@"accountButton"];
+        if (accBtn) accBtn.tintColor = [UIColor whiteColor];
+        
+        UIView *tabBarView = [self valueForKey:@"tabBarView"];
+        if (tabBarView) tabBarView.backgroundColor = UM_BG_COLOR;
+        
+        UIView *tabBarContainer = [self valueForKey:@"tabBarContainer"];
+        if (tabBarContainer) tabBarContainer.backgroundColor = UM_BG_COLOR;
+        
+        UIView *selHeader = [self valueForKey:@"selectionHeaderContainer"];
+        if (selHeader) {
+            selHeader.backgroundColor = UM_BG_COLOR;
+            for (UIView *sub in selHeader.subviews) {
+                if ([sub isKindOfClass:[UIButton class]]) {
+                    UIButton *b = (UIButton *)sub;
+                    [b setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                } else if ([sub isKindOfClass:[UILabel class]]) {
+                    ((UILabel *)sub).textColor = [UIColor whiteColor];
                 }
             }
         }
-        return;
-    }
-
-    // Target Buttons / Pills
-    if ([view isKindOfClass:[UIButton class]]) {
-        UIButton *btn = (UIButton *)view;
-        UIColor *btnBg = btn.backgroundColor;
-        if (btnBg) {
-            CGFloat r = 0, g = 0, b = 0, a = 0;
-            if ([btnBg getRed:&r green:&g blue:&b alpha:&a]) {
-                if (r > 0.80 && g > 0.80 && b > 0.80 && a > 0.4) {
-                    btn.backgroundColor = UM_PILL_COLOR;
-                    btn.layer.cornerRadius = 14.0;
-                    btn.clipsToBounds = YES;
-                }
-            }
-        }
-    }
-
-    // Background color filtering
-    UIColor *bg = view.backgroundColor;
-    if (bg) {
-        CGFloat r = 0, g = 0, b = 0, a = 0;
-        if ([bg getRed:&r green:&g blue:&b alpha:&a]) {
-            // Bright/white surfaces -> UM_CARD_COLOR
-            if (r > 0.85 && g > 0.85 && b > 0.85 && a > 0.5) {
-                view.backgroundColor = UM_CARD_COLOR;
-                view.layer.cornerRadius = 14.0;
-                view.clipsToBounds = YES;
-            }
-            // Medium grey/generic dark surfaces -> UM_BG_COLOR
-            else if (r < 0.30 && g < 0.30 && b < 0.32 && a > 0.4) {
-                view.backgroundColor = UM_BG_COLOR;
-            }
-        }
-    }
+    } @catch (NSException *e) {}
 }
 
-// 3. Hook UIView setBackgroundColor: to catch hardcoded white
-static void (*orig_UIView_setBackgroundColor)(UIView *, SEL, UIColor *);
-static void hook_UIView_setBackgroundColor(UIView *self, SEL _cmd, UIColor *color) {
-    if (s_umThemeEnabled && color) {
-        NSString *cls = NSStringFromClass([self class]);
-        if (![cls containsString:@"Metal"] && ![cls containsString:@"MTK"] &&
-            ![cls containsString:@"GLK"] && ![cls containsString:@"Player"] &&
-            ![cls containsString:@"Canvas"] && ![cls containsString:@"Preview"]) {
-            CGFloat r = 0, g = 0, b = 0, a = 0;
-            if ([color getRed:&r green:&g blue:&b alpha:&a]) {
-                if (r > 0.85 && g > 0.85 && b > 0.85 && a > 0.5) {
-                    if ([self isKindOfClass:[UICollectionViewCell class]] ||
-                        [self isKindOfClass:[UITableViewCell class]] ||
-                        (self.superview && ([self.superview isKindOfClass:[UICollectionViewCell class]] || [self.superview isKindOfClass:[UITableViewCell class]]))) {
-                        color = UM_CARD_COLOR;
-                    } else if ([self isKindOfClass:[UITabBar class]] || [self isKindOfClass:[UINavigationBar class]]) {
-                        color = UM_BG_COLOR;
-                    } else {
-                        color = UM_CARD_COLOR;
-                    }
-                }
-            }
-        }
-    }
-    if (orig_UIView_setBackgroundColor) {
-        orig_UIView_setBackgroundColor(self, _cmd, color);
-    }
-}
-
-// 4. Hook UILabel setTextColor:
-static void (*orig_UILabel_setTextColor)(UILabel *, SEL, UIColor *);
-static void hook_UILabel_setTextColor(UILabel *self, SEL _cmd, UIColor *color) {
-    if (s_umThemeEnabled && color) {
-        CGFloat r = 0, g = 0, b = 0, a = 0;
-        if ([color getRed:&r green:&g blue:&b alpha:&a]) {
-            if (r < 0.35 && g < 0.35 && b < 0.35 && a > 0.5) {
-                color = [UIColor whiteColor];
-            }
-        }
-    }
-    if (orig_UILabel_setTextColor) {
-        orig_UILabel_setTextColor(self, _cmd, color);
-    }
-}
-
-// 5. Hook UICollectionViewCell layoutSubviews
-static void (*orig_UICollectionViewCell_layoutSubviews)(UICollectionViewCell *, SEL);
-static void hook_UICollectionViewCell_layoutSubviews(UICollectionViewCell *self, SEL _cmd) {
-    if (orig_UICollectionViewCell_layoutSubviews) {
-        orig_UICollectionViewCell_layoutSubviews(self, _cmd);
-    }
-    if (s_umThemeEnabled) {
-        self.backgroundColor = UM_CARD_COLOR;
-        if (self.contentView) {
-            self.contentView.backgroundColor = UM_CARD_COLOR;
-            self.contentView.layer.cornerRadius = 14.0;
-            self.contentView.clipsToBounds = YES;
-        }
-        self.layer.cornerRadius = 14.0;
-        self.clipsToBounds = YES;
-        applyUMThemeToView(self);
-    }
-}
-
-// 6. Hook UITabBar layoutSubviews
-static void (*orig_UITabBar_layoutSubviews)(UITabBar *, SEL);
-static void hook_UITabBar_layoutSubviews(UITabBar *self, SEL _cmd) {
-    if (orig_UITabBar_layoutSubviews) {
-        orig_UITabBar_layoutSubviews(self, _cmd);
-    }
-    if (s_umThemeEnabled) {
-        self.barTintColor = UM_BG_COLOR;
-        self.backgroundColor = UM_BG_COLOR;
-        self.tintColor = UM_ACCENT_GREEN;
-        self.unselectedItemTintColor = [UIColor colorWithWhite:0.65 alpha:1.0];
-        if (@available(iOS 13.0, *)) {
-            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            Class tabAppClass = objc_getClass("UITabBarAppearance");
-            if (tabAppClass) {
-                id app = [self standardAppearance];
-                if (!app) app = [[tabAppClass alloc] init];
-                [app configureWithOpaqueBackground];
-                [app setBackgroundColor:UM_BG_COLOR];
-                [self setStandardAppearance:app];
-                if ([self respondsToSelector:@selector(setScrollEdgeAppearance:)]) {
-                    [self performSelector:@selector(setScrollEdgeAppearance:) withObject:app];
-                }
-            }
-        }
-    }
-}
-
-// 7. Hook UINavigationBar layoutSubviews
-static void (*orig_UINavigationBar_layoutSubviews)(UINavigationBar *, SEL);
-static void hook_UINavigationBar_layoutSubviews(UINavigationBar *self, SEL _cmd) {
-    if (orig_UINavigationBar_layoutSubviews) {
-        orig_UINavigationBar_layoutSubviews(self, _cmd);
-    }
-    if (s_umThemeEnabled) {
-        self.barTintColor = UM_BG_COLOR;
-        self.backgroundColor = UM_BG_COLOR;
-        self.tintColor = [UIColor whiteColor];
-        if (@available(iOS 13.0, *)) {
-            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            Class navAppClass = objc_getClass("UINavigationBarAppearance");
-            if (navAppClass) {
-                id app = [self standardAppearance];
-                if (!app) app = [[navAppClass alloc] init];
-                [app configureWithOpaqueBackground];
-                [app setBackgroundColor:UM_BG_COLOR];
-                [app setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor whiteColor]}];
-                [self setStandardAppearance:app];
-                if ([self respondsToSelector:@selector(setCompactAppearance:)]) {
-                    [self performSelector:@selector(setCompactAppearance:) withObject:app];
-                }
-                if ([self respondsToSelector:@selector(setScrollEdgeAppearance:)]) {
-                    [self performSelector:@selector(setScrollEdgeAppearance:) withObject:app];
-                }
-            }
-        }
-    }
-}
-
-// 8. Hook UIView didMoveToWindow
-static void (*orig_UIView_didMoveToWindow)(UIView *, SEL);
-static void hook_UIView_didMoveToWindow(UIView *self, SEL _cmd) {
-    if (orig_UIView_didMoveToWindow) {
-        orig_UIView_didMoveToWindow(self, _cmd);
-    }
-    if (self && self.window && s_umThemeEnabled) {
-        applyUMThemeToView(self);
-    }
-}
-
-// 9. Hook UIViewController viewWillAppear:
-static void (*orig_UIViewController_viewWillAppear_OLED)(UIViewController *, SEL, BOOL);
-static void hook_UIViewController_viewWillAppear_OLED(UIViewController *self, SEL _cmd, BOOL animated) {
-    if (orig_UIViewController_viewWillAppear_OLED) {
-        orig_UIViewController_viewWillAppear_OLED(self, _cmd, animated);
-    }
-    if (self && s_umThemeEnabled) {
-        if (@available(iOS 13.0, *)) {
-            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-        }
-        if (self.view) {
-            self.view.backgroundColor = UM_BG_COLOR;
-            applyUMThemeToView(self.view);
-            for (UIView *sub in self.view.subviews) {
-                applyUMThemeToView(sub);
-            }
-        }
-
-        // Special handling for MainVC (Root container)
-        static Class s_mainVCClass = nil;
-        static dispatch_once_t onceMain;
-        dispatch_once(&onceMain, ^{
-            s_mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
-        });
-        if (s_mainVCClass && [self isKindOfClass:s_mainVCClass]) {
-            @try {
-                UIView *topBar = [self valueForKey:@"topBar"];
-                if (topBar) {
-                    topBar.backgroundColor = UM_BG_COLOR;
-                    applyUMThemeToView(topBar);
-                }
-                UIView *topBarContent = [self valueForKey:@"topBarContent"];
-                if (topBarContent) {
-                    topBarContent.backgroundColor = UM_BG_COLOR;
-                    applyUMThemeToView(topBarContent);
-                }
-                UIView *topUnderLine = [self valueForKey:@"topUnderLineView"];
-                if (topUnderLine) {
-                    topUnderLine.hidden = YES;
-                }
-                UIButton *settingBtn = [self valueForKey:@"settingButton"];
-                if (settingBtn) {
-                    settingBtn.tintColor = [UIColor whiteColor];
-                }
-                UIButton *accBtn = [self valueForKey:@"accountButton"];
-                if (accBtn) {
-                    accBtn.tintColor = [UIColor whiteColor];
-                }
-                UIView *tabBarView = [self valueForKey:@"tabBarView"];
-                if (tabBarView) {
-                    tabBarView.backgroundColor = UM_BG_COLOR;
-                    applyUMThemeToView(tabBarView);
-                }
-                UIView *tabBarContainer = [self valueForKey:@"tabBarContainer"];
-                if (tabBarContainer) {
-                    tabBarContainer.backgroundColor = UM_BG_COLOR;
-                    applyUMThemeToView(tabBarContainer);
-                }
-                UIView *selHeader = [self valueForKey:@"selectionHeaderContainer"];
-                if (selHeader) {
-                    selHeader.backgroundColor = UM_BG_COLOR;
-                    applyUMThemeToView(selHeader);
-                }
-            } @catch (NSException *e) {}
-        }
-
-        // Special handling for HomeVC (Upload XML Banner)
-        static Class s_homeVCClass = nil;
-        static dispatch_once_t onceHome;
-        dispatch_once(&onceHome, ^{
-            s_homeVCClass = objc_getClass("_TtC12AlightMotion6HomeVC");
-        });
-        if (s_homeVCClass && [self isKindOfClass:s_homeVCClass]) {
-            @try {
-                UIView *banner = [self valueForKey:@"feedSocialLinkView"];
-                if (banner) {
-                    banner.backgroundColor = UM_CARD_COLOR;
-                    banner.layer.cornerRadius = 14.0;
-                    banner.clipsToBounds = YES;
-                    applyUMThemeToView(banner);
-                }
-                UILabel *lbl = [self valueForKey:@"feedSocialLabel"];
-                if (lbl) {
-                    lbl.textColor = [UIColor whiteColor];
-                }
-            } @catch (NSException *e) {}
-        }
-
-        // Special handling for ProjectsVC (Collection view)
-        static Class s_projVCClass = nil;
-        static dispatch_once_t onceProjVC;
-        dispatch_once(&onceProjVC, ^{
-            s_projVCClass = objc_getClass("_TtC12AlightMotion10ProjectsVC");
-        });
-        if (s_projVCClass && [self isKindOfClass:s_projVCClass]) {
-            @try {
-                UICollectionView *cv = [self valueForKey:@"pCollectionView"];
-                if (cv) {
-                    cv.backgroundColor = UM_BG_COLOR;
-                }
-            } @catch (NSException *e) {}
-        }
-    }
-}
-
-// 10. Status Bar White Style on MainVC
 static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
 }
 
+// 2. Hook HomeVC: Upload XML Banner & Feed
+static void (*orig_HomeVC_viewWillAppear)(id, SEL, BOOL);
+static void hook_HomeVC_viewWillAppear(id self, SEL _cmd, BOOL animated) {
+    if (orig_HomeVC_viewWillAppear) {
+        orig_HomeVC_viewWillAppear(self, _cmd, animated);
+    }
+    @try {
+        UIViewController *vc = (UIViewController *)self;
+        if (@available(iOS 13.0, *)) {
+            vc.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        }
+        if (vc.view) {
+            vc.view.backgroundColor = UM_BG_COLOR;
+        }
+        UIView *banner = [self valueForKey:@"feedSocialLinkView"];
+        if (banner) {
+            banner.backgroundColor = UM_CARD_COLOR;
+            banner.layer.cornerRadius = 14.0;
+            banner.clipsToBounds = YES;
+        }
+        UILabel *lbl = [self valueForKey:@"feedSocialLabel"];
+        if (lbl) lbl.textColor = [UIColor whiteColor];
+        
+        UITableView *tv = [self valueForKey:@"feedTableView"];
+        if (tv) tv.backgroundColor = UM_BG_COLOR;
+        
+        UICollectionView *cv = [self valueForKey:@"feedCollectionView"];
+        if (cv) cv.backgroundColor = UM_BG_COLOR;
+    } @catch (NSException *e) {}
+}
+
+// 3. Hook ProjectsVC: Collection View & Dark Elevated Cards
+static void (*orig_ProjectsVC_viewWillAppear)(id, SEL, BOOL);
+static void hook_ProjectsVC_viewWillAppear(id self, SEL _cmd, BOOL animated) {
+    if (orig_ProjectsVC_viewWillAppear) {
+        orig_ProjectsVC_viewWillAppear(self, _cmd, animated);
+    }
+    @try {
+        UIViewController *vc = (UIViewController *)self;
+        if (@available(iOS 13.0, *)) {
+            vc.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        }
+        if (vc.view) {
+            vc.view.backgroundColor = UM_BG_COLOR;
+        }
+        UICollectionView *cv = [self valueForKey:@"pCollectionView"];
+        if (cv) {
+            cv.backgroundColor = UM_BG_COLOR;
+        }
+    } @catch (NSException *e) {}
+}
+
+static UICollectionViewCell *(*orig_ProjectsVC_cellForItem)(id, SEL, UICollectionView *, NSIndexPath *);
+static UICollectionViewCell *hook_ProjectsVC_cellForItem(id self, SEL _cmd, UICollectionView *cv, NSIndexPath *indexPath) {
+    UICollectionViewCell *cell = orig_ProjectsVC_cellForItem ? orig_ProjectsVC_cellForItem(self, _cmd, cv, indexPath) : nil;
+    if (cell) {
+        cell.backgroundColor = UM_CARD_COLOR;
+        cell.layer.cornerRadius = 14.0;
+        cell.clipsToBounds = YES;
+        if ([cell respondsToSelector:@selector(contentView)]) {
+            cell.contentView.backgroundColor = UM_CARD_COLOR;
+            cell.contentView.layer.cornerRadius = 14.0;
+            cell.contentView.clipsToBounds = YES;
+        }
+        @try {
+            UILabel *nameLbl = [cell valueForKey:@"projectNameLabel"];
+            if (nameLbl) nameLbl.textColor = [UIColor whiteColor];
+            
+            UILabel *infoLbl = [cell valueForKey:@"projectInfoLabel"];
+            if (infoLbl) infoLbl.textColor = [UIColor colorWithWhite:0.75 alpha:1.0];
+            
+            UIView *bottomLine = [cell valueForKey:@"bottomLineView"];
+            if (bottomLine) bottomLine.hidden = YES;
+            
+            UIImageView *thumb = [cell valueForKey:@"thumbnailImageView"];
+            if (thumb) {
+                thumb.layer.cornerRadius = 8.0;
+                thumb.clipsToBounds = YES;
+            }
+        } @catch (NSException *e) {}
+    }
+    return cell;
+}
+
+static UICollectionReusableView *(*orig_ProjectsVC_viewForSupp)(id, SEL, UICollectionView *, NSString *, NSIndexPath *);
+static UICollectionReusableView *hook_ProjectsVC_viewForSupp(id self, SEL _cmd, UICollectionView *cv, NSString *kind, NSIndexPath *indexPath) {
+    UICollectionReusableView *view = orig_ProjectsVC_viewForSupp ? orig_ProjectsVC_viewForSupp(self, _cmd, cv, kind, indexPath) : nil;
+    if (view) {
+        view.backgroundColor = [UIColor clearColor];
+        @try {
+            UILabel *lbl = [view valueForKey:@"titleLabel"];
+            if (lbl) lbl.textColor = [UIColor whiteColor];
+        } @catch (NSException *e) {}
+    }
+    return view;
+}
+
 static void AMOLEDThemeEngineInit(void) {
-    // 1. Force UIUserInterfaceStyleDark on all app windows
+    // 1. Enforce UIUserInterfaceStyleDark on application windows
     dispatch_async(dispatch_get_main_queue(), ^{
         if (@available(iOS 13.0, *)) {
             for (UIWindow *win in [UIApplication sharedApplication].windows) {
@@ -655,69 +438,49 @@ static void AMOLEDThemeEngineInit(void) {
         }
     });
 
-    // 2. Swizzle UITraitCollection userInterfaceStyle
-    Method mTrait = class_getInstanceMethod([UITraitCollection class], @selector(userInterfaceStyle));
-    if (mTrait) {
-        method_setImplementation(mTrait, (IMP)hook_UITraitCollection_userInterfaceStyle);
-    }
-
-    // 3. Swizzle UIView didMoveToWindow
-    Method mMove = class_getInstanceMethod([UIView class], @selector(didMoveToWindow));
-    if (mMove) {
-        orig_UIView_didMoveToWindow = (void *)method_getImplementation(mMove);
-        method_setImplementation(mMove, (IMP)hook_UIView_didMoveToWindow);
-    }
-
-    // 4. Swizzle UIView setBackgroundColor:
-    Method mBg = class_getInstanceMethod([UIView class], @selector(setBackgroundColor:));
-    if (mBg) {
-        orig_UIView_setBackgroundColor = (void *)method_getImplementation(mBg);
-        method_setImplementation(mBg, (IMP)hook_UIView_setBackgroundColor);
-    }
-
-    // 5. Swizzle UILabel setTextColor:
-    Method mTc = class_getInstanceMethod([UILabel class], @selector(setTextColor:));
-    if (mTc) {
-        orig_UILabel_setTextColor = (void *)method_getImplementation(mTc);
-        method_setImplementation(mTc, (IMP)hook_UILabel_setTextColor);
-    }
-
-    // 6. Swizzle UICollectionViewCell layoutSubviews
-    Method mCellLayout = class_getInstanceMethod([UICollectionViewCell class], @selector(layoutSubviews));
-    if (mCellLayout) {
-        orig_UICollectionViewCell_layoutSubviews = (void *)method_getImplementation(mCellLayout);
-        method_setImplementation(mCellLayout, (IMP)hook_UICollectionViewCell_layoutSubviews);
-    }
-
-    // 7. Swizzle UITabBar layoutSubviews
-    Method mTab = class_getInstanceMethod([UITabBar class], @selector(layoutSubviews));
-    if (mTab) {
-        orig_UITabBar_layoutSubviews = (void *)method_getImplementation(mTab);
-        method_setImplementation(mTab, (IMP)hook_UITabBar_layoutSubviews);
-    }
-
-    // 8. Swizzle UINavigationBar layoutSubviews
-    Method mNav = class_getInstanceMethod([UINavigationBar class], @selector(layoutSubviews));
-    if (mNav) {
-        orig_UINavigationBar_layoutSubviews = (void *)method_getImplementation(mNav);
-        method_setImplementation(mNav, (IMP)hook_UINavigationBar_layoutSubviews);
-    }
-
-    // 9. Swizzle UIViewController viewWillAppear:
-    Method mApp = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
-    if (mApp) {
-        orig_UIViewController_viewWillAppear_OLED = (void *)method_getImplementation(mApp);
-        method_setImplementation(mApp, (IMP)hook_UIViewController_viewWillAppear_OLED);
-    }
-
-    // 10. Swizzle MainVC preferredStatusBarStyle
+    // 2. Hook MainVC
     Class mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
     if (mainVCClass) {
+        Method mAppear = class_getInstanceMethod(mainVCClass, @selector(viewWillAppear:));
+        if (mAppear) {
+            orig_MainVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+            method_setImplementation(mAppear, (IMP)hook_MainVC_viewWillAppear);
+        }
         Method mStatus = class_getInstanceMethod(mainVCClass, @selector(preferredStatusBarStyle));
         if (mStatus) {
             method_setImplementation(mStatus, (IMP)hook_MainVC_preferredStatusBarStyle);
         } else {
             class_addMethod(mainVCClass, @selector(preferredStatusBarStyle), (IMP)hook_MainVC_preferredStatusBarStyle, "q@:");
+        }
+    }
+
+    // 3. Hook HomeVC
+    Class homeVCClass = objc_getClass("_TtC12AlightMotion6HomeVC");
+    if (homeVCClass) {
+        Method mAppear = class_getInstanceMethod(homeVCClass, @selector(viewWillAppear:));
+        if (mAppear) {
+            orig_HomeVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+            method_setImplementation(mAppear, (IMP)hook_HomeVC_viewWillAppear);
+        }
+    }
+
+    // 4. Hook ProjectsVC
+    Class projVCClass = objc_getClass("_TtC12AlightMotion10ProjectsVC");
+    if (projVCClass) {
+        Method mAppear = class_getInstanceMethod(projVCClass, @selector(viewWillAppear:));
+        if (mAppear) {
+            orig_ProjectsVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+            method_setImplementation(mAppear, (IMP)hook_ProjectsVC_viewWillAppear);
+        }
+        Method mCell = class_getInstanceMethod(projVCClass, @selector(collectionView:cellForItemAtIndexPath:));
+        if (mCell) {
+            orig_ProjectsVC_cellForItem = (void *)method_getImplementation(mCell);
+            method_setImplementation(mCell, (IMP)hook_ProjectsVC_cellForItem);
+        }
+        Method mSupp = class_getInstanceMethod(projVCClass, @selector(collectionView:viewForSupplementaryElementOfKind:atIndexPath:));
+        if (mSupp) {
+            orig_ProjectsVC_viewForSupp = (void *)method_getImplementation(mSupp);
+            method_setImplementation(mSupp, (IMP)hook_ProjectsVC_viewForSupp);
         }
     }
 }
