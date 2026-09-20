@@ -478,13 +478,16 @@ static void hook_UITabBar_layoutSubviews(UITabBar *self, SEL _cmd) {
         self.unselectedItemTintColor = [UIColor colorWithWhite:0.65 alpha:1.0];
         if (@available(iOS 13.0, *)) {
             self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            UITabBarAppearance *app = self.standardAppearance;
-            if (!app) app = [[UITabBarAppearance alloc] init];
-            [app configureWithOpaqueBackground];
-            app.backgroundColor = UM_BG_COLOR;
-            self.standardAppearance = app;
-            if (@available(iOS 15.0, *)) {
-                self.scrollEdgeAppearance = app;
+            Class tabAppClass = objc_getClass("UITabBarAppearance");
+            if (tabAppClass) {
+                id app = [self standardAppearance];
+                if (!app) app = [[tabAppClass alloc] init];
+                [app configureWithOpaqueBackground];
+                [app setBackgroundColor:UM_BG_COLOR];
+                [self setStandardAppearance:app];
+                if ([self respondsToSelector:@selector(setScrollEdgeAppearance:)]) {
+                    [self performSelector:@selector(setScrollEdgeAppearance:) withObject:app];
+                }
             }
         }
     }
@@ -502,15 +505,20 @@ static void hook_UINavigationBar_layoutSubviews(UINavigationBar *self, SEL _cmd)
         self.tintColor = [UIColor whiteColor];
         if (@available(iOS 13.0, *)) {
             self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-            UINavigationBarAppearance *app = self.standardAppearance;
-            if (!app) app = [[UINavigationBarAppearance alloc] init];
-            [app configureWithOpaqueBackground];
-            app.backgroundColor = UM_BG_COLOR;
-            app.titleTextAttributes = @{NSForegroundColorAttributeName: [UIColor whiteColor]};
-            self.standardAppearance = app;
-            self.compactAppearance = app;
-            if (@available(iOS 15.0, *)) {
-                self.scrollEdgeAppearance = app;
+            Class navAppClass = objc_getClass("UINavigationBarAppearance");
+            if (navAppClass) {
+                id app = [self standardAppearance];
+                if (!app) app = [[navAppClass alloc] init];
+                [app configureWithOpaqueBackground];
+                [app setBackgroundColor:UM_BG_COLOR];
+                [app setTitleTextAttributes:@{NSForegroundColorAttributeName: [UIColor whiteColor]}];
+                [self setStandardAppearance:app];
+                if ([self respondsToSelector:@selector(setCompactAppearance:)]) {
+                    [self performSelector:@selector(setCompactAppearance:) withObject:app];
+                }
+                if ([self respondsToSelector:@selector(setScrollEdgeAppearance:)]) {
+                    [self performSelector:@selector(setScrollEdgeAppearance:) withObject:app];
+                }
             }
         }
     }
