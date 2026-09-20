@@ -2006,7 +2006,7 @@ static UITableViewCell *hook_PBC_cellForRowAtIndexPath(id self, SEL _cmd, UITabl
             if (lbl) {
                 lbl.text = fpsTitle;
             }
-            NSInteger currentPresetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+            NSInteger currentPresetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
             if (currentPresetFps <= 0) currentPresetFps = 30;
             BOOL isSelected = (s_ultraFpsValues[indexPath.row] == currentPresetFps);
             UIView *hl = nil;
@@ -2066,7 +2066,7 @@ static void hook_CreateVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL 
     if (orig_CreateVC_viewWillAppear) {
         orig_CreateVC_viewWillAppear(self, _cmd, animated);
     }
-    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
     if (presetFps > 0) {
         NSString *fpsTitle = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
         id frBtn = nil;
@@ -2082,7 +2082,7 @@ static void hook_SceneSettingsVC_viewWillAppear(UIViewController *self, SEL _cmd
     if (orig_SceneSettingsVC_viewWillAppear) {
         orig_SceneSettingsVC_viewWillAppear(self, _cmd, animated);
     }
-    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
     if (presetFps > 0) {
         NSString *fpsTitle = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
         id frBtn = nil;
@@ -2098,8 +2098,8 @@ static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, B
     if (orig_ShareVideoVC_viewWillAppear) {
         orig_ShareVideoVC_viewWillAppear(self, _cmd, animated);
     }
-    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"video_export_frameRate"];
-    if (presetFps <= 0) presetFps = [[NSUserDefaults standardUserDefaults] integerValueForKey:@"new_scene_preset_fps"];
+    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"video_export_frameRate"];
+    if (presetFps <= 0) presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
     if (presetFps > 0) {
         UILabel *fpsLbl = nil;
         @try { fpsLbl = [self valueForKey:@"fpsLabel"]; } @catch (NSException *e) {}
