@@ -272,9 +272,27 @@ static void AMUnlockProjectPackageLimit(void) {
 #pragma mark 2.7. Group D: Ultra Motion Official Charcoal Dark Theme (#131215 & #1C1C1E)
 #pragma mark - =========================================================
 
-#define UM_BG_COLOR     [UIColor colorWithRed:(0x13/255.0) green:(0x12/255.0) blue:(0x15/255.0) alpha:1.0] // #131215
+// #101012 replaces #141520 / #141620 across entire application (Deep Scan 1-1 Match)
+#define UM_BG_COLOR     [UIColor colorWithRed:(0x10/255.0) green:(0x10/255.0) blue:(0x12/255.0) alpha:1.0] // #101012
 #define UM_CARD_COLOR   [UIColor colorWithRed:(0x1C/255.0) green:(0x1C/255.0) blue:(0x1E/255.0) alpha:1.0] // #1C1C1E
 #define UM_PILL_SEL     [UIColor colorWithRed:(0x2C/255.0) green:(0x2C/255.0) blue:(0x30/255.0) alpha:1.0] // #2C2C30
+
+// Helper to identify and replace AlightMotion native navy theme colors with #101012 / #1C1C1E
+static inline UIColor* AMFilterColor(UIColor *c) {
+    if (!c) return c;
+    CGFloat r = 0, g = 0, b = 0, a = 0;
+    if ([c getRed:&r green:&g blue:&b alpha:&a] && a > 0.4) {
+        // Match #141520 / #141620 / #14151F / #191B27 / #191C25 / #202332 -> #101012
+        if (r >= 0.05 && r <= 0.135 && g >= 0.06 && g <= 0.145 && b >= 0.11 && b <= 0.22 && (b - r >= 0.012) && (b - g >= 0.012)) {
+            return [UIColor colorWithRed:(0x10/255.0) green:(0x10/255.0) blue:(0x12/255.0) alpha:a];
+        }
+        // Match secondary slate buttons/chips #2B2E3B / #292D40 / #262A3C -> #1C1C1E
+        if (r > 0.135 && r <= 0.20 && g >= 0.14 && g <= 0.22 && b > 0.20 && b <= 0.29 && (b - r >= 0.018)) {
+            return [UIColor colorWithRed:(0x1C/255.0) green:(0x1C/255.0) blue:(0x1E/255.0) alpha:a];
+        }
+    }
+    return c;
+}
 
 // 1. Bulletproof Property / Ivar Getter that NEVER crashes or throws exceptions
 static id safeGetPropertyOrIvar(id obj, const char *name) {
@@ -299,6 +317,26 @@ static id safeGetPropertyOrIvar(id obj, const char *name) {
 
 // Forward declarations
 static void themeEntireViewTreeRecursively(UIView *view, int depth);
+// Global UIColor Hooks to replace #141520 / #141620 at source
+static UIColor * (*orig_UIColor_colorWithRed_green_blue_alpha)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat);
+static UIColor * hook_UIColor_colorWithRed_green_blue_alpha(id self, SEL _cmd, CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
+    if (a > 0.4) {
+        if (r >= 0.05 && r <= 0.135 && g >= 0.06 && g <= 0.145 && b >= 0.11 && b <= 0.22 && (b - r >= 0.012) && (b - g >= 0.012)) {
+            return orig_UIColor_colorWithRed_green_blue_alpha(self, _cmd, 16.0/255.0, 16.0/255.0, 18.0/255.0, a);
+        }
+        if (r > 0.135 && r <= 0.20 && g >= 0.14 && g <= 0.22 && b > 0.20 && b <= 0.29 && (b - r >= 0.018)) {
+            return orig_UIColor_colorWithRed_green_blue_alpha(self, _cmd, 28.0/255.0, 28.0/255.0, 30.0/255.0, a);
+        }
+    }
+    return orig_UIColor_colorWithRed_green_blue_alpha(self, _cmd, r, g, b, a);
+}
+
+static UIColor * (*orig_UIColor_colorNamed_inBundle_compatibleWithTraitCollection)(id, SEL, NSString *, NSBundle *, UITraitCollection *);
+static UIColor * hook_UIColor_colorNamed_inBundle_compatibleWithTraitCollection(id self, SEL _cmd, NSString *name, NSBundle *bundle, UITraitCollection *trait) {
+    UIColor *c = orig_UIColor_colorNamed_inBundle_compatibleWithTraitCollection(self, _cmd, name, bundle, trait);
+    return AMFilterColor(c);
+}
+
 
 // 2. Recursive pill / category tab styling
 static void stylePillButtons(UIView *view) {
@@ -606,18 +644,26 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
     // 2. Specific Cells (ProjectsCell, FeedCardCell, etc.)
     styleAnyHomeOrProjectCell(view);
 
-    // 3. Generic White Views / Cards / SwiftUI Hosting Views
-    CGFloat r = 0, g = 0, b = 0, a = 0;
-    if (view.backgroundColor && [view.backgroundColor getRed:&r green:&g blue:&b alpha:&a]) {
-        if (r > 0.82 && g > 0.82 && b > 0.82 && a > 0.15) {
-            CGFloat screenW = [UIScreen mainScreen].bounds.size.width;
-            if (view.bounds.size.width < screenW * 0.95 || view.layer.cornerRadius > 3.0 ||
-                [view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
-                view.backgroundColor = UM_CARD_COLOR; // #1C1C1E
-                if (view.layer.cornerRadius < 8.0) view.layer.cornerRadius = 14.0;
-                view.clipsToBounds = YES;
-            } else {
-                view.backgroundColor = UM_BG_COLOR; // #131215
+    // 3. Color Transformation Engine: Deep Scan 1-1 Color Mapping
+    if (view.backgroundColor) {
+        UIColor *filtered = AMFilterColor(view.backgroundColor);
+        if (filtered != view.backgroundColor) {
+            view.backgroundColor = filtered;
+        } else {
+            CGFloat r = 0, g = 0, b = 0, a = 0;
+            if ([view.backgroundColor getRed:&r green:&g blue:&b alpha:&a]) {
+                // White / Near-White Backgrounds (SwiftUI & UIKit)
+                if (r > 0.80 && g > 0.80 && b > 0.80 && a > 0.15) {
+                    CGFloat screenW = [UIScreen mainScreen].bounds.size.width;
+                    if (view.bounds.size.width < screenW * 0.95 || view.layer.cornerRadius > 3.0 ||
+                        [view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
+                        view.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+                        if (view.layer.cornerRadius < 8.0) view.layer.cornerRadius = 14.0;
+                        view.clipsToBounds = YES;
+                    } else {
+                        view.backgroundColor = UM_BG_COLOR; // #101012
+                    }
+                }
             }
         }
     }
@@ -679,7 +725,7 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
             if ([layer isKindOfClass:[CAShapeLayer class]]) {
                 CAShapeLayer *sl = (CAShapeLayer *)layer;
                 if (sl.lineDashPattern) {
-                    sl.strokeColor = [UIColor colorWithWhite:0.35 alpha:1.0].CGColor;
+                    sl.strokeColor = [UIColor colorWithWhite:0.25 alpha:1.0].CGColor;
                     sl.fillColor = UM_CARD_COLOR.CGColor;
                 }
             }
@@ -967,7 +1013,7 @@ static void applyMainVCTheme(UIViewController *self) {
     }
 }
 
-// 11. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Universal for ALL View Controllers)
+// 11. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Zero Screenshot Bug, Safe)
 static void (*orig_UIViewController_viewWillAppear)(UIViewController *, SEL, BOOL);
 static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     if (orig_UIViewController_viewWillAppear) {
@@ -975,13 +1021,20 @@ static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cm
     }
     if (@available(iOS 13.0, *)) {
         self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-        if (self.view) self.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     }
     const char *cname = object_getClassName(self);
     if (!cname) return;
 
-    // NEVER touch Video Editor Preview, Canvas, or ProjectEditVC!
-    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || strstr(cname, "Editor") || strstr(cname, "Preview")) {
+    // 1. STRICT ISOLATION: NEVER touch iOS system controllers (Zero Black Screen on screenshots, keyboards, transitions)
+    if (!strstr(cname, "AlightMotion") && !strstr(cname, "AlightCommons") && 
+        !strstr(cname, "AiProjectCreation") && !strstr(cname, "PresetsEditingPanel")) {
+        return;
+    }
+
+    // 2. STRICT CANVAS PROTECTION: NEVER touch Video Editor, Canvas, Metal, or Preview controllers!
+    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || 
+        strstr(cname, "Editor") || strstr(cname, "Preview") || 
+        strstr(cname, "CameraView") || strstr(cname, "Canvas")) {
         return;
     }
 
@@ -1001,9 +1054,11 @@ static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cm
         applySettingsVCTheme(self);
     } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
         applyExportShareVCTheme(self);
-    } else if (self.view) {
-        self.view.backgroundColor = UM_BG_COLOR;
-        themeEntireViewTreeRecursively(self.view, 0);
+    } else if (strstr(cname, "ShapeLibrary") || strstr(cname, "EditingPanel") || strstr(cname, "ColorFill")) {
+        if (self.view) {
+            self.view.backgroundColor = UM_BG_COLOR;
+            themeEntireViewTreeRecursively(self.view, 0);
+        }
     }
 }
 
@@ -1015,8 +1070,16 @@ static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, 
     const char *cname = object_getClassName(self);
     if (!cname) return;
 
-    // NEVER touch Video Editor Preview, Canvas, or ProjectEditVC!
-    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || strstr(cname, "Editor") || strstr(cname, "Preview")) {
+    // 1. STRICT ISOLATION: NEVER touch iOS system controllers
+    if (!strstr(cname, "AlightMotion") && !strstr(cname, "AlightCommons") && 
+        !strstr(cname, "AiProjectCreation") && !strstr(cname, "PresetsEditingPanel")) {
+        return;
+    }
+
+    // 2. STRICT CANVAS PROTECTION: NEVER touch Video Editor, Canvas, Metal, or Preview controllers!
+    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || 
+        strstr(cname, "Editor") || strstr(cname, "Preview") || 
+        strstr(cname, "CameraView") || strstr(cname, "Canvas")) {
         return;
     }
 
@@ -1036,12 +1099,13 @@ static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, 
         applySettingsVCTheme(self);
     } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
         applyExportShareVCTheme(self);
-    } else if (self.view) {
-        self.view.backgroundColor = UM_BG_COLOR;
-        themeEntireViewTreeRecursively(self.view, 0);
+    } else if (strstr(cname, "ShapeLibrary") || strstr(cname, "EditingPanel") || strstr(cname, "ColorFill")) {
+        if (self.view) {
+            self.view.backgroundColor = UM_BG_COLOR;
+            themeEntireViewTreeRecursively(self.view, 0);
+        }
     }
 }
-
 // 12. Hook MainVC Status Bar Style
 static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
@@ -1079,24 +1143,55 @@ static void hook_UIWindow_setRootViewController(UIWindow *self, SEL _cmd, UIView
     }
 }
 
-// 13. Safe AMOLED Theme Engine Initialization (Zero Recursion, Zero Crash, Full Dark Mode)
+// 13. Safe AMOLED Theme Engine Initialization (Zero Recursion, Zero Screenshot Bug, Full Dark Mode)
+static void (*orig_UIViewController_viewDidLoad)(UIViewController *, SEL);
+static void hook_UIViewController_viewDidLoad(UIViewController *self, SEL _cmd) {
+    if (orig_UIViewController_viewDidLoad) {
+        orig_UIViewController_viewDidLoad(self, _cmd);
+    }
+    if (@available(iOS 13.0, *)) {
+        self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    }
+}
+
+static UIWindow* (*orig_UIWindow_initWithFrame)(UIWindow *, SEL, CGRect);
+static UIWindow* hook_UIWindow_initWithFrame(UIWindow *self, SEL _cmd, CGRect frame) {
+    UIWindow *w = orig_UIWindow_initWithFrame(self, _cmd, frame);
+    if (@available(iOS 13.0, *)) {
+        w.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    }
+    return w;
+}
+
 static void AMOLEDThemeEngineInit(void) {
-    // 1. Enforce UIUserInterfaceStyleDark on application windows immediately
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if (@available(iOS 13.0, *)) {
-            for (UIWindow *win in [UIApplication sharedApplication].windows) {
-                win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-                if (win.rootViewController) {
-                    win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-                    if (win.rootViewController.view) {
-                        win.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
-                    }
-                }
+    // 1. Enforce UIUserInterfaceStyleDark on current application windows immediately
+    if (@available(iOS 13.0, *)) {
+        for (UIWindow *win in [UIApplication sharedApplication].windows) {
+            win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            if (win.rootViewController) {
+                win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
             }
         }
-    });
+    }
 
-    // 2. Hook UIWindow makeKeyAndVisible & setRootViewController
+    // 2. Hook UIColor methods to swap #141520 -> #101012 globally
+    Method mColorRGBA = class_getClassMethod([UIColor class], @selector(colorWithRed:green:blue:alpha:));
+    if (mColorRGBA) {
+        orig_UIColor_colorWithRed_green_blue_alpha = (void *)method_getImplementation(mColorRGBA);
+        method_setImplementation(mColorRGBA, (IMP)hook_UIColor_colorWithRed_green_blue_alpha);
+    }
+    Method mColorNamed = class_getClassMethod([UIColor class], @selector(colorNamed:inBundle:compatibleWithTraitCollection:));
+    if (mColorNamed) {
+        orig_UIColor_colorNamed_inBundle_compatibleWithTraitCollection = (void *)method_getImplementation(mColorNamed);
+        method_setImplementation(mColorNamed, (IMP)hook_UIColor_colorNamed_inBundle_compatibleWithTraitCollection);
+    }
+
+    // 3. Hook UIWindow initWithFrame:, makeKeyAndVisible & setRootViewController
+    Method mInitFrame = class_getInstanceMethod([UIWindow class], @selector(initWithFrame:));
+    if (mInitFrame) {
+        orig_UIWindow_initWithFrame = (void *)method_getImplementation(mInitFrame);
+        method_setImplementation(mInitFrame, (IMP)hook_UIWindow_initWithFrame);
+    }
     Method mMakeKey = class_getInstanceMethod([UIWindow class], @selector(makeKeyAndVisible));
     if (mMakeKey) {
         orig_UIWindow_makeKeyAndVisible = (void *)method_getImplementation(mMakeKey);
@@ -1108,7 +1203,12 @@ static void AMOLEDThemeEngineInit(void) {
         method_setImplementation(mRoot, (IMP)hook_UIWindow_setRootViewController);
     }
 
-    // 3. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Clean, Safe, Universal)
+    // 4. Hook UIViewController viewDidLoad, viewWillAppear: and viewDidLayoutSubviews
+    Method mVieDidLoad = class_getInstanceMethod([UIViewController class], @selector(viewDidLoad));
+    if (mVieDidLoad) {
+        orig_UIViewController_viewDidLoad = (void *)method_getImplementation(mVieDidLoad);
+        method_setImplementation(mVieDidLoad, (IMP)hook_UIViewController_viewDidLoad);
+    }
     Method mAppear = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
     if (mAppear) {
         orig_UIViewController_viewWillAppear = (void *)method_getImplementation(mAppear);
@@ -1120,7 +1220,7 @@ static void AMOLEDThemeEngineInit(void) {
         method_setImplementation(mLayout, (IMP)hook_UIViewController_viewDidLayoutSubviews);
     }
 
-    // 4. Hook MainVC Status Bar Style
+    // 5. Hook MainVC Status Bar Style
     Class mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
     if (mainVCClass) {
         Method mStatus = class_getInstanceMethod(mainVCClass, @selector(preferredStatusBarStyle));
@@ -1131,13 +1231,6 @@ static void AMOLEDThemeEngineInit(void) {
         }
     }
 }
-
-
-
-
-
-
-#pragma mark - =========================================================
 
 #pragma mark 2. UMEffectRegistry & UMEffectSearchEngine (Lazy & Safe Loaded)
 
@@ -3119,6 +3212,7 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
         {"UISaveVideoAtPathToSavedPhotosAlbum", (void *)hook_UISaveVideoAtPathToSavedPhotosAlbum, (void **)&orig_UISaveVideoAtPathToSavedPhotosAlbum}
     }, 5);
 
+    AMOLEDThemeEngineInit();
     dispatch_async(dispatch_get_main_queue(), ^{
         // 2. Apply Pro Monetization state immediately and on launch notification
         AMApplyProSettings();
