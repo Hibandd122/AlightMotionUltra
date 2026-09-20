@@ -545,12 +545,25 @@ static void styleAnyHomeOrProjectCell(UIView *self) {
     }
 }
 
-// 5. Recursive View Tree Walker that themes EVERYTHING on screen
+// 5. Recursive View Tree Walker that themes EVERYTHING on screen (Safe & Non-Destructive)
 static void themeEntireViewTreeRecursively(UIView *view, int depth) {
     if (!view || depth > 25) return;
 
     const char *cname = object_getClassName(view);
     if (!cname) return;
+
+    // NEVER touch Project Editor Preview canvas, Metal, OpenGL, Player layers or Timeline
+    if (strstr(cname, "Preview") || strstr(cname, "Canvas") || strstr(cname, "MTKView") ||
+        strstr(cname, "Player") || strstr(cname, "TimelineLane") || strstr(cname, "Render") ||
+        strstr(cname, "OpenGL") || strstr(cname, "Metal") || strstr(cname, "VideoControl") ||
+        strstr(cname, "Playhead")) {
+        return;
+    }
+
+    // Enforce dark style on the view
+    if (@available(iOS 13.0, *)) {
+        view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    }
 
     // 1. Collection Views & Table Views (Main background)
     if ([view isKindOfClass:[UICollectionView class]]) {
@@ -593,28 +606,49 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
     // 2. Specific Cells (ProjectsCell, FeedCardCell, etc.)
     styleAnyHomeOrProjectCell(view);
 
-    // 3. Generic Cell Theme Fallback: If cell or contentView is white, convert to card color
-    if ([view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
-        view.backgroundColor = [UIColor clearColor];
-        UIView *cv = nil;
-        if ([view respondsToSelector:@selector(contentView)]) {
-            cv = ((UICollectionViewCell *)view).contentView;
-        }
-        if (cv) {
-            CGFloat r = 0, g = 0, b = 0, a = 0;
-            if (cv.backgroundColor && [cv.backgroundColor getRed:&r green:&g blue:&b alpha:&a]) {
-                if (r > 0.85 && g > 0.85 && b > 0.85) {
-                    cv.backgroundColor = UM_CARD_COLOR;
-                    cv.layer.cornerRadius = 14.0;
-                    cv.clipsToBounds = YES;
-                }
+    // 3. Generic White Views / Cards / SwiftUI Hosting Views
+    CGFloat r = 0, g = 0, b = 0, a = 0;
+    if (view.backgroundColor && [view.backgroundColor getRed:&r green:&g blue:&b alpha:&a]) {
+        if (r > 0.82 && g > 0.82 && b > 0.82 && a > 0.15) {
+            CGFloat screenW = [UIScreen mainScreen].bounds.size.width;
+            if (view.bounds.size.width < screenW * 0.95 || view.layer.cornerRadius > 3.0 ||
+                [view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
+                view.backgroundColor = UM_CARD_COLOR; // #1C1C1E
+                if (view.layer.cornerRadius < 8.0) view.layer.cornerRadius = 14.0;
+                view.clipsToBounds = YES;
+            } else {
+                view.backgroundColor = UM_BG_COLOR; // #131215
             }
         }
     }
 
-    // 4. Category Pills (Buttons in selectionHeaderContainer)
+    // 4. Generic Labels (Turn black/dark text into white)
+    if ([view isKindOfClass:[UILabel class]]) {
+        UILabel *lbl = (UILabel *)view;
+        CGFloat lr = 0, lg = 0, lb = 0, la = 0;
+        if (lbl.textColor && [lbl.textColor getRed:&lr green:&lg blue:&lb alpha:&la]) {
+            if (lr < 0.45 && lg < 0.45 && lb < 0.45 && la > 0.2) {
+                lbl.textColor = [UIColor whiteColor];
+            }
+        }
+    }
+
+    // 5. Generic Buttons (Turn black/dark text & tint into white)
     if ([view isKindOfClass:[UIButton class]]) {
         UIButton *btn = (UIButton *)view;
+        UIColor *tc = [btn titleColorForState:UIControlStateNormal];
+        CGFloat br = 0, bg = 0, bb = 0, ba = 0;
+        if (tc && [tc getRed:&br green:&bg blue:&bb alpha:&ba]) {
+            if (br < 0.45 && bg < 0.45 && bb < 0.45) {
+                [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            }
+        }
+        if (btn.tintColor && [btn.tintColor getRed:&br green:&bg blue:&bb alpha:&ba]) {
+            if (br < 0.45 && bg < 0.45 && bb < 0.45) {
+                btn.tintColor = [UIColor whiteColor];
+            }
+        }
+
         NSString *title = [btn titleForState:UIControlStateNormal];
         if (title && (
             [title containsString:@"Dự án"] ||
@@ -639,7 +673,20 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
         }
     }
 
-    // 5. XML Upload Banner ("Tải lên tệp XML từ thiết bị của bạn")
+    // 6. Dashed Border Layers (e.g. "Tạo dự án mới" container)
+    if (view.layer.sublayers) {
+        for (CALayer *layer in view.layer.sublayers) {
+            if ([layer isKindOfClass:[CAShapeLayer class]]) {
+                CAShapeLayer *sl = (CAShapeLayer *)layer;
+                if (sl.lineDashPattern) {
+                    sl.strokeColor = [UIColor colorWithWhite:0.35 alpha:1.0].CGColor;
+                    sl.fillColor = UM_CARD_COLOR.CGColor;
+                }
+            }
+        }
+    }
+
+    // 7. XML Upload Banner ("Tải lên tệp XML từ thiết bị của bạn")
     if ([view isKindOfClass:[UILabel class]]) {
         UILabel *lbl = (UILabel *)view;
         if (lbl.text && [lbl.text containsString:@"XML"]) {
@@ -664,7 +711,7 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
         }
     }
 
-    // 6. Recurse into all subviews
+    // 8. Recurse into all subviews
     for (UIView *sub in view.subviews) {
         themeEntireViewTreeRecursively(sub, depth + 1);
     }
@@ -831,10 +878,21 @@ static void applyMainVCTheme(UIViewController *self) {
 
     // Top Bar & Content
     UIView *topBar = safeGetPropertyOrIvar(self, "topBar");
-    if (topBar) topBar.backgroundColor = UM_BG_COLOR;
+    if (topBar) {
+        topBar.backgroundColor = UM_BG_COLOR;
+        for (UIView *v in topBar.subviews) {
+            v.backgroundColor = UM_BG_COLOR;
+            if ([v isKindOfClass:[UILabel class]]) ((UILabel *)v).textColor = [UIColor whiteColor];
+        }
+    }
 
     UIView *topBarContent = safeGetPropertyOrIvar(self, "topBarContent");
-    if (topBarContent) topBarContent.backgroundColor = UM_BG_COLOR;
+    if (topBarContent) {
+        topBarContent.backgroundColor = UM_BG_COLOR;
+        for (UIView *v in topBarContent.subviews) {
+            if ([v isKindOfClass:[UILabel class]]) ((UILabel *)v).textColor = [UIColor whiteColor];
+        }
+    }
 
     UIView *topUnderLine = safeGetPropertyOrIvar(self, "topUnderLineView");
     if (topUnderLine) topUnderLine.hidden = YES;
@@ -917,9 +975,16 @@ static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cm
     }
     if (@available(iOS 13.0, *)) {
         self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        if (self.view) self.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     }
     const char *cname = object_getClassName(self);
     if (!cname) return;
+
+    // NEVER touch Video Editor Preview, Canvas, or ProjectEditVC!
+    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || strstr(cname, "Editor") || strstr(cname, "Preview")) {
+        return;
+    }
+
     if (strstr(cname, "MainVC")) {
         applyMainVCTheme(self);
     } else if (strstr(cname, "HomeVC")) {
@@ -949,6 +1014,12 @@ static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, 
     }
     const char *cname = object_getClassName(self);
     if (!cname) return;
+
+    // NEVER touch Video Editor Preview, Canvas, or ProjectEditVC!
+    if (strstr(cname, "ProjectEdit") || strstr(cname, "ProjectHolder") || strstr(cname, "Editor") || strstr(cname, "Preview")) {
+        return;
+    }
+
     if (strstr(cname, "MainVC")) {
         applyMainVCTheme(self);
     } else if (strstr(cname, "HomeVC")) {
@@ -959,7 +1030,14 @@ static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, 
         applyProjectsVCTheme(self);
     } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
         applyTemplatesVCTheme(self);
+    } else if (strstr(cname, "CreateVC")) {
+        applyCreateVCTheme(self);
+    } else if (strstr(cname, "Setting") || strstr(cname, "Account") || strstr(cname, "About")) {
+        applySettingsVCTheme(self);
+    } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
+        applyExportShareVCTheme(self);
     } else if (self.view) {
+        self.view.backgroundColor = UM_BG_COLOR;
         themeEntireViewTreeRecursively(self.view, 0);
     }
 }
@@ -969,18 +1047,68 @@ static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
 }
 
-// 13. Safe AMOLED Theme Engine Initialization (Zero Recursion, Zero Crash)
+static void (*orig_UIWindow_makeKeyAndVisible)(UIWindow *, SEL);
+static void hook_UIWindow_makeKeyAndVisible(UIWindow *self, SEL _cmd) {
+    if (@available(iOS 13.0, *)) {
+        self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        if (self.rootViewController) {
+            self.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            if (self.rootViewController.view) {
+                self.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            }
+        }
+    }
+    if (orig_UIWindow_makeKeyAndVisible) {
+        orig_UIWindow_makeKeyAndVisible(self, _cmd);
+    }
+}
+
+static void (*orig_UIWindow_setRootViewController)(UIWindow *, SEL, UIViewController *);
+static void hook_UIWindow_setRootViewController(UIWindow *self, SEL _cmd, UIViewController *root) {
+    if (@available(iOS 13.0, *)) {
+        self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        if (root) {
+            root.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            if (root.view) {
+                root.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            }
+        }
+    }
+    if (orig_UIWindow_setRootViewController) {
+        orig_UIWindow_setRootViewController(self, _cmd, root);
+    }
+}
+
+// 13. Safe AMOLED Theme Engine Initialization (Zero Recursion, Zero Crash, Full Dark Mode)
 static void AMOLEDThemeEngineInit(void) {
-    // 1. Enforce UIUserInterfaceStyleDark on application windows
+    // 1. Enforce UIUserInterfaceStyleDark on application windows immediately
     dispatch_async(dispatch_get_main_queue(), ^{
         if (@available(iOS 13.0, *)) {
             for (UIWindow *win in [UIApplication sharedApplication].windows) {
                 win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                if (win.rootViewController) {
+                    win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                    if (win.rootViewController.view) {
+                        win.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                    }
+                }
             }
         }
     });
 
-    // 2. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Clean, Safe, Universal)
+    // 2. Hook UIWindow makeKeyAndVisible & setRootViewController
+    Method mMakeKey = class_getInstanceMethod([UIWindow class], @selector(makeKeyAndVisible));
+    if (mMakeKey) {
+        orig_UIWindow_makeKeyAndVisible = (void *)method_getImplementation(mMakeKey);
+        method_setImplementation(mMakeKey, (IMP)hook_UIWindow_makeKeyAndVisible);
+    }
+    Method mRoot = class_getInstanceMethod([UIWindow class], @selector(setRootViewController:));
+    if (mRoot) {
+        orig_UIWindow_setRootViewController = (void *)method_getImplementation(mRoot);
+        method_setImplementation(mRoot, (IMP)hook_UIWindow_setRootViewController);
+    }
+
+    // 3. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Clean, Safe, Universal)
     Method mAppear = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
     if (mAppear) {
         orig_UIViewController_viewWillAppear = (void *)method_getImplementation(mAppear);
@@ -992,7 +1120,7 @@ static void AMOLEDThemeEngineInit(void) {
         method_setImplementation(mLayout, (IMP)hook_UIViewController_viewDidLayoutSubviews);
     }
 
-    // 3. Hook MainVC Status Bar Style
+    // 4. Hook MainVC Status Bar Style
     Class mainVCClass = objc_getClass("_TtC12AlightMotion6MainVC");
     if (mainVCClass) {
         Method mStatus = class_getInstanceMethod(mainVCClass, @selector(preferredStatusBarStyle));
@@ -3004,6 +3132,17 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             AMApplyProSettings();
             AMNeutralizeAdNetworks();
             AMUnlockProjectPackageLimit();
+            if (@available(iOS 13.0, *)) {
+                for (UIWindow *win in [UIApplication sharedApplication].windows) {
+                    win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                    if (win.rootViewController) {
+                        win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                        if (win.rootViewController.view) {
+                            win.rootViewController.view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+                        }
+                    }
+                }
+            }
         }];
 
         // 3. Swizzle NSFileManager containerURLForSecurityApplicationGroupIdentifier:
