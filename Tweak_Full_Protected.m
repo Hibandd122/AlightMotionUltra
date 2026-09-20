@@ -19,6 +19,8 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import "fishhook.h"
+#import <mach-o/dyld.h>
+#import <mach/mach.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <unistd.h>
