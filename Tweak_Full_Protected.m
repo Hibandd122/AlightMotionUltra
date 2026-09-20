@@ -17,6 +17,7 @@
 #import <MetalKit/MetalKit.h>
 #import <Security/Security.h>
 #import <objc/runtime.h>
+#import <objc/message.h>
 #import "fishhook.h"
 #include <signal.h>
 #include <fcntl.h>
