@@ -176,6 +176,30 @@ static void hook_VungleAds_initWithPlacementId(id self, SEL _cmd, id placementId
     NSLog(@"[AlightMotionUltra] Neutralized VungleAds initWithPlacementId");
 }
 
+// Block AppLovin SDK (Instant Cold Boot Bypass)
+static void hook_ALSdk_initializeSdk(id self, SEL _cmd) {
+    NSLog(@"[AlightMotionUltra] Neutralized ALSdk initializeSdk");
+}
+
+static void hook_ALSdk_initializeWithConfiguration(id self, SEL _cmd, id config, void (^completionHandler)(id conf)) {
+    NSLog(@"[AlightMotionUltra] Neutralized ALSdk initializeWithConfiguration");
+    if (completionHandler) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completionHandler(nil);
+        });
+    }
+}
+
+// Block Fyber / IASDKCore (Instant Cold Boot Bypass)
+static void hook_IASDKCore_initWithAppID(id self, SEL _cmd, id appId, void (^completionBlock)(BOOL, NSError *), dispatch_queue_t q) {
+    NSLog(@"[AlightMotionUltra] Neutralized IASDKCore initWithAppID");
+    if (completionBlock) {
+        dispatch_async(q ?: dispatch_get_main_queue(), ^{
+            completionBlock(YES, nil);
+        });
+    }
+}
+
 static void AMNeutralizeAdNetworks(void) {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -220,6 +244,22 @@ static void AMNeutralizeAdNetworks(void) {
             if (mInitVungle) {
                 method_setImplementation(mInitVungle, (IMP)hook_VungleAds_initWithPlacementId);
             }
+        }
+
+        // 5. AppLovin SDK (Instant cold boot bypass)
+        Class alSdkClass = objc_getClass("ALSdk");
+        if (alSdkClass) {
+            Method mInitSdk = class_getInstanceMethod(alSdkClass, @selector(initializeSdk));
+            if (mInitSdk) method_setImplementation(mInitSdk, (IMP)hook_ALSdk_initializeSdk);
+            Method mInitConfig = class_getInstanceMethod(alSdkClass, @selector(initializeWithConfiguration:completionHandler:));
+            if (mInitConfig) method_setImplementation(mInitConfig, (IMP)hook_ALSdk_initializeWithConfiguration);
+        }
+
+        // 6. Fyber IASDKCore
+        Class iaSdkClass = objc_getClass("IASDKCore");
+        if (iaSdkClass) {
+            Method mInitApp = class_getInstanceMethod(iaSdkClass, @selector(initWithAppID:completionBlock:completionQueue:));
+            if (mInitApp) method_setImplementation(mInitApp, (IMP)hook_IASDKCore_initWithAppID);
         }
     });
 }
@@ -2197,6 +2237,11 @@ static void AMApplyDefaultWhiteColorPatch(void) {
 }
 
 __attribute__((constructor)) static void initAlightMotionUltra() {
+    // 0. Instant Cold Boot: Neutralize heavy ad & telemetry SDKs synchronously before UIApplication starts
+    AMNeutralizeAdNetworks();
+    AMApplyProSettings();
+    AMUnlockProjectPackageLimit();
+
     // 1. Rebind Keychain & Photos functions using Fishhook
     rebind_symbols((struct rebinding[5]){
         {"SecItemAdd", (void *)hook_SecItemAdd, (void **)&orig_SecItemAdd},
