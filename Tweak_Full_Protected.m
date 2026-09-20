@@ -2000,6 +2000,158 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
 @end
 
 
+#pragma mark - =========================================================
+#pragma mark 6.5 Persistent Font Memory & Auto-Restore Engine
+#pragma mark =========================================================
+
+static id getObjcIvar(id obj, const char *name) {
+    if (!obj) return nil;
+    Class cls = object_getClass(obj);
+    while (cls) {
+        Ivar iv = class_getInstanceVariable(cls, name);
+        if (iv) return object_getIvar(obj, iv);
+        cls = class_getSuperclass(cls);
+    }
+    return nil;
+}
+
+// 1. Hook EditTextPanelVC (Quick font bar on text toolbar)
+static void (*orig_EditTextPanelVC_didSelectItemAtIndexPath)(id, SEL, UICollectionView *, NSIndexPath *);
+static void hook_EditTextPanelVC_didSelectItemAtIndexPath(id self, SEL _cmd, UICollectionView *collectionView, NSIndexPath *indexPath) {
+    if (orig_EditTextPanelVC_didSelectItemAtIndexPath) {
+        orig_EditTextPanelVC_didSelectItemAtIndexPath(self, _cmd, collectionView, indexPath);
+    }
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.08 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        UILabel *fontLbl = nil;
+        @try { fontLbl = [self valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
+        if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(self, "fontLabel");
+
+        NSString *fontName = fontLbl.text;
+        if (fontName && fontName.length > 0 && ![fontName isEqualToString:@"Roboto"] && ![fontName containsString:@"Default"]) {
+            [[NSUserDefaults standardUserDefaults] setObject:fontName forKey:@"AM_PreferredFont_Name"];
+            [[NSUserDefaults standardUserDefaults] setInteger:indexPath.item forKey:@"AM_PreferredFont_Index"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+            NSLog(@"[AlightMotionUltra] Saved user preferred font from quick bar: '%@' (item: %ld)", fontName, (long)indexPath.item);
+        }
+    });
+}
+
+// 2. Hook FontBrowserVC (Full font browser modal)
+static void (*orig_FontBrowserVC_didSelectItemAtIndexPath)(id, SEL, UICollectionView *, NSIndexPath *);
+static void hook_FontBrowserVC_didSelectItemAtIndexPath(id self, SEL _cmd, UICollectionView *collectionView, NSIndexPath *indexPath) {
+    UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
+    UILabel *nameLbl = nil;
+    if (cell) {
+        @try { nameLbl = [cell valueForKey:@"fontNameLabel"]; } @catch (NSException *e) {}
+        if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "fontNameLabel");
+    }
+    NSString *pickedName = nameLbl ? nameLbl.text : nil;
+
+    if (orig_FontBrowserVC_didSelectItemAtIndexPath) {
+        orig_FontBrowserVC_didSelectItemAtIndexPath(self, _cmd, collectionView, indexPath);
+    }
+
+    if (pickedName && pickedName.length > 0 && ![pickedName isEqualToString:@"Roboto"]) {
+        [[NSUserDefaults standardUserDefaults] setObject:pickedName forKey:@"AM_PreferredFont_Name"];
+        [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"AM_PreferredFont_Index"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        NSLog(@"[AlightMotionUltra] Saved user preferred font from browser: '%@'", pickedName);
+    }
+}
+
+// 3. Auto-apply remembered font when a new text layer is added or edited
+static void autoApplyRememberedFont(UIViewController *textInputVC) {
+    NSString *savedFont = [[NSUserDefaults standardUserDefaults] stringForKey:@"AM_PreferredFont_Name"];
+    if (!savedFont || savedFont.length == 0) return;
+
+    id panel = nil;
+    @try { panel = [textInputVC valueForKey:@"delegate"]; } @catch (NSException *e) {}
+    if (!panel) panel = getObjcIvar(textInputVC, "delegate");
+
+    if (!panel) {
+        UIResponder *r = textInputVC.view;
+        while ((r = [r nextResponder])) {
+            NSString *cname = NSStringFromClass([r class]);
+            if ([cname containsString:@"EditTextPanel"]) {
+                panel = r;
+                break;
+            }
+        }
+    }
+
+    if (!panel) return;
+
+    UILabel *fontLbl = nil;
+    @try { fontLbl = [panel valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
+    if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(panel, "fontLabel");
+
+    NSString *currentFont = fontLbl ? fontLbl.text : @"";
+    if ([currentFont isEqualToString:savedFont]) {
+        return; // Already matches saved font!
+    }
+
+    // Only auto-apply if current font is default ("Roboto" or empty or "Default")
+    BOOL isDefault = (currentFont.length == 0 || [currentFont isEqualToString:@"Roboto"] || [currentFont containsString:@"Default"]);
+    if (!isDefault) {
+        return; // User has a custom font on this layer, preserve it!
+    }
+
+    NSNumber *applied = objc_getAssociatedObject(textInputVC, "AM_FontAutoApplied");
+    if (applied && [applied boolValue]) {
+        return;
+    }
+    objc_setAssociatedObject(textInputVC, "AM_FontAutoApplied", @(YES), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    UICollectionView *cv = nil;
+    @try { cv = [panel valueForKey:@"fontCollectionView"]; } @catch (NSException *e) {}
+    if (!cv) cv = (UICollectionView *)getObjcIvar(panel, "fontCollectionView");
+    if (!cv) return;
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.12 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        NSInteger itemCount = 0;
+        if ([cv numberOfSections] > 0) {
+            itemCount = [cv numberOfItemsInSection:0];
+        }
+
+        NSInteger targetIdx = -1;
+        for (NSInteger i = 0; i < itemCount; i++) {
+            NSIndexPath *ip = [NSIndexPath indexPathForItem:i inSection:0];
+            UICollectionViewCell *cell = [cv cellForItemAtIndexPath:ip];
+            UILabel *nameLbl = nil;
+            if (cell) {
+                @try { nameLbl = [cell valueForKey:@"nameLabel"]; } @catch (NSException *e) {}
+                if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "nameLabel");
+            }
+            if (nameLbl && [nameLbl.text isEqualToString:savedFont]) {
+                targetIdx = i;
+                break;
+            }
+        }
+
+        if (targetIdx == -1) {
+            NSInteger savedIdx = [[NSUserDefaults standardUserDefaults] integerForKey:@"AM_PreferredFont_Index"];
+            if (savedIdx >= 0 && savedIdx < itemCount) {
+                targetIdx = savedIdx;
+            } else if (itemCount > 0) {
+                targetIdx = 0;
+            }
+        }
+
+        if (targetIdx >= 0 && targetIdx < itemCount) {
+            NSIndexPath *targetIP = [NSIndexPath indexPathForItem:targetIdx inSection:0];
+            NSLog(@"[AlightMotionUltra] Auto-applying remembered font '%@' at index %ld!", savedFont, (long)targetIdx);
+
+            if (orig_EditTextPanelVC_didSelectItemAtIndexPath) {
+                orig_EditTextPanelVC_didSelectItemAtIndexPath(panel, @selector(collectionView:didSelectItemAtIndexPath:), cv, targetIP);
+            } else if ([panel respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
+                [panel collectionView:cv didSelectItemAtIndexPath:targetIP];
+            }
+            [cv selectItemAtIndexPath:targetIP animated:YES scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
+        }
+    });
+}
+
 #pragma mark - Hook TextInputVC & UITextView (Seamless Automatic Accessory Bar Binding)
 
 static void (*orig_TextInputVC_viewDidAppear)(UIViewController *, SEL, BOOL);
@@ -2008,6 +2160,9 @@ static void hook_TextInputVC_viewDidAppear(UIViewController *self, SEL _cmd, BOO
     if (orig_TextInputVC_viewDidAppear) {
         orig_TextInputVC_viewDidAppear(self, _cmd, animated);
     }
+
+    // Auto-apply remembered font if this is a new text element
+    autoApplyRememberedFont(self);
 
     UITextView *tv = nil;
     if ([self respondsToSelector:@selector(inputTextView)]) {
@@ -2056,22 +2211,6 @@ static BOOL hook_UITextView_becomeFirstResponder(UITextView *self, SEL _cmd) {
 
 #pragma mark - =========================================================
 #pragma mark 7. View Controller Lifecycle & Home Screen Floating HUD
-#pragma mark - =========================================================
-
-
-
-#pragma mark - =========================================================
-static id getObjcIvar(id obj, const char *name) {
-    if (!obj) return nil;
-    Class cls = object_getClass(obj);
-    while (cls) {
-        Ivar iv = class_getInstanceVariable(cls, name);
-        if (iv) return object_getIvar(obj, iv);
-        cls = class_getSuperclass(cls);
-    }
-    return nil;
-}
-
 #pragma mark - =========================================================
 #pragma mark ShareVideoVC UMV Lossless Quality Slider Hooks
 #pragma mark - =========================================================
@@ -2328,6 +2467,25 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with UMV Lossless Slider & FastStart Auto-Save!");
+        // 8. Hook EditTextPanelVC & FontBrowserVC (Auto-Remember & Restore Preferred Font)
+        Class editPanelClass = objc_getClass("_TtC12AlightMotion15EditTextPanelVC");
+        if (editPanelClass) {
+            Method mSelect = class_getInstanceMethod(editPanelClass, @selector(collectionView:didSelectItemAtIndexPath:));
+            if (mSelect) {
+                orig_EditTextPanelVC_didSelectItemAtIndexPath = (void *)method_getImplementation(mSelect);
+                method_setImplementation(mSelect, (IMP)hook_EditTextPanelVC_didSelectItemAtIndexPath);
+            }
+        }
+
+        Class fontBrowserClass = objc_getClass("_TtC12AlightMotion13FontBrowserVC");
+        if (fontBrowserClass) {
+            Method mSelect = class_getInstanceMethod(fontBrowserClass, @selector(collectionView:didSelectItemAtIndexPath:));
+            if (mSelect) {
+                orig_FontBrowserVC_didSelectItemAtIndexPath = (void *)method_getImplementation(mSelect);
+                method_setImplementation(mSelect, (IMP)hook_FontBrowserVC_didSelectItemAtIndexPath);
+            }
+        }
+
+        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with Persistent Font Memory, UMV Lossless Slider & FastStart Auto-Save!");
     });
 }
