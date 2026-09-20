@@ -133,8 +133,12 @@ static void AMApplyProSettings(void) {
     [ud setBool:NO forKey:@"firebase_analytics_collection_enabled"];
     [ud setBool:NO forKey:@"firebase_analytics_collection_deactivated"];
     [ud setBool:NO forKey:@"FIREBASE_ANALYTICS_COLLECTION_ENABLED"];
-    [ud setBool:NO forKey:@"FirebaseCrashlyticsCollectionEnabled"];
-    [ud setBool:NO forKey:@"is_in_app_tracking_consent_enabled"];
+    [ud setBool:NO forKey:@"isLightThemeEnabled"];
+    [ud setBool:NO forKey:@"isLightModeEnabled"];
+    [ud setObject:@"dark" forKey:@"defaultTheme"];
+    [ud setObject:@"dark" forKey:@"theme"];
+    [ud setBool:YES forKey:@"darkMode"];
+    [ud setBool:YES forKey:@"isDark"];
     [ud synchronize];
 }
 
@@ -284,11 +288,18 @@ static BOOL s_umThemeEnabled = YES;
 static void applyUMThemeToView(UIView *view) {
     if (!view || !s_umThemeEnabled) return;
 
+    if (@available(iOS 13.0, *)) {
+        view.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+    }
+
     // Check class type for targeted styling
     if ([view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
         view.backgroundColor = UM_CARD_COLOR;
         view.layer.cornerRadius = 14.0;
         view.clipsToBounds = YES;
+        for (UIView *sub in view.subviews) {
+            applyUMThemeToView(sub);
+        }
         return;
     }
 
@@ -299,12 +310,33 @@ static void applyUMThemeToView(UIView *view) {
         return;
     }
 
+    if ([view isKindOfClass:[UILabel class]]) {
+        UILabel *lbl = (UILabel *)view;
+        UIColor *tc = lbl.textColor;
+        if (tc) {
+            CGFloat r = 0, g = 0, b = 0, a = 0;
+            if ([tc getRed:&r green:&g blue:&b alpha:&a]) {
+                // If text is dark/black, make it clean off-white
+                if (r < 0.3 && g < 0.3 && b < 0.3 && a > 0.6) {
+                    lbl.textColor = [UIColor whiteColor];
+                }
+            }
+        }
+        return;
+    }
+
     UIColor *bg = view.backgroundColor;
     if (bg) {
         CGFloat r = 0, g = 0, b = 0, a = 0;
         if ([bg getRed:&r green:&g blue:&b alpha:&a]) {
-            // Recolor generic grey/black backgrounds to Ultra Motion Deep Charcoal
-            if (r < 0.25 && g < 0.25 && b < 0.28 && a > 0.4) {
+            // Recolor bright/white surfaces (e.g. #FFFFFF cards or banner) to UM_CARD_COLOR
+            if (r > 0.85 && g > 0.85 && b > 0.85 && a > 0.5) {
+                view.backgroundColor = UM_CARD_COLOR;
+                view.layer.cornerRadius = 14.0;
+                view.clipsToBounds = YES;
+            }
+            // Recolor generic dark/grey surfaces to UM_BG_COLOR
+            else if (r < 0.30 && g < 0.30 && b < 0.32 && a > 0.4) {
                 view.backgroundColor = UM_BG_COLOR;
             }
         }
@@ -326,11 +358,13 @@ static void hook_UIViewController_viewWillAppear_OLED(UIViewController *self, SE
     if (orig_UIViewController_viewWillAppear_OLED) {
         orig_UIViewController_viewWillAppear_OLED(self, _cmd, animated);
     }
-    if (self && self.view && s_umThemeEnabled) {
-        NSString *vcName = NSStringFromClass([self class]);
-        // Target Home and project browsing VCs for the full Ultra Motion theme
-        if ([vcName containsString:@"Home"] || [vcName containsString:@"Projects"] || [vcName containsString:@"Template"] || [vcName containsString:@"Browse"]) {
+    if (self && s_umThemeEnabled) {
+        if (@available(iOS 13.0, *)) {
+            self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+        }
+        if (self.view) {
             self.view.backgroundColor = UM_BG_COLOR;
+            applyUMThemeToView(self.view);
             for (UIView *sub in self.view.subviews) {
                 applyUMThemeToView(sub);
             }
@@ -339,6 +373,15 @@ static void hook_UIViewController_viewWillAppear_OLED(UIViewController *self, SE
 }
 
 static void AMOLEDThemeEngineInit(void) {
+    // Force UIUserInterfaceStyleDark on main application window
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (@available(iOS 13.0, *)) {
+            for (UIWindow *win in [UIApplication sharedApplication].windows) {
+                win.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
+            }
+        }
+    });
+
     Method mMove = class_getInstanceMethod([UIView class], @selector(didMoveToWindow));
     if (mMove) {
         orig_UIView_didMoveToWindow = (void *)method_getImplementation(mMove);
