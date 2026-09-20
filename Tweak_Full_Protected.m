@@ -2003,7 +2003,7 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
 
 
 #pragma mark - =========================================================
-#pragma mark 6.5 Persistent Font Memory & Auto-Restore Engine
+#pragma mark 6.5 Persistent Font Memory & Pure White Color Engine
 #pragma mark =========================================================
 
 static id getObjcIvar(id obj, const char *name) {
@@ -2017,216 +2017,272 @@ static id getObjcIvar(id obj, const char *name) {
     return nil;
 }
 
-// 1. Hook EditTextPanelVC (Quick font bar on text toolbar)
-static void (*orig_EditTextPanelVC_didSelectItemAtIndexPath)(id, SEL, UICollectionView *, NSIndexPath *);
-static void hook_EditTextPanelVC_didSelectItemAtIndexPath(id self, SEL _cmd, UICollectionView *collectionView, NSIndexPath *indexPath) {
-    if (orig_EditTextPanelVC_didSelectItemAtIndexPath) {
-        orig_EditTextPanelVC_didSelectItemAtIndexPath(self, _cmd, collectionView, indexPath);
+static BOOL isColorNeutralGray(UIColor *col) {
+    if (!col) return YES;
+    CGFloat r = 0, g = 0, b = 0, a = 0;
+    if ([col getRed:&r green:&g blue:&b alpha:&a]) {
+        if (fabs(r - g) < 0.08 && fabs(g - b) < 0.08 && r < 0.90) {
+            return YES;
+        }
     }
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSString *fontName = nil;
-        UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
-        if (cell) {
-            UILabel *nameLbl = nil;
-            @try { nameLbl = [cell valueForKey:@"nameLabel"]; } @catch (NSException *e) {}
-            if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "nameLabel");
-            if (nameLbl && nameLbl.text.length > 0) fontName = nameLbl.text;
-        }
-        if (!fontName || fontName.length == 0) {
-            UILabel *fontLbl = nil;
-            @try { fontLbl = [self valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
-            if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(self, "fontLabel");
-            fontName = fontLbl ? fontLbl.text : nil;
-        }
-
-        if (fontName && fontName.length > 0 && ![fontName isEqualToString:@"Roboto"] && ![fontName containsString:@"Default"]) {
-            [[NSUserDefaults standardUserDefaults] setObject:fontName forKey:@"AM_PreferredFont_Name"];
-            [[NSUserDefaults standardUserDefaults] setInteger:indexPath.item forKey:@"AM_PreferredFont_Index"];
-            [[NSUserDefaults standardUserDefaults] synchronize];
-            NSLog(@"[AlightMotionUltra] Saved user preferred font: '%@' (index: %ld)", fontName, (long)indexPath.item);
-        }
-    });
+    return NO;
 }
 
-// 2. Hook FontBrowserVC (Full font browser modal)
-static void (*orig_FontBrowserVC_didSelectItemAtIndexPath)(id, SEL, UICollectionView *, NSIndexPath *);
-static void hook_FontBrowserVC_didSelectItemAtIndexPath(id self, SEL _cmd, UICollectionView *collectionView, NSIndexPath *indexPath) {
-    UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
-    UILabel *nameLbl = nil;
-    if (cell) {
-        @try { nameLbl = [cell valueForKey:@"fontNameLabel"]; } @catch (NSException *e) {}
-        if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "fontNameLabel");
+static void applyWhiteColorRecursively(UIView *view) {
+    if (!view) return;
+    if ([view isKindOfClass:[UITextView class]]) {
+        UITextView *tv = (UITextView *)view;
+        tv.textColor = [UIColor whiteColor];
+        if (tv.textStorage && tv.textStorage.length > 0) {
+            [tv.textStorage addAttribute:NSForegroundColorAttributeName
+                                   value:[UIColor whiteColor]
+                                   range:NSMakeRange(0, tv.textStorage.length)];
+        }
     }
-    NSString *pickedName = nameLbl ? nameLbl.text : nil;
-
-    if (orig_FontBrowserVC_didSelectItemAtIndexPath) {
-        orig_FontBrowserVC_didSelectItemAtIndexPath(self, _cmd, collectionView, indexPath);
-    }
-
-    if (pickedName && pickedName.length > 0 && ![pickedName isEqualToString:@"Roboto"]) {
-        [[NSUserDefaults standardUserDefaults] setObject:pickedName forKey:@"AM_PreferredFont_Name"];
-        [[NSUserDefaults standardUserDefaults] setInteger:0 forKey:@"AM_PreferredFont_Index"];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-        NSLog(@"[AlightMotionUltra] Saved user preferred font from browser: '%@'", pickedName);
+    for (UIView *sub in view.subviews) {
+        applyWhiteColorRecursively(sub);
     }
 }
 
-// 3. Setup New Text: Apply Remembered Font and Default White Color
-static void setupNewTextFontAndWhiteColor(UITextView *tv) {
-    if (!tv) return;
+static void handleEditTextPanelAppearance(UIViewController *panel) {
+    if (!panel) return;
 
-    NSNumber *configured = objc_getAssociatedObject(tv, "AM_TextFontColorConfigured");
-    if (configured && [configured boolValue]) {
-        return;
-    }
-    objc_setAssociatedObject(tv, "AM_TextFontColorConfigured", @(YES), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
-    // Find EditTextPanelVC via delegate or responder chain
-    __block id panel = nil;
-    id textInputVC = tv.delegate;
-    if (textInputVC) {
-        @try { panel = [textInputVC valueForKey:@"delegate"]; } @catch (NSException *e) {}
-        if (!panel) panel = getObjcIvar(textInputVC, "delegate");
-    }
-    if (!panel) {
-        UIResponder *r = tv;
-        while ((r = [r nextResponder])) {
-            NSString *cname = NSStringFromClass([r class]);
-            if ([cname containsString:@"EditTextPanel"]) {
-                panel = r;
-                break;
-            }
-        }
-    }
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        // -------------------------------------------------------------
-        // PART 1: DEFAULT TEXT COLOR -> PURE CRISP WHITE
-        // -------------------------------------------------------------
-        UIColor *curTextColor = tv.textColor;
-        CGFloat r = 0, g = 0, b = 0, a = 0;
-        BOOL isGray = NO;
-        if (curTextColor && [curTextColor getRed:&r green:&g blue:&b alpha:&a]) {
-            if (fabs(r - g) < 0.08 && fabs(g - b) < 0.08 && r < 0.88) {
-                isGray = YES;
-            }
-        } else {
-            isGray = YES;
-        }
-
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.03 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // --- STEP 1: FORCE PURE WHITE TEXT COLOR ---
         id colorView = nil;
-        if (panel) {
-            @try { colorView = [panel valueForKey:@"colorView"]; } @catch (NSException *e) {}
-            if (!colorView) colorView = getObjcIvar(panel, "colorView");
-            if (colorView) {
-                UIColor *cvColor = nil;
-                @try { cvColor = [colorView valueForKey:@"currentColor"]; } @catch (NSException *e) {}
-                if (!cvColor) cvColor = (UIColor *)getObjcIvar(colorView, "currentColor");
-                if (cvColor && [cvColor getRed:&r green:&g blue:&b alpha:&a]) {
-                    if (fabs(r - g) < 0.08 && fabs(g - b) < 0.08 && r < 0.88) {
-                        isGray = YES;
+        @try { colorView = [panel valueForKey:@"colorView"]; } @catch (NSException *e) {}
+        if (!colorView) colorView = getObjcIvar(panel, "colorView");
+        if (!colorView && panel.isViewLoaded) {
+            for (UIView *sub in panel.view.subviews) {
+                if ([NSStringFromClass([sub class]) containsString:@"ColorView"]) {
+                    colorView = sub;
+                    break;
+                }
+            }
+        }
+
+        if (colorView) {
+            UIColor *curColor = nil;
+            @try { curColor = [colorView valueForKey:@"currentColor"]; } @catch (NSException *e) {}
+            if (!curColor) curColor = (UIColor *)getObjcIvar(colorView, "currentColor");
+
+            if (isColorNeutralGray(curColor)) {
+                @try { [colorView setValue:[UIColor whiteColor] forKey:@"currentColor"]; } @catch (NSException *e) {}
+                if ([colorView respondsToSelector:@selector(setCurrentColor:)]) {
+                    [colorView setCurrentColor:[UIColor whiteColor]];
+                }
+                if ([colorView respondsToSelector:@selector(setNeedsDisplay)]) {
+                    [(UIView *)colorView setNeedsDisplay];
+                }
+                NSLog(@"[AlightMotionUltra] Successfully set text ColorView to pure White!");
+            }
+        }
+
+        if (panel.isViewLoaded) {
+            applyWhiteColorRecursively(panel.view);
+        }
+
+        // --- STEP 2: AUTO-APPLY SAVED PREFERRED FONT ---
+        NSString *savedFont = [[NSUserDefaults standardUserDefaults] stringForKey:@"AM_PreferredFont_Name"];
+        if (!savedFont || savedFont.length == 0 || [savedFont isEqualToString:@"Roboto"] || [savedFont isEqualToString:@"Roboto-Regular"]) {
+            return;
+        }
+
+        UILabel *fontLbl = nil;
+        @try { fontLbl = [panel valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
+        if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(panel, "fontLabel");
+        if (!fontLbl && panel.isViewLoaded) {
+            for (UIView *sub in panel.view.subviews) {
+                if ([sub isKindOfClass:[UILabel class]]) {
+                    UILabel *l = (UILabel *)sub;
+                    if ([l.text isEqualToString:@"Roboto"] || [l.text containsString:@"Default"]) {
+                        fontLbl = l;
+                        break;
                     }
                 }
             }
         }
 
-        if (isGray) {
-            tv.textColor = [UIColor whiteColor];
-            if (tv.textStorage && tv.textStorage.length > 0) {
-                [tv.textStorage addAttribute:NSForegroundColorAttributeName
-                                       value:[UIColor whiteColor]
-                                       range:NSMakeRange(0, tv.textStorage.length)];
-            }
-            if (colorView) {
-                @try { [colorView setValue:[UIColor whiteColor] forKey:@"currentColor"]; } @catch (NSException *e) {}
-                if ([colorView respondsToSelector:@selector(setNeedsDisplay)]) {
-                    [(UIView *)colorView setNeedsDisplay];
-                }
-            }
-            NSLog(@"[AlightMotionUltra] Automatically converted default text color from Gray to pure White!");
-        }
-
-        // -------------------------------------------------------------
-        // PART 2: AUTO-APPLY REMEMBERED FONT
-        // -------------------------------------------------------------
-        NSString *savedFont = [[NSUserDefaults standardUserDefaults] stringForKey:@"AM_PreferredFont_Name"];
-        if (!savedFont || savedFont.length == 0 || [savedFont isEqualToString:@"Roboto"]) {
-            return;
-        }
-
-        if (!panel) return;
-
-        UILabel *fontLbl = nil;
-        @try { fontLbl = [panel valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
-        if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(panel, "fontLabel");
-
         NSString *currentFont = fontLbl ? fontLbl.text : @"";
         if ([currentFont isEqualToString:savedFont]) {
-            return; // Already matches saved font
+            return; // Already matches
         }
 
-        BOOL isDefaultFont = (currentFont.length == 0 || [currentFont isEqualToString:@"Roboto"] || [currentFont containsString:@"Default"]);
+        BOOL isDefaultFont = (currentFont.length == 0 || [currentFont isEqualToString:@"Roboto"] || [currentFont isEqualToString:@"Roboto-Regular"] || [currentFont containsString:@"Default"]);
         if (!isDefaultFont) {
-            return; // User has selected a custom font for this layer, preserve it
+            return; // Layer has user-selected custom font, do not overwrite
         }
 
         UICollectionView *cv = nil;
         @try { cv = [panel valueForKey:@"fontCollectionView"]; } @catch (NSException *e) {}
         if (!cv) cv = (UICollectionView *)getObjcIvar(panel, "fontCollectionView");
-        if (!cv) return;
-
-        NSInteger itemCount = 0;
-        if ([cv numberOfSections] > 0) {
-            itemCount = [cv numberOfItemsInSection:0];
-        }
-
-        NSInteger targetIdx = -1;
-        for (NSInteger i = 0; i < itemCount; i++) {
-            NSIndexPath *ip = [NSIndexPath indexPathForItem:i inSection:0];
-            UICollectionViewCell *cell = [cv cellForItemAtIndexPath:ip];
-            UILabel *nameLbl = nil;
-            if (cell) {
-                @try { nameLbl = [cell valueForKey:@"nameLabel"]; } @catch (NSException *e) {}
-                if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "nameLabel");
-            }
-            if (nameLbl && [nameLbl.text isEqualToString:savedFont]) {
-                targetIdx = i;
-                break;
+        if (!cv && panel.isViewLoaded) {
+            for (UIView *sub in panel.view.subviews) {
+                if ([sub isKindOfClass:[UICollectionView class]]) {
+                    cv = (UICollectionView *)sub;
+                    break;
+                }
             }
         }
 
-        if (targetIdx == -1) {
-            NSInteger savedIdx = [[NSUserDefaults standardUserDefaults] integerForKey:@"AM_PreferredFont_Index"];
-            if (savedIdx >= 0 && savedIdx < itemCount) {
-                targetIdx = savedIdx;
-            } else if (itemCount > 0) {
-                targetIdx = 0;
+        if (cv) {
+            NSInteger itemCount = 0;
+            if ([cv numberOfSections] > 0) {
+                itemCount = [cv numberOfItemsInSection:0];
             }
-        }
 
-        if (targetIdx >= 0 && targetIdx < itemCount) {
-            NSIndexPath *targetIP = [NSIndexPath indexPathForItem:targetIdx inSection:0];
-            NSLog(@"[AlightMotionUltra] Auto-applying remembered font '%@' at index %ld!", savedFont, (long)targetIdx);
-
-            if (orig_EditTextPanelVC_didSelectItemAtIndexPath) {
-                orig_EditTextPanelVC_didSelectItemAtIndexPath(panel, @selector(collectionView:didSelectItemAtIndexPath:), cv, targetIP);
-            } else if ([panel respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
-                [panel collectionView:cv didSelectItemAtIndexPath:targetIP];
+            NSInteger targetIdx = -1;
+            for (NSInteger i = 0; i < itemCount; i++) {
+                NSIndexPath *ip = [NSIndexPath indexPathForItem:i inSection:0];
+                UICollectionViewCell *cell = [cv cellForItemAtIndexPath:ip];
+                if (!cell && cv.dataSource) {
+                    cell = [cv.dataSource collectionView:cv cellForItemAtIndexPath:ip];
+                }
+                UILabel *nameLbl = nil;
+                if (cell) {
+                    @try { nameLbl = [cell valueForKey:@"nameLabel"]; } @catch (NSException *e) {}
+                    if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "nameLabel");
+                    if (!nameLbl) {
+                        for (UIView *sub in cell.contentView.subviews) {
+                            if ([sub isKindOfClass:[UILabel class]]) {
+                                nameLbl = (UILabel *)sub;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (nameLbl && [nameLbl.text isEqualToString:savedFont]) {
+                    targetIdx = i;
+                    break;
+                }
             }
-            [cv selectItemAtIndexPath:targetIP animated:YES scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
+
+            if (targetIdx >= 0) {
+                NSIndexPath *targetIP = [NSIndexPath indexPathForItem:targetIdx inSection:0];
+                NSLog(@"[AlightMotionUltra] Auto-applying remembered font '%@' at index %ld!", savedFont, (long)targetIdx);
+                if ([cv.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
+                    [cv.delegate collectionView:cv didSelectItemAtIndexPath:targetIP];
+                } else if ([panel respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
+                    [(id<UICollectionViewDelegate>)panel collectionView:cv didSelectItemAtIndexPath:targetIP];
+                }
+                [cv selectItemAtIndexPath:targetIP animated:YES scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
+                if (fontLbl) fontLbl.text = savedFont;
+            } else {
+                if (fontLbl) fontLbl.text = savedFont;
+            }
+        } else {
             if (fontLbl) fontLbl.text = savedFont;
         }
     });
 }
 
-#pragma mark - Hook UITextView (Font Memory, White Color & Lyrics Accessory Bar)
+// 3. Hook UIViewController viewWillAppear & viewDidAppear
+static void (*orig_UIViewController_viewWillAppear)(UIViewController *, SEL, BOOL);
+static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_UIViewController_viewWillAppear) {
+        orig_UIViewController_viewWillAppear(self, _cmd, animated);
+    }
+    NSString *cn = NSStringFromClass([self class]);
+    if ([cn containsString:@"EditTextPanel"] || [cn containsString:@"EditTextInspector"]) {
+        handleEditTextPanelAppearance(self);
+    }
+}
+
+static void (*orig_UIViewController_viewDidAppear)(UIViewController *, SEL, BOOL);
+static void hook_UIViewController_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_UIViewController_viewDidAppear) {
+        orig_UIViewController_viewDidAppear(self, _cmd, animated);
+    }
+    NSString *cn = NSStringFromClass([self class]);
+    if ([cn containsString:@"EditTextPanel"] || [cn containsString:@"EditTextInspector"]) {
+        handleEditTextPanelAppearance(self);
+    }
+}
+
+// 4. Hook UILabel setText to capture chosen font
+static void (*orig_UILabel_setText)(UILabel *, SEL, NSString *);
+static void hook_UILabel_setText(UILabel *self, SEL _cmd, NSString *text) {
+    if (orig_UILabel_setText) {
+        orig_UILabel_setText(self, _cmd, text);
+    }
+
+    if (!text || text.length < 2) return;
+    if ([text isEqualToString:@"Roboto"] || [text isEqualToString:@"Roboto-Regular"] ||
+        [text containsString:@"Default"] || [text isEqualToString:@"Done"] ||
+        [text isEqualToString:@"Cancel"] || [text isEqualToString:@"Edit"] ||
+        [text isEqualToString:@"Text"] || [text containsString:@"FPS"]) {
+        return;
+    }
+
+    UIResponder *r = self;
+    while ((r = [r nextResponder])) {
+        NSString *cn = NSStringFromClass([r class]);
+        if ([cn containsString:@"EditTextPanel"] || [cn containsString:@"FontBrowser"] || [cn containsString:@"RecentFonts"]) {
+            [[NSUserDefaults standardUserDefaults] setObject:text forKey:@"AM_PreferredFont_Name"];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+            NSLog(@"[AlightMotionUltra] >>> AUTO-SAVED FONT FROM LABEL: '%@' <<<", text);
+            break;
+        }
+    }
+}
+
+// 5. Hook UICollectionView selectItemAtIndexPath to capture chosen font cell
+static void (*orig_UICollectionView_selectItemAtIndexPath)(UICollectionView *, SEL, NSIndexPath *, BOOL, UICollectionViewScrollPosition);
+static void hook_UICollectionView_selectItemAtIndexPath(UICollectionView *self, SEL _cmd, NSIndexPath *indexPath, BOOL animated, UICollectionViewScrollPosition scrollPosition) {
+    if (orig_UICollectionView_selectItemAtIndexPath) {
+        orig_UICollectionView_selectItemAtIndexPath(self, _cmd, indexPath, animated, scrollPosition);
+    }
+
+    UIResponder *r = self;
+    while ((r = [r nextResponder])) {
+        NSString *cn = NSStringFromClass([r class]);
+        if ([cn containsString:@"EditTextPanel"] || [cn containsString:@"FontBrowser"]) {
+            UICollectionViewCell *cell = [self cellForItemAtIndexPath:indexPath];
+            if (cell) {
+                for (UIView *sub in cell.contentView.subviews) {
+                    if ([sub isKindOfClass:[UILabel class]]) {
+                        NSString *t = ((UILabel *)sub).text;
+                        if (t && t.length >= 2 && ![t isEqualToString:@"Roboto"] && ![t containsString:@"Default"]) {
+                            [[NSUserDefaults standardUserDefaults] setObject:t forKey:@"AM_PreferredFont_Name"];
+                            [[NSUserDefaults standardUserDefaults] synchronize];
+                            NSLog(@"[AlightMotionUltra] >>> AUTO-SAVED FONT FROM COLLECTION CELL: '%@' <<<", t);
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+}
+
+// 6. Hook _TtC12AlightMotion9ColorView setCurrentColor:
+static void (*orig_ColorView_setCurrentColor)(id, SEL, UIColor *);
+static void hook_ColorView_setCurrentColor(id self, SEL _cmd, UIColor *color) {
+    if (color && isColorNeutralGray(color)) {
+        NSLog(@"[AlightMotionUltra] Automatically converted default gray color to pure White!");
+        color = [UIColor whiteColor];
+    }
+    if (orig_ColorView_setCurrentColor) {
+        orig_ColorView_setCurrentColor(self, _cmd, color);
+    }
+}
+
+// 7. Hook UITextView setTextColor:
+static void (*orig_UITextView_setTextColor)(UITextView *, SEL, UIColor *);
+static void hook_UITextView_setTextColor(UITextView *self, SEL _cmd, UIColor *color) {
+    if (color && isColorNeutralGray(color)) {
+        color = [UIColor whiteColor];
+    }
+    if (orig_UITextView_setTextColor) {
+        orig_UITextView_setTextColor(self, _cmd, color);
+    }
+}
+
+#pragma mark - Hook UITextView (Lyrics Accessory Bar)
 
 static BOOL (*orig_UITextView_becomeFirstResponder)(UITextView *, SEL);
 static BOOL hook_UITextView_becomeFirstResponder(UITextView *self, SEL _cmd) {
-    // Setup Font Memory and White Text Color
-    setupNewTextFontAndWhiteColor(self);
-
     if (self.inputAccessoryView == nil) {
         UIResponder *responder = self;
         while ((responder = [responder nextResponder])) {
@@ -2250,12 +2306,12 @@ static BOOL hook_UITextView_becomeFirstResponder(UITextView *self, SEL _cmd) {
 
 static BOOL (*orig_UITextView_resignFirstResponder)(UITextView *, SEL);
 static BOOL hook_UITextView_resignFirstResponder(UITextView *self, SEL _cmd) {
-    objc_setAssociatedObject(self, "AM_TextFontColorConfigured", nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if (orig_UITextView_resignFirstResponder) {
         return orig_UITextView_resignFirstResponder(self, _cmd);
     }
     return YES;
 }
+
 
 
 
@@ -2529,25 +2585,49 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        // 8. Hook EditTextPanelVC & FontBrowserVC (Auto-Remember & Restore Preferred Font)
-        Class editPanelClass = objc_getClass("_TtC12AlightMotion15EditTextPanelVC");
-        if (editPanelClass) {
-            Method mSelect = class_getInstanceMethod(editPanelClass, @selector(collectionView:didSelectItemAtIndexPath:));
-            if (mSelect) {
-                orig_EditTextPanelVC_didSelectItemAtIndexPath = (void *)method_getImplementation(mSelect);
-                method_setImplementation(mSelect, (IMP)hook_EditTextPanelVC_didSelectItemAtIndexPath);
+        // 8. Hook UIViewController (Appearance Lifecycle for EditTextPanelVC)
+        Method mVCAppear = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
+        if (mVCAppear) {
+            orig_UIViewController_viewWillAppear = (void *)method_getImplementation(mVCAppear);
+            method_setImplementation(mVCAppear, (IMP)hook_UIViewController_viewWillAppear);
+        }
+        Method mVCDidAppear = class_getInstanceMethod([UIViewController class], @selector(viewDidAppear:));
+        if (mVCDidAppear) {
+            orig_UIViewController_viewDidAppear = (void *)method_getImplementation(mVCDidAppear);
+            method_setImplementation(mVCDidAppear, (IMP)hook_UIViewController_viewDidAppear);
+        }
+
+        // 9. Hook UILabel setText (Persistent Font Name Capture)
+        Method mSetText = class_getInstanceMethod([UILabel class], @selector(setText:));
+        if (mSetText) {
+            orig_UILabel_setText = (void *)method_getImplementation(mSetText);
+            method_setImplementation(mSetText, (IMP)hook_UILabel_setText);
+        }
+
+        // 10. Hook UICollectionView selectItemAtIndexPath (Font Selection Capture)
+        Method mSelectCV = class_getInstanceMethod([UICollectionView class], @selector(selectItemAtIndexPath:animated:scrollPosition:));
+        if (mSelectCV) {
+            orig_UICollectionView_selectItemAtIndexPath = (void *)method_getImplementation(mSelectCV);
+            method_setImplementation(mSelectCV, (IMP)hook_UICollectionView_selectItemAtIndexPath);
+        }
+
+        // 11. Hook _TtC12AlightMotion9ColorView setCurrentColor: (Auto-convert default gray to white)
+        Class cvClass = objc_getClass("_TtC12AlightMotion9ColorView");
+        if (cvClass) {
+            Method mColor = class_getInstanceMethod(cvClass, @selector(setCurrentColor:));
+            if (mColor) {
+                orig_ColorView_setCurrentColor = (void *)method_getImplementation(mColor);
+                method_setImplementation(mColor, (IMP)hook_ColorView_setCurrentColor);
             }
         }
 
-        Class fontBrowserClass = objc_getClass("_TtC12AlightMotion13FontBrowserVC");
-        if (fontBrowserClass) {
-            Method mSelect = class_getInstanceMethod(fontBrowserClass, @selector(collectionView:didSelectItemAtIndexPath:));
-            if (mSelect) {
-                orig_FontBrowserVC_didSelectItemAtIndexPath = (void *)method_getImplementation(mSelect);
-                method_setImplementation(mSelect, (IMP)hook_FontBrowserVC_didSelectItemAtIndexPath);
-            }
+        // 12. Hook UITextView setTextColor: (Ensure white text inside editor)
+        Method mColorTV = class_getInstanceMethod(tvClass, @selector(setTextColor:));
+        if (mColorTV) {
+            orig_UITextView_setTextColor = (void *)method_getImplementation(mColorTV);
+            method_setImplementation(mColorTV, (IMP)hook_UITextView_setTextColor);
         }
 
-        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with Persistent Font Memory, UMV Lossless Slider & FastStart Auto-Save!");
+        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with Persistent Font Memory, Default Pure White Text, UMV Lossless Slider & FastStart Auto-Save!");
     });
 }
