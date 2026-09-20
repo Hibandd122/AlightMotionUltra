@@ -2113,28 +2113,40 @@ static void hook_PBC_didSelectRowAtIndexPath(id self, SEL _cmd, UITableView *tab
         }
         @try { [self setValue:@(indexPath.row) forKey:@"selectedIndex"]; } @catch (NSException *e) {}
         
-        UIView *popupView = (UIView *)getObjcIvar(self, "popupView");
-        if (!popupView) {
-            @try { popupView = [self valueForKey:@"popupView"]; } @catch (NSException *e) {}
+        CALayer *ml = (CALayer *)getObjcIvar(self, "maskLayer");
+        if (!ml) {
+            @try { ml = [self valueForKey:@"maskLayer"]; } @catch (NSException *e) {}
         }
-        UIView *shadowView = (UIView *)getObjcIvar(self, "shadowView");
-        if (!shadowView) {
-            @try { shadowView = [self valueForKey:@"shadowView"]; } @catch (NSException *e) {}
+        if (ml && [ml isKindOfClass:[CALayer class]]) {
+            ml.delegate = nil;
         }
-        
-        [UIView animateWithDuration:0.2 animations:^{
-            if (popupView) popupView.alpha = 0.0;
-            if (shadowView) shadowView.alpha = 0.0;
-        } completion:^(BOOL finished) {
-            if (popupView) [popupView removeFromSuperview];
-            if (shadowView) [shadowView removeFromSuperview];
-        }];
+
+        // Safely invoke native didSelectRowAtIndexPath with index 0 to clean up views and call didSelectHandler
+        if (orig_PBC_didSelectRowAtIndexPath) {
+            orig_PBC_didSelectRowAtIndexPath(self, _cmd, tableView, [NSIndexPath indexPathForRow:0 inSection:indexPath.section]);
+        }
         
         AMNotifyUser(@"Ultra Framerate Engine", [NSString stringWithFormat:@"Đã kích hoạt: %@ ProMotion cực mượt!", chosenTitle]);
         return;
     }
     if (orig_PBC_didSelectRowAtIndexPath) {
         orig_PBC_didSelectRowAtIndexPath(self, _cmd, tableView, indexPath);
+    }
+}
+
+// CALayerDelegate Crash Guard for PopupButtonController (Bypasses Swift brk #1 trap when sourceView is nil)
+static void (*orig_PBC_layoutSublayersOfLayer)(id, SEL, CALayer *);
+static void hook_PBC_layoutSublayersOfLayer(id self, SEL _cmd, CALayer *layer) {
+    id sourceView = getObjcIvar(self, "sourceView");
+    if (!sourceView) {
+        @try { sourceView = [self valueForKey:@"sourceView"]; } @catch (NSException *e) {}
+    }
+    if (!sourceView) {
+        // sourceView is nil -> Safely bypass Swift implementation to prevent crash!
+        return;
+    }
+    if (orig_PBC_layoutSublayersOfLayer) {
+        orig_PBC_layoutSublayersOfLayer(self, _cmd, layer);
     }
 }
 
@@ -2179,50 +2191,51 @@ static void hook_SceneSettingsVC_viewWillAppear(UIViewController *self, SEL _cmd
 #pragma mark ShareVideoVC UMV Lossless Quality Slider Hooks
 #pragma mark - =========================================================
 
-static void updateShareVideoQualityDisplay(UIViewController *vc) {
-    if (!vc) return;
-    @try {
-        UISlider *slider = nil;
-        @try { slider = [vc valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
-        if (!slider) slider = (UISlider *)getObjcIvar(vc, "quailitySlider");
-        if (slider && [slider isKindOfClass:[UISlider class]]) {
-            slider.maximumValue = 1.0f;
-            if (slider.value >= 0.85f || slider.value == 0.0f) {
-                slider.value = 1.0f;
-            }
-        }
-        
-        UILabel *qualityHigh = nil;
-        @try { qualityHigh = [vc valueForKey:@"quailityHighLabel"]; } @catch (NSException *e) {}
-        if (!qualityHigh) qualityHigh = (UILabel *)getObjcIvar(vc, "quailityHighLabel");
-        if (qualityHigh && [qualityHigh isKindOfClass:[UILabel class]]) {
-            qualityHigh.text = @"UMV Lossless";
-            qualityHigh.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
-            qualityHigh.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
-        }
-
-        UILabel *kbpsLbl = nil;
-        @try { kbpsLbl = [vc valueForKey:@"kbpsLabel"]; } @catch (NSException *e) {}
-        if (!kbpsLbl) kbpsLbl = (UILabel *)getObjcIvar(vc, "kbpsLabel");
-        if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
-            if (slider && slider.value >= 0.85f) {
-                kbpsLbl.text = @"Cực đại • UMV Lossless (Không giới hạn bitrate)";
+static void (*orig_ShareVideoVC_onSliderQuailty)(UIViewController *, SEL, UISlider *);
+static void hook_ShareVideoVC_onSliderQuailty(UIViewController *self, SEL _cmd, UISlider *slider) {
+    if (orig_ShareVideoVC_onSliderQuailty) {
+        orig_ShareVideoVC_onSliderQuailty(self, _cmd, slider);
+    }
+    
+    if (!slider || ![slider isKindOfClass:[UISlider class]]) {
+        @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
+        if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
+    }
+    
+    UILabel *qualityHigh = nil;
+    @try { qualityHigh = [self valueForKey:@"quailityHighLabel"]; } @catch (NSException *e) {}
+    if (!qualityHigh) qualityHigh = (UILabel *)getObjcIvar(self, "quailityHighLabel");
+    if (qualityHigh && [qualityHigh isKindOfClass:[UILabel class]]) {
+        qualityHigh.text = @"UMV Lossless";
+        qualityHigh.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
+        qualityHigh.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
+    }
+    
+    UILabel *kbpsLbl = nil;
+    @try { kbpsLbl = [self valueForKey:@"kbpsLabel"]; } @catch (NSException *e) {}
+    if (!kbpsLbl) kbpsLbl = (UILabel *)getObjcIvar(self, "kbpsLabel");
+    
+    if (slider && [slider isKindOfClass:[UISlider class]]) {
+        float val = slider.value;
+        if (val >= 0.80f) {
+            if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
+                kbpsLbl.text = @"⚡ Cực đại: 100 Mbps • UMV Lossless (Không giới hạn bitrate)";
                 kbpsLbl.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
                 kbpsLbl.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
             }
+            [[NSUserDefaults standardUserDefaults] setFloat:1.0f forKey:@"video_export_quality"];
+        } else {
+            if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
+                int approxMbps = (int)(val * 100.0f);
+                if (approxMbps < 5) approxMbps = 5;
+                kbpsLbl.text = [NSString stringWithFormat:@"Khoảng %d Mbps • Kéo hết sang phải để đạt UMV Lossless", approxMbps];
+                kbpsLbl.textColor = [UIColor lightTextColor];
+                kbpsLbl.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
+            }
+            [[NSUserDefaults standardUserDefaults] setFloat:val forKey:@"video_export_quality"];
         }
-        
-        [[NSUserDefaults standardUserDefaults] setFloat:1.0f forKey:@"video_export_quality"];
         [[NSUserDefaults standardUserDefaults] synchronize];
-    } @catch (NSException *e) {}
-}
-
-static void (*orig_ShareVideoVC_onQualityChanged)(UIViewController *, SEL, id);
-static void hook_ShareVideoVC_onQualityChanged(UIViewController *self, SEL _cmd, id sender) {
-    if (orig_ShareVideoVC_onQualityChanged) {
-        orig_ShareVideoVC_onQualityChanged(self, _cmd, sender);
     }
-    updateShareVideoQualityDisplay(self);
 }
 
 static void (*orig_ShareVideoVC_viewWillAppear)(UIViewController *, SEL, BOOL);
@@ -2230,6 +2243,23 @@ static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, B
     if (orig_ShareVideoVC_viewWillAppear) {
         orig_ShareVideoVC_viewWillAppear(self, _cmd, animated);
     }
+    
+    UISlider *slider = nil;
+    @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
+    if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
+    if (slider && [slider isKindOfClass:[UISlider class]]) {
+        slider.continuous = YES;
+        slider.minimumValue = 0.0f;
+        slider.maximumValue = 1.0f;
+        float curVal = [[NSUserDefaults standardUserDefaults] floatForKey:@"video_export_quality"];
+        if (curVal <= 0.01f) curVal = 1.0f;
+        slider.value = curVal;
+        
+        [slider addTarget:self action:@selector(onSliderQuailty:) forControlEvents:UIControlEventValueChanged];
+    }
+    
+    hook_ShareVideoVC_onSliderQuailty(self, @selector(onSliderQuailty:), slider);
+    
     NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"video_export_frameRate"];
     if (presetFps <= 0) presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
     if (presetFps > 0) {
@@ -2240,8 +2270,6 @@ static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, B
             fpsLbl.text = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
         }
     }
-
-    updateShareVideoQualityDisplay(self);
 }
 
 static void (*orig_ShareVideoVC_viewDidAppear)(UIViewController *, SEL, BOOL);
@@ -2249,7 +2277,10 @@ static void hook_ShareVideoVC_viewDidAppear(UIViewController *self, SEL _cmd, BO
     if (orig_ShareVideoVC_viewDidAppear) {
         orig_ShareVideoVC_viewDidAppear(self, _cmd, animated);
     }
-    updateShareVideoQualityDisplay(self);
+    UISlider *slider = nil;
+    @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
+    if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
+    hook_ShareVideoVC_onSliderQuailty(self, @selector(onSliderQuailty:), slider);
 }
 
 #pragma mark - =========================================================
@@ -2277,14 +2308,18 @@ static void hook_ExportPreviewVC_viewDidAppear(UIViewController *self, SEL _cmd,
     }
 
     if (AMIsAutoSaveEnabled()) {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             @try {
                 UIButton *btn = (UIButton *)getObjcIvar(self, "storeButton");
                 if (!btn) {
                     @try { btn = [self valueForKey:@"storeButton"]; } @catch (NSException *e) {}
                 }
-                if (btn && [btn isKindOfClass:[UIButton class]]) {
+                if ([self respondsToSelector:@selector(onTapSave:)]) {
+                    ((void (*)(id, SEL, id))objc_msgSend)(self, @selector(onTapSave:), btn ?: self);
+                    AMNotifyUser(@"UMV Auto-Save", @"🎬 Tự động lưu video chất lượng cao vào Cuộn Camera (Photos)!");
+                } else if (btn && [btn isKindOfClass:[UIButton class]]) {
                     [btn sendActionsForControlEvents:UIControlEventTouchUpInside];
+                    [btn sendActionsForControlEvents:UIControlEventPrimaryActionTriggered];
                     AMNotifyUser(@"UMV Auto-Save", @"🎬 Tự động lưu video chất lượng cao vào Cuộn Camera (Photos)!");
                 }
             } @catch (NSException *e) {
@@ -2307,6 +2342,7 @@ static void hook_ExportVC_viewDidAppear(UIViewController *self, SEL _cmd, BOOL a
                     UIButton *button = [self valueForKey:@"storeButton"];
                     if ([button isKindOfClass:[UIButton class]]) {
                         [button sendActionsForControlEvents:UIControlEventTouchUpInside];
+                        [button sendActionsForControlEvents:UIControlEventPrimaryActionTriggered];
                     }
                 }
             } @catch (NSException *e) {}
@@ -2390,7 +2426,7 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        // 7. Hook PopupButtonController for Ultra Framerates (50..1920 FPS)
+        // 7. Hook PopupButtonController for Ultra Framerates (50..1920 FPS) & Crash Guard
         Class pbcClass = objc_getClass("_TtC12AlightMotion21PopupButtonController");
         if (pbcClass) {
             Method mAppear = class_getInstanceMethod(pbcClass, @selector(viewWillAppear:));
@@ -2412,6 +2448,11 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             if (mSelect) {
                 orig_PBC_didSelectRowAtIndexPath = (void *)method_getImplementation(mSelect);
                 method_setImplementation(mSelect, (IMP)hook_PBC_didSelectRowAtIndexPath);
+            }
+            Method mLayers = class_getInstanceMethod(pbcClass, @selector(layoutSublayersOfLayer:));
+            if (mLayers) {
+                orig_PBC_layoutSublayersOfLayer = (void *)method_getImplementation(mLayers);
+                method_setImplementation(mLayers, (IMP)hook_PBC_layoutSublayersOfLayer);
             }
         }
 
@@ -2446,10 +2487,12 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
                 orig_ShareVideoVC_viewDidAppear = (void *)method_getImplementation(mDidAppear);
                 method_setImplementation(mDidAppear, (IMP)hook_ShareVideoVC_viewDidAppear);
             }
-            Method mQuality = class_getInstanceMethod(shareVidClass, @selector(onQualityChanged:));
+            Method mQuality = class_getInstanceMethod(shareVidClass, @selector(onSliderQuailty:));
             if (mQuality) {
-                orig_ShareVideoVC_onQualityChanged = (void *)method_getImplementation(mQuality);
-                method_setImplementation(mQuality, (IMP)hook_ShareVideoVC_onQualityChanged);
+                orig_ShareVideoVC_onSliderQuailty = (void *)method_getImplementation(mQuality);
+                method_setImplementation(mQuality, (IMP)hook_ShareVideoVC_onSliderQuailty);
+            } else {
+                class_addMethod(shareVidClass, @selector(onSliderQuailty:), (IMP)hook_ShareVideoVC_onSliderQuailty, "v@:@");
             }
         }
 
