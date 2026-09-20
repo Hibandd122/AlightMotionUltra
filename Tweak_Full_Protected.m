@@ -2042,9 +2042,16 @@ static BOOL hook_UITextView_resignFirstResponder(UITextView *self, SEL _cmd) {
 
 #pragma mark - =========================================================
 #pragma mark 7. View Controller Lifecycle & Home Screen Floating HUD
-#pragma mark - =========================================================
-#pragma mark ShareVideoVC UMV Lossless Quality Slider Hooks
-#pragma mark - =========================================================
+static id getObjcIvar(id obj, const char *name) {
+    if (!obj) return nil;
+    Class cls = object_getClass(obj);
+    while (cls) {
+        Ivar iv = class_getInstanceVariable(cls, name);
+        if (iv) return object_getIvar(obj, iv);
+        cls = class_getSuperclass(cls);
+    }
+    return nil;
+}
 
 static void updateShareVideoQualityUI(UIViewController *self, UISlider *slider) {
     if (!self) return;
