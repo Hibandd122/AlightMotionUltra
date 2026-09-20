@@ -2022,17 +2022,27 @@ static void hook_EditTextPanelVC_didSelectItemAtIndexPath(id self, SEL _cmd, UIC
         orig_EditTextPanelVC_didSelectItemAtIndexPath(self, _cmd, collectionView, indexPath);
     }
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.08 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        UILabel *fontLbl = nil;
-        @try { fontLbl = [self valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
-        if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(self, "fontLabel");
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        NSString *fontName = nil;
+        UICollectionViewCell *cell = [collectionView cellForItemAtIndexPath:indexPath];
+        if (cell) {
+            UILabel *nameLbl = nil;
+            @try { nameLbl = [cell valueForKey:@"nameLabel"]; } @catch (NSException *e) {}
+            if (!nameLbl) nameLbl = (UILabel *)getObjcIvar(cell, "nameLabel");
+            if (nameLbl && nameLbl.text.length > 0) fontName = nameLbl.text;
+        }
+        if (!fontName || fontName.length == 0) {
+            UILabel *fontLbl = nil;
+            @try { fontLbl = [self valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
+            if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(self, "fontLabel");
+            fontName = fontLbl ? fontLbl.text : nil;
+        }
 
-        NSString *fontName = fontLbl.text;
         if (fontName && fontName.length > 0 && ![fontName isEqualToString:@"Roboto"] && ![fontName containsString:@"Default"]) {
             [[NSUserDefaults standardUserDefaults] setObject:fontName forKey:@"AM_PreferredFont_Name"];
             [[NSUserDefaults standardUserDefaults] setInteger:indexPath.item forKey:@"AM_PreferredFont_Index"];
             [[NSUserDefaults standardUserDefaults] synchronize];
-            NSLog(@"[AlightMotionUltra] Saved user preferred font from quick bar: '%@' (item: %ld)", fontName, (long)indexPath.item);
+            NSLog(@"[AlightMotionUltra] Saved user preferred font: '%@' (index: %ld)", fontName, (long)indexPath.item);
         }
     });
 }
@@ -2060,17 +2070,25 @@ static void hook_FontBrowserVC_didSelectItemAtIndexPath(id self, SEL _cmd, UICol
     }
 }
 
-// 3. Auto-apply remembered font when a new text layer is added or edited
-static void autoApplyRememberedFont(UIViewController *textInputVC) {
-    NSString *savedFont = [[NSUserDefaults standardUserDefaults] stringForKey:@"AM_PreferredFont_Name"];
-    if (!savedFont || savedFont.length == 0) return;
+// 3. Setup New Text: Apply Remembered Font and Default White Color
+static void setupNewTextFontAndWhiteColor(UITextView *tv) {
+    if (!tv) return;
 
-    id panel = nil;
-    @try { panel = [textInputVC valueForKey:@"delegate"]; } @catch (NSException *e) {}
-    if (!panel) panel = getObjcIvar(textInputVC, "delegate");
+    NSNumber *configured = objc_getAssociatedObject(tv, "AM_TextFontColorConfigured");
+    if (configured && [configured boolValue]) {
+        return;
+    }
+    objc_setAssociatedObject(tv, "AM_TextFontColorConfigured", @(YES), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
+    // Find EditTextPanelVC via delegate or responder chain
+    __block id panel = nil;
+    id textInputVC = tv.delegate;
+    if (textInputVC) {
+        @try { panel = [textInputVC valueForKey:@"delegate"]; } @catch (NSException *e) {}
+        if (!panel) panel = getObjcIvar(textInputVC, "delegate");
+    }
     if (!panel) {
-        UIResponder *r = textInputVC.view;
+        UIResponder *r = tv;
         while ((r = [r nextResponder])) {
             NSString *cname = NSStringFromClass([r class]);
             if ([cname containsString:@"EditTextPanel"]) {
@@ -2080,35 +2098,82 @@ static void autoApplyRememberedFont(UIViewController *textInputVC) {
         }
     }
 
-    if (!panel) return;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // -------------------------------------------------------------
+        // PART 1: DEFAULT TEXT COLOR -> PURE CRISP WHITE
+        // -------------------------------------------------------------
+        UIColor *curTextColor = tv.textColor;
+        CGFloat r = 0, g = 0, b = 0, a = 0;
+        BOOL isGray = NO;
+        if (curTextColor && [curTextColor getRed:&r green:&g blue:&b alpha:&a]) {
+            if (fabs(r - g) < 0.08 && fabs(g - b) < 0.08 && r < 0.88) {
+                isGray = YES;
+            }
+        } else {
+            isGray = YES;
+        }
 
-    UILabel *fontLbl = nil;
-    @try { fontLbl = [panel valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
-    if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(panel, "fontLabel");
+        id colorView = nil;
+        if (panel) {
+            @try { colorView = [panel valueForKey:@"colorView"]; } @catch (NSException *e) {}
+            if (!colorView) colorView = getObjcIvar(panel, "colorView");
+            if (colorView) {
+                UIColor *cvColor = nil;
+                @try { cvColor = [colorView valueForKey:@"currentColor"]; } @catch (NSException *e) {}
+                if (!cvColor) cvColor = (UIColor *)getObjcIvar(colorView, "currentColor");
+                if (cvColor && [cvColor getRed:&r green:&g blue:&b alpha:&a]) {
+                    if (fabs(r - g) < 0.08 && fabs(g - b) < 0.08 && r < 0.88) {
+                        isGray = YES;
+                    }
+                }
+            }
+        }
 
-    NSString *currentFont = fontLbl ? fontLbl.text : @"";
-    if ([currentFont isEqualToString:savedFont]) {
-        return; // Already matches saved font!
-    }
+        if (isGray) {
+            tv.textColor = [UIColor whiteColor];
+            if (tv.textStorage && tv.textStorage.length > 0) {
+                [tv.textStorage addAttribute:NSForegroundColorAttributeName
+                                       value:[UIColor whiteColor]
+                                       range:NSMakeRange(0, tv.textStorage.length)];
+            }
+            if (colorView) {
+                @try { [colorView setValue:[UIColor whiteColor] forKey:@"currentColor"]; } @catch (NSException *e) {}
+                if ([colorView respondsToSelector:@selector(setNeedsDisplay)]) {
+                    [(UIView *)colorView setNeedsDisplay];
+                }
+            }
+            NSLog(@"[AlightMotionUltra] Automatically converted default text color from Gray to pure White!");
+        }
 
-    // Only auto-apply if current font is default ("Roboto" or empty or "Default")
-    BOOL isDefault = (currentFont.length == 0 || [currentFont isEqualToString:@"Roboto"] || [currentFont containsString:@"Default"]);
-    if (!isDefault) {
-        return; // User has a custom font on this layer, preserve it!
-    }
+        // -------------------------------------------------------------
+        // PART 2: AUTO-APPLY REMEMBERED FONT
+        // -------------------------------------------------------------
+        NSString *savedFont = [[NSUserDefaults standardUserDefaults] stringForKey:@"AM_PreferredFont_Name"];
+        if (!savedFont || savedFont.length == 0 || [savedFont isEqualToString:@"Roboto"]) {
+            return;
+        }
 
-    NSNumber *applied = objc_getAssociatedObject(textInputVC, "AM_FontAutoApplied");
-    if (applied && [applied boolValue]) {
-        return;
-    }
-    objc_setAssociatedObject(textInputVC, "AM_FontAutoApplied", @(YES), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if (!panel) return;
 
-    UICollectionView *cv = nil;
-    @try { cv = [panel valueForKey:@"fontCollectionView"]; } @catch (NSException *e) {}
-    if (!cv) cv = (UICollectionView *)getObjcIvar(panel, "fontCollectionView");
-    if (!cv) return;
+        UILabel *fontLbl = nil;
+        @try { fontLbl = [panel valueForKey:@"fontLabel"]; } @catch (NSException *e) {}
+        if (!fontLbl) fontLbl = (UILabel *)getObjcIvar(panel, "fontLabel");
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.12 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        NSString *currentFont = fontLbl ? fontLbl.text : @"";
+        if ([currentFont isEqualToString:savedFont]) {
+            return; // Already matches saved font
+        }
+
+        BOOL isDefaultFont = (currentFont.length == 0 || [currentFont isEqualToString:@"Roboto"] || [currentFont containsString:@"Default"]);
+        if (!isDefaultFont) {
+            return; // User has selected a custom font for this layer, preserve it
+        }
+
+        UICollectionView *cv = nil;
+        @try { cv = [panel valueForKey:@"fontCollectionView"]; } @catch (NSException *e) {}
+        if (!cv) cv = (UICollectionView *)getObjcIvar(panel, "fontCollectionView");
+        if (!cv) return;
+
         NSInteger itemCount = 0;
         if ([cv numberOfSections] > 0) {
             itemCount = [cv numberOfItemsInSection:0];
@@ -2148,44 +2213,18 @@ static void autoApplyRememberedFont(UIViewController *textInputVC) {
                 [panel collectionView:cv didSelectItemAtIndexPath:targetIP];
             }
             [cv selectItemAtIndexPath:targetIP animated:YES scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
+            if (fontLbl) fontLbl.text = savedFont;
         }
     });
 }
 
-#pragma mark - Hook TextInputVC & UITextView (Seamless Automatic Accessory Bar Binding)
-
-static void (*orig_TextInputVC_viewDidAppear)(UIViewController *, SEL, BOOL);
-
-static void hook_TextInputVC_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
-    if (orig_TextInputVC_viewDidAppear) {
-        orig_TextInputVC_viewDidAppear(self, _cmd, animated);
-    }
-
-    // Auto-apply remembered font if this is a new text element
-    autoApplyRememberedFont(self);
-
-    UITextView *tv = nil;
-    if ([self respondsToSelector:@selector(inputTextView)]) {
-        tv = [self valueForKey:@"inputTextView"];
-    }
-    if (!tv) {
-        for (UIView *sub in self.view.subviews) {
-            if ([sub isKindOfClass:[UITextView class]]) {
-                tv = (UITextView *)sub;
-                break;
-            }
-        }
-    }
-
-    if (tv) {
-        AMMinimalLyricsBar *bar = [AMMinimalLyricsBar barForViewController:self];
-        tv.inputAccessoryView = bar;
-    }
-}
+#pragma mark - Hook UITextView (Font Memory, White Color & Lyrics Accessory Bar)
 
 static BOOL (*orig_UITextView_becomeFirstResponder)(UITextView *, SEL);
-
 static BOOL hook_UITextView_becomeFirstResponder(UITextView *self, SEL _cmd) {
+    // Setup Font Memory and White Text Color
+    setupNewTextFontAndWhiteColor(self);
+
     if (self.inputAccessoryView == nil) {
         UIResponder *responder = self;
         while ((responder = [responder nextResponder])) {
@@ -2203,6 +2242,15 @@ static BOOL hook_UITextView_becomeFirstResponder(UITextView *self, SEL _cmd) {
     }
     if (orig_UITextView_becomeFirstResponder) {
         return orig_UITextView_becomeFirstResponder(self, _cmd);
+    }
+    return YES;
+}
+
+static BOOL (*orig_UITextView_resignFirstResponder)(UITextView *, SEL);
+static BOOL hook_UITextView_resignFirstResponder(UITextView *self, SEL _cmd) {
+    objc_setAssociatedObject(self, "AM_TextFontColorConfigured", nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (orig_UITextView_resignFirstResponder) {
+        return orig_UITextView_resignFirstResponder(self, _cmd);
     }
     return YES;
 }
@@ -2365,9 +2413,22 @@ static void hook_ExportVC_viewDidAppear(UIViewController *self, SEL _cmd, BOOL a
     }
 }
 
-#pragma mark - =========================================================
-#pragma mark 9. Safe Unified Constructor (Native ProMotion, Zero Third-Party Hooks)
-#pragma mark - =========================================================
+static void AMApplyDefaultWhiteColorPatch(void) {
+    uintptr_t slide = (uintptr_t)_dyld_get_image_vmaddr_slide(0);
+    uintptr_t colorVecAddr = slide + 0x1025c2c00;
+
+    mach_port_t self_task = mach_task_self();
+    vm_address_t page_start = (vm_address_t)(colorVecAddr & ~0xfff);
+    kern_return_t kr = vm_protect(self_task, page_start, 0x1000, FALSE, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
+    if (kr == KERN_SUCCESS) {
+        float whiteVec[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        memcpy((void *)colorVecAddr, whiteVec, sizeof(whiteVec));
+        vm_protect(self_task, page_start, 0x1000, FALSE, VM_PROT_READ);
+        NSLog(@"[AlightMotionUltra] Successfully patched native default color vector at 0x%lx to pure White (1.0, 1.0, 1.0, 1.0)!", colorVecAddr);
+    } else {
+        NSLog(@"[AlightMotionUltra] vm_protect failed on default color vector: %d", kr);
+    }
+}
 
 __attribute__((constructor)) static void initAlightMotionUltra() {
     // 1. Rebind Keychain & Photos functions using Fishhook
@@ -2426,16 +2487,7 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        // 6. Hook TextInputVC & UITextView (Lyrics Accessory Bar)
-        Class textInputClass = objc_getClass("_TtC12AlightMotion11TextInputVC");
-        if (textInputClass) {
-            Method textAppearMethod = class_getInstanceMethod(textInputClass, @selector(viewDidAppear:));
-            if (textAppearMethod) {
-                orig_TextInputVC_viewDidAppear = (void *)method_getImplementation(textAppearMethod);
-                method_setImplementation(textAppearMethod, (IMP)hook_TextInputVC_viewDidAppear);
-            }
-        }
-
+        // 6. Hook UITextView (Font Memory, White Text Color & Lyrics Accessory Bar)
         Class tvClass = [UITextView class];
         if (tvClass) {
             Method becomeMethod = class_getInstanceMethod(tvClass, @selector(becomeFirstResponder));
@@ -2443,7 +2495,15 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
                 orig_UITextView_becomeFirstResponder = (void *)method_getImplementation(becomeMethod);
                 method_setImplementation(becomeMethod, (IMP)hook_UITextView_becomeFirstResponder);
             }
+            Method resignMethod = class_getInstanceMethod(tvClass, @selector(resignFirstResponder));
+            if (resignMethod) {
+                orig_UITextView_resignFirstResponder = (void *)method_getImplementation(resignMethod);
+                method_setImplementation(resignMethod, (IMP)hook_UITextView_resignFirstResponder);
+            }
         }
+
+        // Apply native binary patch for default white text/vector color
+        AMApplyDefaultWhiteColorPatch();
 
         // 7. Hook ShareVideoVC for UMV Lossless Quality Slider & Ultra Export Bitrate
         Class shareVidClass = objc_getClass("_TtC12AlightMotion12ShareVideoVC");
