@@ -2192,12 +2192,8 @@ static void hook_SceneSettingsVC_viewWillAppear(UIViewController *self, SEL _cmd
 #pragma mark ShareVideoVC UMV Lossless Quality Slider Hooks
 #pragma mark - =========================================================
 
-static void (*orig_ShareVideoVC_onSliderQuailty)(UIViewController *, SEL, UISlider *);
-static void hook_ShareVideoVC_onSliderQuailty(UIViewController *self, SEL _cmd, UISlider *slider) {
-    if (orig_ShareVideoVC_onSliderQuailty) {
-        orig_ShareVideoVC_onSliderQuailty(self, _cmd, slider);
-    }
-    
+static void updateShareVideoQualityUI(UIViewController *self, UISlider *slider) {
+    if (!self) return;
     if (!slider || ![slider isKindOfClass:[UISlider class]]) {
         @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
         if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
@@ -2239,6 +2235,12 @@ static void hook_ShareVideoVC_onSliderQuailty(UIViewController *self, SEL _cmd, 
     }
 }
 
+static void (*orig_ShareVideoVC_onSliderQuailty)(UIViewController *, SEL, UISlider *);
+static void hook_ShareVideoVC_onSliderQuailty(UIViewController *self, SEL _cmd, UISlider *slider) {
+    // Completely bypass orig_ShareVideoVC_onSliderQuailty to eliminate 0x1008fba34 brk #1 crash!
+    updateShareVideoQualityUI(self, slider);
+}
+
 static void (*orig_ShareVideoVC_viewWillAppear)(UIViewController *, SEL, BOOL);
 static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     if (orig_ShareVideoVC_viewWillAppear) {
@@ -2259,7 +2261,7 @@ static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, B
         [slider addTarget:self action:@selector(onSliderQuailty:) forControlEvents:UIControlEventValueChanged];
     }
     
-    hook_ShareVideoVC_onSliderQuailty(self, @selector(onSliderQuailty:), slider);
+    updateShareVideoQualityUI(self, slider);
     
     NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"video_export_frameRate"];
     if (presetFps <= 0) presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
@@ -2281,7 +2283,7 @@ static void hook_ShareVideoVC_viewDidAppear(UIViewController *self, SEL _cmd, BO
     UISlider *slider = nil;
     @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
     if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
-    hook_ShareVideoVC_onSliderQuailty(self, @selector(onSliderQuailty:), slider);
+    updateShareVideoQualityUI(self, slider);
 }
 
 #pragma mark - =========================================================
