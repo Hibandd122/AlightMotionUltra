@@ -553,21 +553,66 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
     if (!cname) return;
 
     // 1. Collection Views & Table Views (Main background)
-    if ([view isKindOfClass:[UICollectionView class]] || [view isKindOfClass:[UITableView class]]) {
-        view.backgroundColor = UM_BG_COLOR; // #131215
-        UIScrollView *sv = (UIScrollView *)view;
-        if ([sv respondsToSelector:@selector(backgroundView)] && sv.backgroundView) {
-            sv.backgroundView.backgroundColor = UM_BG_COLOR;
+    if ([view isKindOfClass:[UICollectionView class]]) {
+        UICollectionView *cv = (UICollectionView *)view;
+        cv.backgroundColor = UM_BG_COLOR; // #131215
+        if ([cv respondsToSelector:@selector(backgroundView)] && cv.backgroundView) {
+            cv.backgroundView.backgroundColor = UM_BG_COLOR;
         }
-        if ([view isKindOfClass:[UITableView class]]) {
-            ((UITableView *)view).separatorColor = [UIColor colorWithWhite:0.18 alpha:1.0];
+    } else if ([view isKindOfClass:[UITableView class]]) {
+        UITableView *tv = (UITableView *)view;
+        tv.backgroundColor = UM_BG_COLOR; // #131215
+        if ([tv respondsToSelector:@selector(backgroundView)] && tv.backgroundView) {
+            tv.backgroundView.backgroundColor = UM_BG_COLOR;
+        }
+        tv.separatorColor = [UIColor colorWithWhite:0.18 alpha:1.0];
+    } else if ([view isKindOfClass:[UINavigationBar class]]) {
+        UINavigationBar *nb = (UINavigationBar *)view;
+        nb.barTintColor = UM_BG_COLOR;
+        nb.tintColor = [UIColor whiteColor];
+        nb.backgroundColor = UM_BG_COLOR;
+    } else if ([view isKindOfClass:[UITabBar class]]) {
+        UITabBar *tb = (UITabBar *)view;
+        tb.barTintColor = UM_BG_COLOR;
+        tb.backgroundColor = UM_BG_COLOR;
+        tb.tintColor = [UIColor whiteColor];
+        if ([tb respondsToSelector:@selector(setUnselectedItemTintColor:)]) {
+            tb.unselectedItemTintColor = [UIColor colorWithWhite:0.75 alpha:1.0];
+        }
+    } else if ([view isKindOfClass:[UITextField class]]) {
+        UITextField *tf = (UITextField *)view;
+        tf.backgroundColor = UM_CARD_COLOR;
+        tf.textColor = [UIColor whiteColor];
+    } else if ([view isKindOfClass:[UISearchBar class]]) {
+        UISearchBar *sb = (UISearchBar *)view;
+        sb.barTintColor = UM_BG_COLOR;
+        sb.backgroundColor = UM_BG_COLOR;
+        sb.tintColor = [UIColor whiteColor];
+    }
+
+    // 2. Specific Cells (ProjectsCell, FeedCardCell, etc.)
+    styleAnyHomeOrProjectCell(view);
+
+    // 3. Generic Cell Theme Fallback: If cell or contentView is white, convert to card color
+    if ([view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
+        view.backgroundColor = [UIColor clearColor];
+        UIView *cv = nil;
+        if ([view respondsToSelector:@selector(contentView)]) {
+            cv = ((UICollectionViewCell *)view).contentView;
+        }
+        if (cv) {
+            CGFloat r = 0, g = 0, b = 0, a = 0;
+            if (cv.backgroundColor && [cv.backgroundColor getRed:&r green:&g blue:&b alpha:&a]) {
+                if (r > 0.85 && g > 0.85 && b > 0.85) {
+                    cv.backgroundColor = UM_CARD_COLOR;
+                    cv.layer.cornerRadius = 14.0;
+                    cv.clipsToBounds = YES;
+                }
+            }
         }
     }
 
-    // 2. Specific Cells
-    styleAnyHomeOrProjectCell(view);
-
-    // 3. Category Pills (Buttons in selectionHeaderContainer)
+    // 4. Category Pills (Buttons in selectionHeaderContainer)
     if ([view isKindOfClass:[UIButton class]]) {
         UIButton *btn = (UIButton *)view;
         NSString *title = [btn titleForState:UIControlStateNormal];
@@ -594,11 +639,10 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
         }
     }
 
-    // 4. XML Upload Banner ("Tải lên tệp XML từ thiết bị của bạn")
+    // 5. XML Upload Banner ("Tải lên tệp XML từ thiết bị của bạn")
     if ([view isKindOfClass:[UILabel class]]) {
         UILabel *lbl = (UILabel *)view;
         if (lbl.text && [lbl.text containsString:@"XML"]) {
-            // Found the XML banner label! Style parent card container
             UIView *parent = lbl.superview;
             if (parent && parent != view.window) {
                 parent.backgroundColor = UM_CARD_COLOR; // #1C1C1E
@@ -620,7 +664,7 @@ static void themeEntireViewTreeRecursively(UIView *view, int depth) {
         }
     }
 
-    // 5. Recurse into all subviews
+    // 6. Recurse into all subviews
     for (UIView *sub in view.subviews) {
         themeEntireViewTreeRecursively(sub, depth + 1);
     }
@@ -698,6 +742,74 @@ static void applyTemplatesVCTheme(UIViewController *self) {
     if (!self) return;
     if (self.view) {
         self.view.backgroundColor = UM_BG_COLOR;
+        themeEntireViewTreeRecursively(self.view, 0);
+    }
+}
+
+
+// 9.1 CreateVC Theme Applier (Project Creation Modal)
+static void applyCreateVCTheme(UIViewController *self) {
+    if (!self) return;
+    if (self.view) {
+        self.view.backgroundColor = UM_BG_COLOR;
+    }
+    UIView *contentArea = safeGetPropertyOrIvar(self, "contentAreaView");
+    if (contentArea) contentArea.backgroundColor = UM_BG_COLOR;
+    
+    UIView *tabArea = safeGetPropertyOrIvar(self, "tabAreaView");
+    if (tabArea) tabArea.backgroundColor = UM_BG_COLOR;
+
+    UIView *bgArea = safeGetPropertyOrIvar(self, "backgroundAreaView");
+    if (bgArea) bgArea.backgroundColor = UM_BG_COLOR;
+
+    UITextField *titleField = safeGetPropertyOrIvar(self, "titleField");
+    if (titleField) {
+        titleField.backgroundColor = UM_CARD_COLOR;
+        titleField.textColor = [UIColor whiteColor];
+    }
+    if (self.view) {
+        themeEntireViewTreeRecursively(self.view, 0);
+    }
+}
+
+// 9.2 Settings & Account Theme Applier
+static void applySettingsVCTheme(UIViewController *self) {
+    if (!self) return;
+    if (self.view) {
+        self.view.backgroundColor = UM_BG_COLOR;
+    }
+    UITableView *tv = safeGetPropertyOrIvar(self, "sTableView");
+    if (!tv) tv = safeGetPropertyOrIvar(self, "cardTableView");
+    if (!tv) tv = safeGetPropertyOrIvar(self, "providerTableView");
+    if (tv && [tv isKindOfClass:[UITableView class]]) {
+        tv.backgroundColor = UM_BG_COLOR;
+        if (tv.backgroundView) tv.backgroundView.backgroundColor = UM_BG_COLOR;
+        tv.separatorColor = [UIColor colorWithWhite:0.18 alpha:1.0];
+    }
+    if (self.view) {
+        themeEntireViewTreeRecursively(self.view, 0);
+    }
+}
+
+// 9.3 Export & Share Theme Applier
+static void applyExportShareVCTheme(UIViewController *self) {
+    if (!self) return;
+    if (self.view) {
+        self.view.backgroundColor = UM_BG_COLOR;
+    }
+    UITableView *tv = safeGetPropertyOrIvar(self, "shareTableView");
+    if (tv && [tv isKindOfClass:[UITableView class]]) {
+        tv.backgroundColor = UM_BG_COLOR;
+        if (tv.backgroundView) tv.backgroundView.backgroundColor = UM_BG_COLOR;
+        tv.separatorColor = [UIColor colorWithWhite:0.18 alpha:1.0];
+    }
+    UIView *expBG = safeGetPropertyOrIvar(self, "exportBGView");
+    if (expBG) expBG.backgroundColor = UM_BG_COLOR;
+    
+    UIView *container = safeGetPropertyOrIvar(self, "containerView");
+    if (container) container.backgroundColor = UM_BG_COLOR;
+
+    if (self.view) {
         themeEntireViewTreeRecursively(self.view, 0);
     }
 }
@@ -797,7 +909,7 @@ static void applyMainVCTheme(UIViewController *self) {
     }
 }
 
-// 11. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews
+// 11. Hook UIViewController viewWillAppear: and viewDidLayoutSubviews (Universal for ALL View Controllers)
 static void (*orig_UIViewController_viewWillAppear)(UIViewController *, SEL, BOOL);
 static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
     if (orig_UIViewController_viewWillAppear) {
@@ -818,6 +930,15 @@ static void hook_UIViewController_viewWillAppear(UIViewController *self, SEL _cm
         applyProjectsVCTheme(self);
     } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
         applyTemplatesVCTheme(self);
+    } else if (strstr(cname, "CreateVC")) {
+        applyCreateVCTheme(self);
+    } else if (strstr(cname, "Setting") || strstr(cname, "Account") || strstr(cname, "About")) {
+        applySettingsVCTheme(self);
+    } else if (strstr(cname, "Export") || strstr(cname, "Share")) {
+        applyExportShareVCTheme(self);
+    } else if (self.view) {
+        self.view.backgroundColor = UM_BG_COLOR;
+        themeEntireViewTreeRecursively(self.view, 0);
     }
 }
 
@@ -838,6 +959,8 @@ static void hook_UIViewController_viewDidLayoutSubviews(UIViewController *self, 
         applyProjectsVCTheme(self);
     } else if (strstr(cname, "TemplatesListVC") || strstr(cname, "TemplatesViewVC")) {
         applyTemplatesVCTheme(self);
+    } else if (self.view) {
+        themeEntireViewTreeRecursively(self.view, 0);
     }
 }
 
@@ -846,7 +969,7 @@ static UIStatusBarStyle hook_MainVC_preferredStatusBarStyle(id self, SEL _cmd) {
     return UIStatusBarStyleLightContent;
 }
 
-// 13. Hook UIView didMoveToWindow for all Home & Project cells
+// 13. Hook UIView didMoveToWindow for all Home & Project cells and views
 static void (*orig_UIView_didMoveToWindow)(UIView *, SEL);
 static void hook_UIView_didMoveToWindow(UIView *self, SEL _cmd) {
     if (orig_UIView_didMoveToWindow) {
@@ -896,6 +1019,40 @@ static void registerCellHooks(const char *className) {
     }
 }
 
+// Hook AMSegmentControl layoutSubviews to ensure pill styling
+static void my_AMSegmentControl_layoutSubviews(UIView *self, SEL _cmd) {
+    struct objc_super sup = {
+        .receiver = self,
+        .super_class = class_getSuperclass(object_getClass(self))
+    };
+    void (*msgSendSuper)(struct objc_super *, SEL) = (void *)objc_msgSendSuper;
+    msgSendSuper(&sup, _cmd);
+
+    @try {
+        self.backgroundColor = UM_BG_COLOR;
+        // Check ivar stackView or subviews
+        for (UIView *sub in self.subviews) {
+            sub.backgroundColor = [UIColor clearColor];
+            for (UIView *item in sub.subviews) {
+                if ([item isKindOfClass:[UIButton class]]) {
+                    UIButton *btn = (UIButton *)item;
+                    if (btn.isSelected) {
+                        btn.backgroundColor = UM_PILL_SEL;
+                    } else {
+                        btn.backgroundColor = UM_CARD_COLOR;
+                    }
+                    btn.layer.cornerRadius = 14.0;
+                    btn.clipsToBounds = YES;
+                    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+                } else if ([item isKindOfClass:[UILabel class]]) {
+                    ((UILabel *)item).textColor = [UIColor whiteColor];
+                }
+            }
+        }
+    } @catch (NSException *e) {}
+}
+
 static void AMOLEDThemeEngineInit(void) {
     // 1. Enforce UIUserInterfaceStyleDark on application windows
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -936,15 +1093,144 @@ static void AMOLEDThemeEngineInit(void) {
         method_setImplementation(mMove, (IMP)hook_UIView_didMoveToWindow);
     }
 
-    // 5. Register layoutSubviews & prepareForReuse for all Home & Project cells
-    registerCellHooks("_TtC12AlightMotion12ProjectsCell");
+    // 5. Hook AMSegmentControl and AMSegmentedControl layoutSubviews
+    Class segCls1 = objc_getClass("_TtC12AlightMotion16AMSegmentControl");
+    if (segCls1) {
+        Method mSeg = class_getInstanceMethod(segCls1, @selector(layoutSubviews));
+        if (mSeg) method_setImplementation(mSeg, (IMP)my_AMSegmentControl_layoutSubviews);
+        else class_addMethod(segCls1, @selector(layoutSubviews), (IMP)my_AMSegmentControl_layoutSubviews, "v@:");
+    }
+    Class segCls2 = objc_getClass("_TtC12AlightMotion18AMSegmentedControl");
+    if (segCls2) {
+        Method mSeg = class_getInstanceMethod(segCls2, @selector(layoutSubviews));
+        if (mSeg) method_setImplementation(mSeg, (IMP)my_AMSegmentControl_layoutSubviews);
+        else class_addMethod(segCls2, @selector(layoutSubviews), (IMP)my_AMSegmentControl_layoutSubviews, "v@:");
+    }
+
+    // 6. Register layoutSubviews & prepareForReuse for ALL 123 AlightMotion Cells
+    registerCellHooks("_TtC12AlightMotion10EffectCell");
+    registerCellHooks("_TtC12AlightMotion10SliderCell");
+    registerCellHooks("_TtC12AlightMotion11HueDiscCell");
+    registerCellHooks("_TtC12AlightMotion11SpinnerCell");
+    registerCellHooks("_TtC12AlightMotion12CategoryCell");
+    registerCellHooks("_TtC12AlightMotion12DropMenuCell");
+    registerCellHooks("_TtC12AlightMotion12EditTextCell");
+    registerCellHooks("_TtC12AlightMotion12ElementsCell");
     registerCellHooks("_TtC12AlightMotion12FeedCardCell");
-    registerCellHooks("_TtC12AlightMotion27GettingStartedTableViewCell");
-    registerCellHooks("_TtC12AlightMotion22TutorialCollectionCell");
-    registerCellHooks("_TtC12AlightMotion33DownloadableProjectCollectionCell");
-    registerCellHooks("_TtC12AlightMotion32MoreSampleProjectsCollectionCell");
-    registerCellHooks("_TtC12AlightMotion26ProjectsReusableHeaderView");
+    registerCellHooks("_TtC12AlightMotion12ListEditCell");
+    registerCellHooks("_TtC12AlightMotion12ProjectsCell");
+    registerCellHooks("_TtC12AlightMotion12SelectorCell");
+    registerCellHooks("_TtC12AlightMotion12TimelineCell");
+    registerCellHooks("_TtC12AlightMotion12TrackpadCell");
+    registerCellHooks("_TtC12AlightMotion12VAPickerCell");
+    registerCellHooks("_TtC12AlightMotion13MyElementCell");
+    registerCellHooks("_TtC12AlightMotion13SeparatorCell");
+    registerCellHooks("_TtC12AlightMotion13TitleMenuCell");
+    registerCellHooks("_TtC12AlightMotion13UserParamCell");
+    registerCellHooks("_TtC12AlightMotion14AudioTrackCell");
+    registerCellHooks("_TtC12AlightMotion14ChoiceMenuCell");
     registerCellHooks("_TtC12AlightMotion14FeedEffectCell");
+    registerCellHooks("_TtC12AlightMotion14SettingSepCell");
+    registerCellHooks("_TtC12AlightMotion14StaticTextCell");
+    registerCellHooks("_TtC12AlightMotion14SwitchMenuCell");
+    registerCellHooks("_TtC12AlightMotion14TitleChiceCell");
+    registerCellHooks("_TtC12AlightMotion14TitleRadioCell");
+    registerCellHooks("_TtC12AlightMotion15AssetsAlbumCell");
+    registerCellHooks("_TtC12AlightMotion15EditAccountCell");
+    registerCellHooks("_TtC12AlightMotion15FontBrowserCell");
+    registerCellHooks("_TtC12AlightMotion15ListEditAddCell");
+    registerCellHooks("_TtC12AlightMotion15OrientationCell");
+    registerCellHooks("_TtC12AlightMotion15PopupButtonCell");
+    registerCellHooks("_TtC12AlightMotion15SettingLinkCell");
+    registerCellHooks("_TtC12AlightMotion15SettingPushCell");
+    registerCellHooks("_TtC12AlightMotion16DropdownMenuCell");
+    registerCellHooks("_TtC12AlightMotion16EditingPanelCell");
+    registerCellHooks("_TtC12AlightMotion16EffectPickerCell");
+    registerCellHooks("_TtC12AlightMotion16NumberPickerCell");
+    registerCellHooks("_TtC12AlightMotion16SettingPopupCell");
+    registerCellHooks("_TtC12AlightMotion16SettingTitleCell");
+    registerCellHooks("_TtC12AlightMotion16StarredGroupCell");
+    registerCellHooks("_TtC12AlightMotion16SwitchToggleCell");
+    registerCellHooks("_TtC12AlightMotion16TagTableViewCell");
+    registerCellHooks("_TtC12AlightMotion17AudioCategoryCell");
+    registerCellHooks("_TtC12AlightMotion17DeleteAccountCell");
+    registerCellHooks("_TtC12AlightMotion17FullTableViewCell");
+    registerCellHooks("_TtC12AlightMotion17IconTitleMenuCell");
+    registerCellHooks("_TtC12AlightMotion17InfoTableViewCell");
+    registerCellHooks("_TtC12AlightMotion17LeftTableViewCell");
+    registerCellHooks("_TtC12AlightMotion17ObjectLibraryCell");
+    registerCellHooks("_TtC12AlightMotion17SettingActionCell");
+    registerCellHooks("_TtC12AlightMotion17SettingSwitchCell");
+    registerCellHooks("_TtC12AlightMotion17VAAlbumPickerCell");
+    registerCellHooks("_TtC12AlightMotion18ChoiceMenuItemCell");
+    registerCellHooks("_TtC12AlightMotion18CollapsedParamCell");
+    registerCellHooks("_TtC12AlightMotion18ElementViewAllCell");
+    registerCellHooks("_TtC12AlightMotion18LayerParentingCell");
+    registerCellHooks("_TtC12AlightMotion18LayerThumbnailCell");
+    registerCellHooks("_TtC12AlightMotion18SettingSegmentCell");
+    registerCellHooks("_TtC12AlightMotion18ShareTableViewCell");
+    registerCellHooks("_TtC12AlightMotion18SplitTableViewCell");
+    registerCellHooks("_TtC12AlightMotion19AudioFolderItemCell");
+    registerCellHooks("_TtC12AlightMotion19BottomTableViewCell");
+    registerCellHooks("_TtC12AlightMotion19EffectPickerTagCell");
+    registerCellHooks("_TtC12AlightMotion19EffectTableViewCell");
+    registerCellHooks("_TtC12AlightMotion19ElementDownloadCell");
+    registerCellHooks("_TtC12AlightMotion19FeaturedElementCell");
+    registerCellHooks("_TtC12AlightMotion20AssetsPhotoAssetCell");
+    registerCellHooks("_TtC12AlightMotion20AudioSubCategoryCell");
+    registerCellHooks("_TtC12AlightMotion20DevSettingChoiceCell");
+    registerCellHooks("_TtC12AlightMotion20DevSettingSelectCell");
+    registerCellHooks("_TtC12AlightMotion20DevSettingSwitchCell");
+    registerCellHooks("_TtC12AlightMotion20EffectPickerMainCell");
+    registerCellHooks("_TtC12AlightMotion20MyAccountLicenseCell");
+    registerCellHooks("_TtC12AlightMotion20MyAccountProductCell");
+    registerCellHooks("_TtC12AlightMotion20PlayheadOverflowCell");
+    registerCellHooks("_TtC12AlightMotion20PopupButtonColorCell");
+    registerCellHooks("_TtC12AlightMotion20VAAlbumPickerSubCell");
+    registerCellHooks("_TtC12AlightMotion21AssetsPhotoFolderCell");
+    registerCellHooks("_TtC12AlightMotion21BlendOpacityPanelCell");
+    registerCellHooks("_TtC12AlightMotion21BorderShadowPanelCell");
+    registerCellHooks("_TtC12AlightMotion21ColorLibraryTableCell");
+    registerCellHooks("_TtC12AlightMotion21NextStepTableViewCell");
+    registerCellHooks("_TtC12AlightMotion21ShapeLibraryPanelCell");
+    registerCellHooks("_TtC12AlightMotion21TextCellAccessoryView");
+    registerCellHooks("_TtC12AlightMotion21TipCollectionViewCell");
+    registerCellHooks("_TtC12AlightMotion21VAAlbumMiniPickerCell");
+    registerCellHooks("_TtC12AlightMotion22DevSettingTextEditCell");
+    registerCellHooks("_TtC12AlightMotion22EditNavNestedSceneCell");
+    registerCellHooks("_TtC12AlightMotion22EffectPickerPresetCell");
+    registerCellHooks("_TtC12AlightMotion22FullCollectionViewCell");
+    registerCellHooks("_TtC12AlightMotion22MultiSelBasicTableCell");
+    registerCellHooks("_TtC12AlightMotion22TutorialCollectionCell");
+    registerCellHooks("_TtC12AlightMotion22VisualLibraryPanelCell");
+    registerCellHooks("_TtC12AlightMotion22iconCollectionViewCell");
+    registerCellHooks("_TtC12AlightMotion23InUsePremiumFeatureCell");
+    registerCellHooks("_TtC12AlightMotion23RecentFontsReusableCell");
+    registerCellHooks("_TtC12AlightMotion23ShareProjectPackageCell");
+    registerCellHooks("_TtC12AlightMotion23ShareVideoTableViewCell");
+    registerCellHooks("_TtC12AlightMotion23VAAlbumPickerFolderCell");
+    registerCellHooks("_TtC12AlightMotion24AudioFolderSubfolderCell");
+    registerCellHooks("_TtC12AlightMotion24AudioMiniBrowserFileCell");
+    registerCellHooks("_TtC12AlightMotion24LayerStylePasteboardCell");
+    registerCellHooks("_TtC12AlightMotion24VAAlbumPickerDefaultCell");
+    registerCellHooks("_TtC12AlightMotion25EditNavNestedSceneSubCell");
+    registerCellHooks("_TtC12AlightMotion25ShapeLibraryInspectorCell");
+    registerCellHooks("_TtC12AlightMotion26EditNavNestedSceneRootCell");
+    registerCellHooks("_TtC12AlightMotion26EndStyleCollectionViewCell");
+    registerCellHooks("_TtC12AlightMotion26MultiSelOptionTabTableCell");
+    registerCellHooks("_TtC12AlightMotion26VisualLibraryPanelHoldCell");
+    registerCellHooks("_TtC12AlightMotion27AlightPopupMenuStandardCell");
+    registerCellHooks("_TtC12AlightMotion27AudioMiniBrowserViewAllCell");
+    registerCellHooks("_TtC12AlightMotion27GettingStartedTableViewCell");
+    registerCellHooks("_TtC12AlightMotion31ElementDiscoverMdtTemplatesCell");
+    registerCellHooks("_TtC12AlightMotion32MoreSampleProjectsCollectionCell");
+    registerCellHooks("_TtC12AlightMotion33DownloadableProjectCollectionCell");
+    registerCellHooks("_TtC12AlightMotion7XYZCell");
+    registerCellHooks("_TtC12AlightMotion8TextCell");
+    registerCellHooks("_TtC12AlightMotion9AboutCell");
+    registerCellHooks("_TtC12AlightMotion9ColorCell");
+    registerCellHooks("_TtC12AlightMotion9OptInCell");
+    registerCellHooks("_TtC12AlightMotion9PointCell");
 }
 
 
