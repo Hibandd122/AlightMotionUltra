@@ -317,26 +317,6 @@ static id safeGetPropertyOrIvar(id obj, const char *name) {
 
 // Forward declarations
 static void themeEntireViewTreeRecursively(UIView *view, int depth);
-// Global UIColor Hooks to replace #141520 / #141620 at source
-static UIColor * (*orig_UIColor_colorWithRed_green_blue_alpha)(id, SEL, CGFloat, CGFloat, CGFloat, CGFloat);
-static UIColor * hook_UIColor_colorWithRed_green_blue_alpha(id self, SEL _cmd, CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
-    if (a > 0.4) {
-        if (r >= 0.05 && r <= 0.135 && g >= 0.06 && g <= 0.145 && b >= 0.11 && b <= 0.22 && (b - r >= 0.012) && (b - g >= 0.012)) {
-            return orig_UIColor_colorWithRed_green_blue_alpha(self, _cmd, 16.0/255.0, 16.0/255.0, 18.0/255.0, a);
-        }
-        if (r > 0.135 && r <= 0.20 && g >= 0.14 && g <= 0.22 && b > 0.20 && b <= 0.29 && (b - r >= 0.018)) {
-            return orig_UIColor_colorWithRed_green_blue_alpha(self, _cmd, 28.0/255.0, 28.0/255.0, 30.0/255.0, a);
-        }
-    }
-    return orig_UIColor_colorWithRed_green_blue_alpha(self, _cmd, r, g, b, a);
-}
-
-static UIColor * (*orig_UIColor_colorNamed_inBundle_compatibleWithTraitCollection)(id, SEL, NSString *, NSBundle *, UITraitCollection *);
-static UIColor * hook_UIColor_colorNamed_inBundle_compatibleWithTraitCollection(id self, SEL _cmd, NSString *name, NSBundle *bundle, UITraitCollection *trait) {
-    UIColor *c = orig_UIColor_colorNamed_inBundle_compatibleWithTraitCollection(self, _cmd, name, bundle, trait);
-    return AMFilterColor(c);
-}
-
 
 // 2. Recursive pill / category tab styling
 static void stylePillButtons(UIView *view) {
@@ -1129,18 +1109,6 @@ static void AMOLEDThemeEngineInit(void) {
                 win.rootViewController.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
             }
         }
-    }
-
-    // 2. Hook UIColor methods to swap #141520 -> #101012 globally
-    Method mColorRGBA = class_getClassMethod([UIColor class], @selector(colorWithRed:green:blue:alpha:));
-    if (mColorRGBA) {
-        orig_UIColor_colorWithRed_green_blue_alpha = (void *)method_getImplementation(mColorRGBA);
-        method_setImplementation(mColorRGBA, (IMP)hook_UIColor_colorWithRed_green_blue_alpha);
-    }
-    Method mColorNamed = class_getClassMethod([UIColor class], @selector(colorNamed:inBundle:compatibleWithTraitCollection:));
-    if (mColorNamed) {
-        orig_UIColor_colorNamed_inBundle_compatibleWithTraitCollection = (void *)method_getImplementation(mColorNamed);
-        method_setImplementation(mColorNamed, (IMP)hook_UIColor_colorNamed_inBundle_compatibleWithTraitCollection);
     }
 
     // 3. Hook UIWindow initWithFrame:, makeKeyAndVisible & setRootViewController
