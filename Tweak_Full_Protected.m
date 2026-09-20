@@ -271,21 +271,41 @@ static void AMUnlockProjectPackageLimit(void) {
 }
 
 #pragma mark - =========================================================
-#pragma mark 2.7. Group D: OLED Pure Black Theme Engine (Super Retina XDR)
+#pragma mark 2.7. Group D: Ultra Motion Official Charcoal Dark Theme
 #pragma mark - =========================================================
 
-static BOOL s_oledThemeEnabled = YES;
+static BOOL s_umThemeEnabled = YES;
 
-static void applyOLEDThemeToView(UIView *view) {
-    if (!view || !s_oledThemeEnabled) return;
+#define UM_BG_COLOR     [UIColor colorWithRed:0.071 green:0.075 blue:0.086 alpha:1.0] // #121316 Deep Charcoal
+#define UM_CARD_COLOR   [UIColor colorWithRed:0.110 green:0.114 blue:0.133 alpha:1.0] // #1C1D22 Card & Cell
+#define UM_PILL_COLOR   [UIColor colorWithRed:0.157 green:0.165 blue:0.196 alpha:1.0] // #282A32 Pills / Search Bar
+#define UM_ACCENT_GREEN [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0]     // #00E676 FAB & Active Tab
+
+static void applyUMThemeToView(UIView *view) {
+    if (!view || !s_umThemeEnabled) return;
+
+    // Check class type for targeted styling
+    if ([view isKindOfClass:[UICollectionViewCell class]] || [view isKindOfClass:[UITableViewCell class]]) {
+        view.backgroundColor = UM_CARD_COLOR;
+        view.layer.cornerRadius = 14.0;
+        view.clipsToBounds = YES;
+        return;
+    }
+
+    if ([view isKindOfClass:[UITextField class]] || [view isKindOfClass:[UISearchBar class]]) {
+        view.backgroundColor = UM_PILL_COLOR;
+        view.layer.cornerRadius = 12.0;
+        view.clipsToBounds = YES;
+        return;
+    }
 
     UIColor *bg = view.backgroundColor;
     if (bg) {
         CGFloat r = 0, g = 0, b = 0, a = 0;
         if ([bg getRed:&r green:&g blue:&b alpha:&a]) {
-            // If background is dark grey (#101010 to #2e2e38), deepen it to pure pitch black #000000
-            if (r < 0.22 && g < 0.22 && b < 0.26 && a > 0.5) {
-                view.backgroundColor = [UIColor blackColor];
+            // Recolor generic grey/black backgrounds to Ultra Motion Deep Charcoal
+            if (r < 0.25 && g < 0.25 && b < 0.28 && a > 0.4) {
+                view.backgroundColor = UM_BG_COLOR;
             }
         }
     }
@@ -296,8 +316,8 @@ static void hook_UIView_didMoveToWindow(UIView *self, SEL _cmd) {
     if (orig_UIView_didMoveToWindow) {
         orig_UIView_didMoveToWindow(self, _cmd);
     }
-    if (self && self.window && s_oledThemeEnabled) {
-        applyOLEDThemeToView(self);
+    if (self && self.window && s_umThemeEnabled) {
+        applyUMThemeToView(self);
     }
 }
 
@@ -306,24 +326,25 @@ static void hook_UIViewController_viewWillAppear_OLED(UIViewController *self, SE
     if (orig_UIViewController_viewWillAppear_OLED) {
         orig_UIViewController_viewWillAppear_OLED(self, _cmd, animated);
     }
-    if (self && self.view && s_oledThemeEnabled) {
-        self.view.backgroundColor = [UIColor blackColor];
-        applyOLEDThemeToView(self.view);
-        for (UIView *sub in self.view.subviews) {
-            applyOLEDThemeToView(sub);
+    if (self && self.view && s_umThemeEnabled) {
+        NSString *vcName = NSStringFromClass([self class]);
+        // Target Home and project browsing VCs for the full Ultra Motion theme
+        if ([vcName containsString:@"Home"] || [vcName containsString:@"Projects"] || [vcName containsString:@"Template"] || [vcName containsString:@"Browse"]) {
+            self.view.backgroundColor = UM_BG_COLOR;
+            for (UIView *sub in self.view.subviews) {
+                applyUMThemeToView(sub);
+            }
         }
     }
 }
 
 static void AMOLEDThemeEngineInit(void) {
-    // Swizzle UIView didMoveToWindow for continuous OLED deep black application
     Method mMove = class_getInstanceMethod([UIView class], @selector(didMoveToWindow));
     if (mMove) {
         orig_UIView_didMoveToWindow = (void *)method_getImplementation(mMove);
         method_setImplementation(mMove, (IMP)hook_UIView_didMoveToWindow);
     }
 
-    // Swizzle UIViewController viewWillAppear
     Method mApp = class_getInstanceMethod([UIViewController class], @selector(viewWillAppear:));
     if (mApp) {
         orig_UIViewController_viewWillAppear_OLED = (void *)method_getImplementation(mApp);
