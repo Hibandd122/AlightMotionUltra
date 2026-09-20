@@ -1559,7 +1559,7 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
     [card3 addSubview:l3];
 
     UILabel *l3Sub = [[UILabel alloc] initWithFrame:CGRectMake(16, 32, card3.bounds.size.width - 32, 56)];
-    l3Sub.text = @"🟢 Full Premium Pro v6.2.56 Unlocked (4K, No Watermark)\n🟢 UMV Engine v6.6.6: FastStart Moov & Lossless Bitrate\n🟢 Ultra FPS Engine: 50..1920 FPS ProMotion Xuất Cực Mượt\n🟢 Đã triệt tiêu 100% SDK quảng cáo & Trình theo dõi ngầm";
+    l3Sub.text = @"🟢 Full Premium Pro v6.2.56 Unlocked (4K, No Watermark)\n🟢 UMV Engine v6.6.6: FastStart Moov & Lossless Bitrate\n🟢 Tự động tối ưu hoá lưu video vào Camera Roll\n🟢 Đã triệt tiêu 100% SDK quảng cáo & Trình theo dõi ngầm";
     l3Sub.textColor = [UIColor colorWithRed:0.0 green:0.90 blue:0.46 alpha:1.0];
     l3Sub.font = [UIFont systemFontOfSize:10.5 weight:UIFontWeightMedium];
     l3Sub.numberOfLines = 4;
@@ -2146,17 +2146,6 @@ static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, B
     }
     
     updateShareVideoQualityUI(self, slider);
-    
-    NSInteger presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"video_export_frameRate"];
-    if (presetFps <= 0) presetFps = [[NSUserDefaults standardUserDefaults] integerForKey:@"new_scene_preset_fps"];
-    if (presetFps > 0) {
-        UILabel *fpsLbl = nil;
-        @try { fpsLbl = [self valueForKey:@"fpsLabel"]; } @catch (NSException *e) {}
-        if (!fpsLbl) fpsLbl = (UILabel *)getObjcIvar(self, "fpsLabel");
-        if (fpsLbl && [fpsLbl isKindOfClass:[UILabel class]]) {
-            fpsLbl.text = [NSString stringWithFormat:@"%ld fps", (long)presetFps];
-        }
-    }
 }
 
 static void (*orig_ShareVideoVC_viewDidAppear)(UIViewController *, SEL, BOOL);
@@ -2339,6 +2328,6 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             }
         }
 
-        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with Ultra Framerate Engine (50..1920 FPS), UMV Lossless Slider & FastStart Auto-Save!");
+        NSLog(@"[AlightMotionUltra] Successfully initialized Standalone Clean Tweak with UMV Lossless Slider & FastStart Auto-Save!");
     });
 }
