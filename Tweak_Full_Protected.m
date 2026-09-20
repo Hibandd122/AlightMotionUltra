@@ -129,7 +129,7 @@ static void AMApplyProSettings(void) {
     [ud synchronize];
 }
 
-// Swizzle DTXWatermarkView to make it completely invisible
+// Swizzle DTXWatermarkView to make it completely invisible without breaking AutoLayout constraints
 static void (*orig_DTXWatermarkView_layoutSubviews)(UIView *, SEL);
 static void hook_DTXWatermarkView_layoutSubviews(UIView *self, SEL _cmd) {
     if (orig_DTXWatermarkView_layoutSubviews) {
@@ -137,10 +137,9 @@ static void hook_DTXWatermarkView_layoutSubviews(UIView *self, SEL _cmd) {
     }
     self.hidden = YES;
     self.alpha = 0.0;
-    [self removeFromSuperview];
 }
 
-// Swizzle Watermark popup layoutSubviews (safe dismissal without returning nil)
+// Swizzle Watermark popup layoutSubviews (safe hide without breaking view hierarchy)
 static void (*orig_WatermarkPopup_layoutSubviews)(UIView *, SEL);
 static void hook_WatermarkPopup_layoutSubviews(UIView *self, SEL _cmd) {
     if (orig_WatermarkPopup_layoutSubviews) {
@@ -148,7 +147,31 @@ static void hook_WatermarkPopup_layoutSubviews(UIView *self, SEL _cmd) {
     }
     self.hidden = YES;
     self.alpha = 0.0;
-    [self removeFromSuperview];
+}
+
+// ---------------------------------------------------------
+// iOS AutoLayout Crash Shield: Absorb _nearestAncestorLayoutItem and constraint activation crashes
+// ---------------------------------------------------------
+static void (*orig_NSLayoutConstraint_activateConstraints)(id, SEL, NSArray *);
+static void hook_NSLayoutConstraint_activateConstraints(id self, SEL _cmd, NSArray *constraints) {
+    @try {
+        if (orig_NSLayoutConstraint_activateConstraints) {
+            orig_NSLayoutConstraint_activateConstraints(self, _cmd, constraints);
+        }
+    } @catch (NSException *e) {
+        NSLog(@"[AlightMotionUltra] Safely absorbed NSLayoutConstraint activateConstraints exception: %@", e.reason);
+    }
+}
+
+static void (*orig_NSLayoutConstraint_deactivateConstraints)(id, SEL, NSArray *);
+static void hook_NSLayoutConstraint_deactivateConstraints(id self, SEL _cmd, NSArray *constraints) {
+    @try {
+        if (orig_NSLayoutConstraint_deactivateConstraints) {
+            orig_NSLayoutConstraint_deactivateConstraints(self, _cmd, constraints);
+        }
+    } @catch (NSException *e) {
+        NSLog(@"[AlightMotionUltra] Safely absorbed NSLayoutConstraint deactivateConstraints exception: %@", e.reason);
+    }
 }
 
 // ---------------------------------------------------------
@@ -2378,6 +2401,21 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
         if (mPresent) {
             orig_UIViewController_presentViewController = (void *)method_getImplementation(mPresent);
             method_setImplementation(mPresent, (IMP)hook_UIViewController_presentViewController);
+        }
+
+        // 6.1.1 Swizzle NSLayoutConstraint activate/deactivate (Absorb AutoLayout crashes on view transitions)
+        Class lcClass = [NSLayoutConstraint class];
+        if (lcClass) {
+            Method mAct = class_getClassMethod(lcClass, @selector(activateConstraints:));
+            if (mAct) {
+                orig_NSLayoutConstraint_activateConstraints = (void *)method_getImplementation(mAct);
+                method_setImplementation(mAct, (IMP)hook_NSLayoutConstraint_activateConstraints);
+            }
+            Method mDeact = class_getClassMethod(lcClass, @selector(deactivateConstraints:));
+            if (mDeact) {
+                orig_NSLayoutConstraint_deactivateConstraints = (void *)method_getImplementation(mDeact);
+                method_setImplementation(mDeact, (IMP)hook_NSLayoutConstraint_deactivateConstraints);
+            }
         }
 
         // 6.2 Suppress AppLovin Consent Flow crashes
