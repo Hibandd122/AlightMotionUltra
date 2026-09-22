@@ -2093,64 +2093,7 @@ static id getObjcIvar(id obj, const char *name) {
     return nil;
 }
 
-static void updateShareVideoQualityUI(UIViewController *self, UISlider *slider) {
-    if (!self) return;
-    if (!slider || ![slider isKindOfClass:[UISlider class]]) {
-        @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
-        if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
-    }
-    
-    if (slider && [slider isKindOfClass:[UISlider class]]) {
-        float val = slider.value;
-        UILabel *kbpsLbl = nil;
-        @try { kbpsLbl = [self valueForKey:@"kbpsLabel"]; } @catch (NSException *e) {}
-        if (!kbpsLbl) kbpsLbl = (UILabel *)getObjcIvar(self, "kbpsLabel");
-        
-        if (kbpsLbl && [kbpsLbl isKindOfClass:[UILabel class]]) {
-            float approxMbps = 6.0f + (val * 18.0f); // Tối ưu hiển thị mượt mà từ 6 - 24 Mbps thực tế
-            kbpsLbl.text = [NSString stringWithFormat:@"Khoảng %.1f Mbps", approxMbps];
-            kbpsLbl.textColor = [UIColor lightTextColor];
-            kbpsLbl.font = [UIFont systemFontOfSize:12 weight:UIFontWeightMedium];
-        }
-        
-        [[NSUserDefaults standardUserDefaults] setFloat:val forKey:@"video_export_quality"];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-    }
-}
-
-static void (*orig_ShareVideoVC_onSliderQuailty)(UIViewController *, SEL, UISlider *);
-static void hook_ShareVideoVC_onSliderQuailty(UIViewController *self, SEL _cmd, UISlider *slider) {
-    // Chặn hoàn toàn hàm gốc để triệt tiêu lỗi crash 0x1008fba34 brk #1 khi kéo slider
-    updateShareVideoQualityUI(self, slider);
-}
-
-static void (*orig_ShareVideoVC_viewWillAppear)(UIViewController *, SEL, BOOL);
-static void hook_ShareVideoVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
-    if (orig_ShareVideoVC_viewWillAppear) {
-        orig_ShareVideoVC_viewWillAppear(self, _cmd, animated);
-    }
-    
-    UISlider *slider = nil;
-    @try { slider = [self valueForKey:@"quailitySlider"]; } @catch (NSException *e) {}
-    if (!slider) slider = (UISlider *)getObjcIvar(self, "quailitySlider");
-    if (slider && [slider isKindOfClass:[UISlider class]]) {
-        slider.continuous = YES;
-        slider.minimumValue = 0.0f;
-        slider.maximumValue = 1.0f;
-        float curVal = [[NSUserDefaults standardUserDefaults] floatForKey:@"video_export_quality"];
-        if (curVal <= 0.01f) curVal = 1.0f;
-        slider.value = curVal;
-        
-        [slider addTarget:self action:@selector(onSliderQuailty:) forControlEvents:UIControlEventValueChanged];
-    }
-}
-
-static void (*orig_ShareVideoVC_viewDidAppear)(UIViewController *, SEL, BOOL);
-static void hook_ShareVideoVC_viewDidAppear(UIViewController *self, SEL _cmd, BOOL animated) {
-    if (orig_ShareVideoVC_viewDidAppear) {
-        orig_ShareVideoVC_viewDidAppear(self, _cmd, animated);
-    }
-}
+// Restored 100% native bitrate and video export quality handling (no custom slider override)
 
 #pragma mark - =========================================================
 #pragma mark Export Auto-Save & FastStart Moov Pipeline Hooks
@@ -2316,29 +2259,7 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
         // Apply native binary patch for default white text/vector color
         AMApplyDefaultWhiteColorPatch();
 
-        // 7. Hook ShareVideoVC for UMV Lossless Quality Slider & Ultra Export Bitrate
-        Class shareVidClass = objc_getClass("_TtC12AlightMotion12ShareVideoVC");
-        if (shareVidClass) {
-            Method mAppear = class_getInstanceMethod(shareVidClass, @selector(viewWillAppear:));
-            if (mAppear) {
-                orig_ShareVideoVC_viewWillAppear = (void *)method_getImplementation(mAppear);
-                method_setImplementation(mAppear, (IMP)hook_ShareVideoVC_viewWillAppear);
-            }
-            Method mDidAppear = class_getInstanceMethod(shareVidClass, @selector(viewDidAppear:));
-            if (mDidAppear) {
-                orig_ShareVideoVC_viewDidAppear = (void *)method_getImplementation(mDidAppear);
-                method_setImplementation(mDidAppear, (IMP)hook_ShareVideoVC_viewDidAppear);
-            }
-            Method mQuality = class_getInstanceMethod(shareVidClass, @selector(onSliderQuailty:));
-            if (mQuality) {
-                orig_ShareVideoVC_onSliderQuailty = (void *)method_getImplementation(mQuality);
-                method_setImplementation(mQuality, (IMP)hook_ShareVideoVC_onSliderQuailty);
-            } else {
-                class_addMethod(shareVidClass, @selector(onSliderQuailty:), (IMP)hook_ShareVideoVC_onSliderQuailty, "v@:@");
-            }
-        }
-
-
-        NSLog(@"[AlightMotionUltra] Successfully initialized Clean Tweak with Default Pure White Text, UMV Lossless Slider & FastStart Auto-Save!");
+        // Native bitrate engine preserved 100% untouched
+        NSLog(@"[AlightMotionUltra] Successfully initialized Clean Tweak with Default Pure White Text, Native Bitrate Engine & FastStart Auto-Save!");
     });
 }
