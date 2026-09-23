@@ -1160,6 +1160,7 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
 @interface AMLyricsQueueManager : NSObject
 @property (nonatomic, strong) NSMutableArray<NSString *> *lyricsLines;
 @property (nonatomic, assign) NSUInteger currentIndex;
+@property (nonatomic, assign) BOOL silentModeEnabled;
 + (instancetype)sharedManager;
 - (void)loadLyrics:(NSArray<NSString *> *)lines;
 - (void)clearLyrics;
@@ -1168,6 +1169,7 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
 - (NSString *)currentLineText;
 - (NSString *)consumeNextLineText;
 - (BOOL)hasNextLine;
+- (void)setSilentMode:(BOOL)enabled;
 @end
 
 @implementation AMLyricsQueueManager
@@ -1187,8 +1189,18 @@ static id hook_UIActivityViewController_initWithActivityItems(id self, SEL _cmd,
         if (mgr.currentIndex >= mgr.lyricsLines.count) {
             mgr.currentIndex = 0;
         }
+        mgr.silentModeEnabled = YES;
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:@"AM_SilentLyricsMode"]) {
+            mgr.silentModeEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:@"AM_SilentLyricsMode"];
+        }
     });
     return mgr;
+}
+
+- (void)setSilentMode:(BOOL)enabled {
+    self.silentModeEnabled = enabled;
+    [[NSUserDefaults standardUserDefaults] setBool:enabled forKey:@"AM_SilentLyricsMode"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void)saveToDisk {
@@ -1327,6 +1339,22 @@ static UIView *AMFindSubviewContainingClassName(UIView *root, NSString *sub) {
     return nil;
 }
 
+static UICollectionView *AMFindTimelineCollectionView(UIView *root) {
+    if (!root) return nil;
+    if ([root isKindOfClass:[UICollectionView class]]) {
+        UICollectionView *cv = (UICollectionView *)root;
+        NSString *layoutClass = NSStringFromClass([cv.collectionViewLayout class]);
+        if ([layoutClass containsString:@"Timeline"]) {
+            return cv;
+        }
+    }
+    for (UIView *child in root.subviews) {
+        UICollectionView *found = AMFindTimelineCollectionView(child);
+        if (found) return found;
+    }
+    return nil;
+}
+
 static UITextView *AMFindActiveTextViewInHierarchy(UIViewController *vc) {
     if (!vc) return nil;
     if ([vc respondsToSelector:@selector(inputTextView)]) {
@@ -1389,6 +1417,7 @@ static void AMTriggerTapOnView(UIView *view) {
 @property (nonatomic, assign) NSUInteger currentStepIndex;
 @property (nonatomic, assign) NSInteger lastScannedTimelineIndex;
 @property (nonatomic, weak) UIViewController *contextVC;
+@property (nonatomic, weak) UITextView *lastHandledTextView;
 @property (nonatomic, assign) BOOL isRunning;
 + (instancetype)sharedEngine;
 - (void)startAutoFillWithLines:(NSArray<NSString *> *)lines inViewController:(UIViewController *)vc;
@@ -1413,11 +1442,12 @@ static void AMTriggerTapOnView(UIView *view) {
     self.currentStepIndex = 0;
     self.lastScannedTimelineIndex = 0;
     self.contextVC = vc;
+    self.lastHandledTextView = nil;
     self.isRunning = YES;
 
     AMShowToast([NSString stringWithFormat:@"🚀 Bắt đầu tự động điền %lu văn bản...", (unsigned long)self.totalCount]);
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self processNextStep];
     });
 }
@@ -1425,13 +1455,14 @@ static void AMTriggerTapOnView(UIView *view) {
 - (void)stopAutoFill {
     self.isRunning = NO;
     self.pendingLines = nil;
+    self.lastHandledTextView = nil;
 }
 
 - (void)processNextStep {
     if (!self.isRunning) return;
 
     if (self.currentStepIndex >= self.totalCount) {
-        AMShowToast([NSString stringWithFormat:@"🎉 Hoàn tất! Đã tự động điền %lu văn bản!", (unsigned long)self.totalCount]);
+        AMShowToast([NSString stringWithFormat:@"🎉 Hoàn tất 100%! Đã điền xong toàn bộ %lu văn bản!", (unsigned long)self.totalCount]);
         AudioServicesPlaySystemSound(1519);
         [self stopAutoFill];
         return;
@@ -1439,7 +1470,7 @@ static void AMTriggerTapOnView(UIView *view) {
 
     NSString *line = self.pendingLines[self.currentStepIndex];
 
-    // Case A: Active text view already open / visible on screen
+    // Case A: Check if an active text view is currently open
     UITextView *tv = AMFindActiveTextViewInHierarchy(self.contextVC);
     if (!tv) {
         UIWindow *win = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
@@ -1451,7 +1482,9 @@ static void AMTriggerTapOnView(UIView *view) {
         }
     }
 
-    if (tv) {
+    // Only handle this tv if it is NEW (not the one we just handled)
+    if (tv && tv != self.lastHandledTextView) {
+        self.lastHandledTextView = tv;
         tv.text = line;
         if ([tv.delegate respondsToSelector:@selector(textViewDidChange:)]) {
             [tv.delegate textViewDidChange:tv];
@@ -1470,55 +1503,47 @@ static void AMTriggerTapOnView(UIView *view) {
         self.currentStepIndex++;
         [[AMLyricsQueueManager sharedManager] consumeNextLineText];
 
-        // Dismiss keyboard or tap Done after 0.25s
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            UIWindow *win = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
-            UIButton *doneBtn = (UIButton *)AMFindSubviewContainingClassName(win, @"doneButton");
-            if (!doneBtn) {
-                for (UIView *sub in win.subviews) {
-                    if ([sub isKindOfClass:[UIButton class]]) {
-                        UIButton *b = (UIButton *)sub;
-                        NSString *t = [b titleForState:UIControlStateNormal];
-                        if ([t isEqualToString:@"✓"] || [t containsString:@"Done"] || [t containsString:@"Xong"]) {
-                            doneBtn = b;
-                            break;
-                        }
-                    }
-                }
-            }
+        // Silently close without keyboard
+        [tv resignFirstResponder];
+        UIWindow *win = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
+        [win endEditing:YES];
 
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            UIButton *doneBtn = (UIButton *)AMFindSubviewContainingClassName(win, @"doneButton");
             if (doneBtn) {
                 [doneBtn sendActionsForControlEvents:UIControlEventTouchUpInside];
-            } else {
-                [tv resignFirstResponder];
-                [win endEditing:YES];
             }
 
-            // Move to next step after 0.35s
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [self processNextStep];
             });
         });
         return;
     }
 
+    // If tv is still the old one closing, wait 0.15s and retry
+    if (tv && tv == self.lastHandledTextView) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self processNextStep];
+        });
+        return;
+    }
+
     // Case B: Search Timeline for text layers
     UIWindow *win = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
-    UIView *tlView = AMFindSubviewContainingClassName(win, @"TimelineView");
-    UICollectionView *timelineCV = [tlView isKindOfClass:[UICollectionView class]] ? (UICollectionView *)tlView : nil;
+    UICollectionView *timelineCV = AMFindTimelineCollectionView(win);
 
     if (!timelineCV) {
-        AMShowToast([NSString stringWithFormat:@"⚡ [%lu/%lu] Đã nạp \"%@\" - Chạm vào text để điền!",
+        AMShowToast([NSString stringWithFormat:@"⚡ [Sẵn sàng #%lu/%lu] Chạm vào văn bản bất kỳ để điền ngầm tức thì!",
                      (unsigned long)(self.currentStepIndex + 1),
-                     (unsigned long)self.totalCount,
-                     line]);
+                     (unsigned long)self.totalCount]);
         [self stopAutoFill];
         return;
     }
 
     NSInteger totalItems = [timelineCV numberOfItemsInSection:0];
     if (totalItems == 0 || self.lastScannedTimelineIndex >= totalItems) {
-        AMShowToast([NSString stringWithFormat:@"🎉 Hoàn tất! Đã điền xong các văn bản có sẵn (%lu câu).", (unsigned long)self.currentStepIndex]);
+        AMShowToast([NSString stringWithFormat:@"🎉 Đã điền xong tất cả văn bản trên timeline (%lu câu).", (unsigned long)self.currentStepIndex]);
         [self stopAutoFill];
         return;
     }
@@ -1529,81 +1554,34 @@ static void AMTriggerTapOnView(UIView *view) {
 - (void)scanTimelineForTextLayer:(UICollectionView *)cv startIndex:(NSInteger)startIdx line:(NSString *)line {
     NSInteger total = [cv numberOfItemsInSection:0];
     if (startIdx >= total) {
-        AMShowToast([NSString stringWithFormat:@"🎉 Hoàn tất tự động điền (%lu văn bản)!", (unsigned long)self.currentStepIndex]);
+        AMShowToast([NSString stringWithFormat:@"🎉 Hoàn tất! Đã điền %lu văn bản.", (unsigned long)self.currentStepIndex]);
         [self stopAutoFill];
         return;
     }
 
     NSIndexPath *ip = [NSIndexPath indexPathForItem:startIdx inSection:0];
-    [cv selectItemAtIndexPath:ip animated:YES scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
+    [cv selectItemAtIndexPath:ip animated:NO scrollPosition:UICollectionViewScrollPositionCenteredHorizontally];
     if ([cv.delegate respondsToSelector:@selector(collectionView:didSelectItemAtIndexPath:)]) {
         [cv.delegate collectionView:cv didSelectItemAtIndexPath:ip];
     }
 
     self.lastScannedTimelineIndex = startIdx + 1;
 
-    // After 0.22s, check if Edit Text button appeared
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.22 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    // After 0.15s, check if Edit Text button appeared
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         UIWindow *win = [UIApplication sharedApplication].keyWindow ?: [UIApplication sharedApplication].windows.firstObject;
         UIView *editCell = AMFindSubviewContainingClassName(win, @"EditTextCell");
-        
+
         if (editCell) {
             // Found text layer! Tap Edit Text cell!
             AMTriggerTapOnView(editCell);
 
-            // After 0.28s, EditTextPanelVC / TextInputVC opens
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.28 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                UITextView *tv = nil;
-                for (UIView *sub in win.subviews) {
-                    if ([sub isKindOfClass:[UITextView class]]) {
-                        tv = (UITextView *)sub;
-                        break;
-                    }
-                }
-                if (!tv) {
-                    tv = (UITextView *)AMFindSubviewContainingClassName(win, @"TextView");
-                }
-
-                if (tv) {
-                    tv.text = line;
-                    if ([tv.delegate respondsToSelector:@selector(textViewDidChange:)]) {
-                        [tv.delegate textViewDidChange:tv];
-                    }
-                    if ([tv.delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementText:)]) {
-                        [tv.delegate textView:tv shouldChangeTextInRange:NSMakeRange(0, tv.text.length) replacementText:line];
-                    }
-                    [[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:tv];
-
-                    AudioServicesPlaySystemSound(1519);
-                    AMShowToast([NSString stringWithFormat:@"⚡ [%lu/%lu] Đã điền: \"%@\"", 
-                                 (unsigned long)(self.currentStepIndex + 1), 
-                                 (unsigned long)self.totalCount, 
-                                 line]);
-
-                    self.currentStepIndex++;
-                    [[AMLyricsQueueManager sharedManager] consumeNextLineText];
-
-                    // Tap Done after 0.22s
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.22 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                        UIButton *doneBtn = (UIButton *)AMFindSubviewContainingClassName(win, @"doneButton");
-                        if (doneBtn) {
-                            [doneBtn sendActionsForControlEvents:UIControlEventTouchUpInside];
-                        } else {
-                            [win endEditing:YES];
-                        }
-
-                        // Next step after 0.30s
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                            [self processNextStep];
-                        });
-                    });
-                } else {
-                    // Try next timeline layer
-                    [self scanTimelineForTextLayer:cv startIndex:self.lastScannedTimelineIndex line:line];
-                }
+            // Wait 0.35s for silent injection to fill & close, then advance
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self processNextStep];
             });
         } else {
-            // Not a text layer, immediately scan next
+            // Not a text layer, immediately scan next item
             [self scanTimelineForTextLayer:cv startIndex:self.lastScannedTimelineIndex line:line];
         }
     });
@@ -1616,6 +1594,7 @@ static void AMTriggerTapOnView(UIView *view) {
 @interface AMBatchLyricsViewController : UIViewController <UITextViewDelegate>
 @property (nonatomic, strong) UITextView *textView;
 @property (nonatomic, strong) UILabel *lineCountLabel;
+@property (nonatomic, strong) UIButton *silentToggleBtn;
 @property (nonatomic, strong) UIButton *autoFillStartButton;
 @property (nonatomic, strong) UIButton *pasteButton;
 @property (nonatomic, strong) UIButton *clearQueueButton;
@@ -1698,9 +1677,17 @@ static void AMTriggerTapOnView(UIView *view) {
     CGFloat bottomY = self.view.bounds.size.height - 50;
     CGFloat width = self.view.bounds.size.width;
 
+    // Silent Mode Quick Toggle Button
+    self.silentToggleBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.silentToggleBtn.frame = CGRectMake(16, bottomY - 90, width - 32, 34);
+    [self updateSilentButtonUI];
+    [self.silentToggleBtn addTarget:self action:@selector(toggleSilentMode) forControlEvents:UIControlEventTouchUpInside];
+    self.silentToggleBtn.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:self.silentToggleBtn];
+
     // Big Primary Button: 🚀 Bắt Đầu Tự Động Điền N Văn Bản
     self.autoFillStartButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.autoFillStartButton.frame = CGRectMake(16, bottomY - 50, width - 32, 44);
+    self.autoFillStartButton.frame = CGRectMake(16, bottomY - 48, width - 32, 42);
     [self.autoFillStartButton setTitle:@"🚀 Bắt Đầu Tự Động Điền (Chưa có lời)" forState:UIControlStateNormal];
     [self.autoFillStartButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     self.autoFillStartButton.backgroundColor = [UIColor colorWithRed:0.0 green:0.95 blue:0.55 alpha:1.0];
@@ -1768,6 +1755,36 @@ static void AMTriggerTapOnView(UIView *view) {
     [self.closeButton addTarget:self action:@selector(dismissModal) forControlEvents:UIControlEventTouchUpInside];
     self.closeButton.autoresizingMask = UIViewAutoresizingFlexibleTopMargin;
     [self.view addSubview:self.closeButton];
+}
+
+- (void)toggleSilentMode {
+    AMLyricsQueueManager *mgr = [AMLyricsQueueManager sharedManager];
+    [mgr setSilentMode:!mgr.silentModeEnabled];
+    [self updateSilentButtonUI];
+    AudioServicesPlaySystemSound(1519);
+    if (mgr.silentModeEnabled) {
+        AMShowToast(@"⚡ Đã BẬT Chế Độ Silent: Chạm văn bản là tự điền ngầm!");
+    } else {
+        AMShowToast(@"⚪ Đã TẮT Chế Độ Silent: Mở soạn thảo bình thường.");
+    }
+}
+
+- (void)updateSilentButtonUI {
+    BOOL on = [AMLyricsQueueManager sharedManager].silentModeEnabled;
+    if (on) {
+        [self.silentToggleBtn setTitle:@"⚡ Chế Độ Silent: ĐANG BẬT (Chạm là tự điền ngầm)" forState:UIControlStateNormal];
+        [self.silentToggleBtn setTitleColor:[UIColor colorWithRed:0.0 green:0.95 blue:0.55 alpha:1.0] forState:UIControlStateNormal];
+        self.silentToggleBtn.backgroundColor = [UIColor colorWithRed:0.0 green:0.95 blue:0.55 alpha:0.18];
+        self.silentToggleBtn.layer.borderColor = [UIColor colorWithRed:0.0 green:0.95 blue:0.55 alpha:0.7].CGColor;
+    } else {
+        [self.silentToggleBtn setTitle:@"⚪ Chế Độ Silent: ĐANG TẮT (Chạm mở soạn thảo)" forState:UIControlStateNormal];
+        [self.silentToggleBtn setTitleColor:[UIColor colorWithWhite:0.7 alpha:1.0] forState:UIControlStateNormal];
+        self.silentToggleBtn.backgroundColor = [UIColor colorWithWhite:0.16 alpha:0.6];
+        self.silentToggleBtn.layer.borderColor = [UIColor colorWithWhite:0.3 alpha:0.5].CGColor;
+    }
+    self.silentToggleBtn.layer.cornerRadius = 10.0;
+    self.silentToggleBtn.layer.borderWidth = 1.0;
+    self.silentToggleBtn.titleLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightBold];
 }
 
 - (void)dismissKeyboard {
@@ -2464,6 +2481,64 @@ static void AMTriggerTapOnView(UIView *view) {
 
 
 
+#pragma mark - Hook TextInputVC (Silent Auto-Fill on Layer Selection)
+
+static void (*orig_TextInputVC_viewWillAppear)(UIViewController *, SEL, BOOL);
+static void hook_TextInputVC_viewWillAppear(UIViewController *self, SEL _cmd, BOOL animated) {
+    if (orig_TextInputVC_viewWillAppear) {
+        orig_TextInputVC_viewWillAppear(self, _cmd, animated);
+    }
+
+    AMLyricsQueueManager *mgr = [AMLyricsQueueManager sharedManager];
+    if (mgr.silentModeEnabled && [mgr hasNextLine]) {
+        UITextView *tv = nil;
+        if ([self respondsToSelector:@selector(inputTextView)]) {
+            tv = [self valueForKey:@"inputTextView"];
+        }
+        if (!tv) {
+            for (UIView *sub in self.view.subviews) {
+                if ([sub isKindOfClass:[UITextView class]]) {
+                    tv = (UITextView *)sub;
+                    break;
+                }
+            }
+        }
+
+        if (tv) {
+            NSString *line = [mgr consumeNextLineText];
+            tv.text = line;
+            if ([tv.delegate respondsToSelector:@selector(textViewDidChange:)]) {
+                [tv.delegate textViewDidChange:tv];
+            }
+            if ([tv.delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementText:)]) {
+                [tv.delegate textView:tv shouldChangeTextInRange:NSMakeRange(0, tv.text.length) replacementText:line];
+            }
+            [[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:tv];
+
+            AudioServicesPlaySystemSound(1519);
+            AMShowToast([NSString stringWithFormat:@"⚡ [Silent #%lu/%lu] Đã điền: \"%@\"", 
+                         (unsigned long)mgr.currentIndex, 
+                         (unsigned long)mgr.lyricsLines.count, 
+                         line]);
+
+            [tv resignFirstResponder];
+            [self.view endEditing:YES];
+
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.06 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                UIButton *doneBtn = (UIButton *)AMFindSubviewContainingClassName(self.view, @"doneButton");
+                if (!doneBtn && self.parentViewController) {
+                    doneBtn = (UIButton *)AMFindSubviewContainingClassName(self.parentViewController.view, @"doneButton");
+                }
+                if (doneBtn) {
+                    [doneBtn sendActionsForControlEvents:UIControlEventTouchUpInside];
+                } else {
+                    [self dismissViewControllerAnimated:NO completion:nil];
+                }
+            });
+        }
+    }
+}
+
 #pragma mark - Hook UITextView (Lyrics Accessory Bar)
 
 static BOOL (*orig_UITextView_becomeFirstResponder)(UITextView *, SEL);
@@ -2658,6 +2733,16 @@ __attribute__((constructor)) static void initAlightMotionUltra() {
             if (mAppear) {
                 orig_ExportVC_viewDidAppear = (void *)method_getImplementation(mAppear);
                 method_setImplementation(mAppear, (IMP)hook_ExportVC_viewDidAppear);
+            }
+        }
+
+        // 5.5. Hook TextInputVC for Silent Auto-Fill
+        Class textInputClass = objc_getClass("_TtC12AlightMotion11TextInputVC");
+        if (textInputClass) {
+            Method mAppear = class_getInstanceMethod(textInputClass, @selector(viewWillAppear:));
+            if (mAppear) {
+                orig_TextInputVC_viewWillAppear = (void *)method_getImplementation(mAppear);
+                method_setImplementation(mAppear, (IMP)hook_TextInputVC_viewWillAppear);
             }
         }
 
